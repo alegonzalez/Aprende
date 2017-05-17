@@ -35,12 +35,12 @@ public class MainActivity extends AppCompatActivity {
   }
 
     //onclick registrar
-/*
+
     public void registrar(View view) {
-        Intent intent = new Intent(MainActivity.this, registrar.class);
+        Intent intent = new Intent(MainActivity.this, Registrar.class);
         startActivity(intent);
     }
-    */
+
     //onclick para ingresar
     public void ingresar(View view){
         Intent intent = new Intent(MainActivity.this, Ingresar.class);
