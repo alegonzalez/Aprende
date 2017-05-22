@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.security.AccessControlContext;
+
 import static android.R.id.list;
 
 /**
@@ -46,11 +48,14 @@ public class DBHandler extends SQLiteOpenHelper {
     //Sql creación de la tabla estadistica
     private String estadistica = "CREATE TABLE Estadistica (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id_pregunta INTEGER, cantidad_errores INTEGER , id_persona INTEGER NOT NULL, " + " FOREIGN KEY (id_pregunta) REFERENCES Pregunta (id)" + " " + "" +
             "FOREIGN KEY (id_persona) REFERENCES Persona (id)" + ");";
-
+    SQLiteDatabase db;
 
     public DBHandler(Context context) {
         super(context, NOMBRE_BASE_DATOS, null, VERSION_BASE_DATOS);
+        db=this.getWritableDatabase();
     }
+
+
 
     @Override
     public void onCreate(SQLiteDatabase db) {
