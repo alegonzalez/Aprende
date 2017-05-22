@@ -98,37 +98,42 @@ public class Registrar extends AppCompatActivity {
 
     //metodo onclick para registrar
     public void registrar(View view) {
-        String genero = "";
-        if (!(validarSeleccionImagen())) {
+        if (!(validarSeleccionImagen(imageView))) {
             Toast.makeText(this, "Debes seleccionar una foto de perfil del niño", Toast.LENGTH_LONG).show();
             return;
-        } else if (!(validarSeleccionGenero())) {
+        } else if (!(validarSeleccionGenero(rbtMasculino,rbtFemenina))) {
             Toast.makeText(this, "Debes seleccionar el género", Toast.LENGTH_LONG).show();
             return;
         }
+        guardarImagenDispositivo();
+        registrarBaseDatos();
+    }
+
+    public boolean registrarBaseDatos() {
+        String genero = "";
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
         genero = (rbtMasculino.isChecked()) ? "M" : "F";
         ContentValues values = new ContentValues();
         values.put("genero", genero);
         values.put("imagen", nombreImagen);
-        long newRowId = db.insert("persona", null, values);
-        Toast.makeText(this, "ID: " + newRowId, Toast.LENGTH_SHORT).show();
+        long id = db.insert("persona", null, values);
         db.close();
-
-        guardarImagenDispositivo();
+        Intent intent = new Intent(Registrar.this, MainActivity.class);
+        startActivity(intent);
+        return true;
     }
 
     //guardar la imagen en los archivos de la aplicación del celular
     private boolean guardarImagenDispositivo() {
-        File direct = new File(Environment.getExternalStorageDirectory() + "/perfil");
+        File direct = new File(Environment.getExternalStorageDirectory() + "/Aprende");
 
         if (!direct.exists()) {
-            File wallpaperDirectory = new File("/sdcard/perfil/");
+            File wallpaperDirectory = new File("/sdcard/Aprende/");
             wallpaperDirectory.mkdirs();
         }
 
-        File file = new File(new File("/sdcard/perfil/"), nombreImagen);
+        File file = new File(new File("/sdcard/Aprende/"), nombreImagen);
         if (file.exists()) {
             file.delete();
         }
@@ -144,7 +149,7 @@ public class Registrar extends AppCompatActivity {
     }
 
     //valida que se halla seleccionado la imagen del perfil del niño
-    public boolean validarSeleccionImagen() {
+    public boolean validarSeleccionImagen(ImageView imageView) {
         if (null != imageView.getDrawable()) {
             return true;
         } else {
@@ -153,7 +158,7 @@ public class Registrar extends AppCompatActivity {
     }
 
     //valida que se halla seleccionado el genero
-    public boolean validarSeleccionGenero() {
+    public boolean validarSeleccionGenero(RadioButton rbtMasculino,RadioButton rbtFemenina) {
         if (rbtMasculino.isChecked() || rbtFemenina.isChecked()) {
             return true;
         } else {
