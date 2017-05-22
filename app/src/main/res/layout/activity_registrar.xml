@@ -22,13 +22,13 @@
         android:drawableLeft="@drawable/ic_account_circle_black"
         android:drawableTint="@color/boton"
         android:text="Registrar"
-        android:textColor="@color/boton" />
+        android:textColor="@color/boton"
+        android:onClick="registrar" />
 
     <ImageView
         android:id="@+id/imgPerfil"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:ignore="ContentDescription,RtlHardcoded"
         android:layout_above="@+id/btnCargar"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
@@ -60,7 +60,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/femenino"
+        android:src="@drawable/femenino"
         android:id="@+id/imageView4"
         android:layout_above="@+id/rbtFemenina"
         android:layout_toLeftOf="@+id/txtSelecciónGenero"
@@ -87,7 +87,7 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/masculino"
+        android:src="@drawable/masculino"
         android:id="@+id/imgMasculino"
         android:layout_above="@+id/rbtMasculino"
         android:layout_toRightOf="@+id/btnRegistrar"
