@@ -106,7 +106,6 @@ public class Registrar extends AppCompatActivity {
             Toast.makeText(this, "Debes seleccionar el género", Toast.LENGTH_LONG).show();
             return;
         }
-       /*
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
         genero = (rbtMasculino.isChecked()) ? "M" : "F";
@@ -116,7 +115,7 @@ public class Registrar extends AppCompatActivity {
         long newRowId = db.insert("persona", null, values);
         Toast.makeText(this, "ID: " + newRowId, Toast.LENGTH_SHORT).show();
         db.close();
-        */
+
         guardarImagenDispositivo();
     }
 
