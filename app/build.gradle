@@ -11,6 +11,12 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
+        testApplicationId "ale.aprende.aprende.pruebas"
+        testInstrumentationRunner "android.test.InstrumentationTestRunner"
+    }
+    testOptions{
+        reportDir = "$project.buildDir/results/report"
+        resultsDir = "$project.buildDir/results"
     }
     buildTypes {
         release {

@@ -1,4 +1,4 @@
-package ale.aprende.aprende;
+package ale.aprende.aprende.pruebas;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -23,4 +23,6 @@ public class ExampleInstrumentedTest {
 
         assertEquals("ale.aprende.aprende", appContext.getPackageName());
     }
+
+
 }

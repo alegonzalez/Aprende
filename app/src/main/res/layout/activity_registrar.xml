@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_registrar"
     android:layout_width="match_parent"
@@ -8,6 +9,88 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@color/boton"
     tools:context="ale.aprende.aprende.Registrar">
+
+    <Button
+        android:id="@+id/btnRegistrar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:backgroundTint="@color/accent"
+        android:drawableLeft="@drawable/ic_account_circle_black"
+        android:drawableTint="@color/boton"
+        android:text="Registrar"
+        android:textColor="@color/boton" />
+
+    <ImageView
+        android:id="@+id/imgPerfil"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:ignore="ContentDescription,RtlHardcoded"
+        android:layout_above="@+id/btnCargar"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:id="@+id/txtSelecciónGenero"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Seleccione el género"
+        android:layout_marginBottom="80dp"
+        android:layout_above="@+id/btnRegistrar"
+        android:layout_alignLeft="@+id/btnRegistrar"
+        android:layout_alignStart="@+id/btnRegistrar" />
+
+    <Button
+        android:id="@+id/btnCargar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/accent"
+        android:drawableLeft="@android:drawable/stat_sys_upload_done"
+        android:onClick="cargarFoto"
+        android:text="Cargar foto de galería"
+        android:textColor="@color/boton"
+        tools:ignore="HardcodedText,RtlHardcoded"
+        android:layout_above="@+id/txtSelecciónGenero"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="86dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/femenino"
+        android:id="@+id/imageView4"
+        android:layout_above="@+id/rbtFemenina"
+        android:layout_toLeftOf="@+id/txtSelecciónGenero"
+        android:layout_toStartOf="@+id/txtSelecciónGenero" />
+
+    <RadioButton
+        android:text="Niña"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/rbtFemenina"
+        android:layout_above="@+id/btnRegistrar"
+        android:layout_alignLeft="@+id/imageView4"
+        android:layout_alignStart="@+id/imageView4" />
+
+    <RadioButton
+        android:text="Niño"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/rbtMasculino"
+        android:layout_above="@+id/btnRegistrar"
+        android:layout_alignLeft="@+id/imgMasculino"
+        android:layout_alignStart="@+id/imgMasculino" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:srcCompat="@drawable/masculino"
+        android:id="@+id/imgMasculino"
+        android:layout_above="@+id/rbtMasculino"
+        android:layout_toRightOf="@+id/btnRegistrar"
+        android:layout_toEndOf="@+id/btnRegistrar" />
 
 </RelativeLayout>
