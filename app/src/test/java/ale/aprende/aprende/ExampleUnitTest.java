@@ -1,8 +1,8 @@
 package ale.aprende.aprende;
 
-import android.content.Context;
-
 import org.junit.Test;
+
+import ale.aprende.aprende.Ingresar.Ingresar;
 
 import static org.junit.Assert.*;
 

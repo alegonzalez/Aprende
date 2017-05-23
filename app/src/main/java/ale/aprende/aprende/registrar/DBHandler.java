@@ -1,4 +1,4 @@
-package ale.aprende.aprende;
+package ale.aprende.aprende.registrar;
 
 import android.content.ContentValues;
 import android.content.Context;

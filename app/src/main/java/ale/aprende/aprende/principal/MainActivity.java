@@ -1,16 +1,17 @@
-package ale.aprende.aprende;
+package ale.aprende.aprende.principal;
 
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
-import static android.R.id.message;
-import static android.provider.AlarmClock.EXTRA_MESSAGE;
+import ale.aprende.aprende.Categoria;
+import ale.aprende.aprende.Ingresar.Ingresar;
+import ale.aprende.aprende.R;
+import ale.aprende.aprende.registrar.DBHandler;
+import ale.aprende.aprende.registrar.Registrar;
 
 public class MainActivity extends AppCompatActivity {
     //Declaración de variables
