@@ -15,62 +15,55 @@ import static android.content.ContentValues.TAG;
  */
 
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
+    //Declaración de variables
     private SurfaceHolder mHolder;
     private Camera mCamera;
-//Constructor
+
+    //Constructor
     public CameraPreview(Context context, Camera camera) {
         super(context);
         mCamera = camera;
 
-        // Install a SurfaceHolder.Callback so we get notified when the
-        // underlying surface is created and destroyed.
+        // Instala un SurfaceHolder.Callback para que seamos notificados cuando el
+        // se crea y destruye la superficie subyacente.
         mHolder = getHolder();
         mHolder.addCallback(this);
         // deprecated setting, but required on Android versions prior to 3.0
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
+    //La superficie se ha creado, ahora decir a la cámara donde dibujar la vista previa.
     public void surfaceCreated(SurfaceHolder holder) {
-        // The Surface has been created, now tell the camera where to draw the preview.
         try {
             mCamera.setDisplayOrientation(90);
             mCamera.setPreviewDisplay(holder);
             mCamera.startPreview();
         } catch (IOException e) {
-            Log.d(TAG, "Error setting camera preview: " + e.getMessage());
+            Log.d(TAG, "Error al configurar la vista previa de la cámara:" + e.getMessage());
         }
     }
 
     public void surfaceDestroyed(SurfaceHolder holder) {
-        // empty. Take care of releasing the Camera preview in your activity.
+
     }
 
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-        // If your preview can change or rotate, take care of those events here.
-        // Make sure to stop the preview before resizing or reformatting it.
-
         if (mHolder.getSurface() == null) {
-            // preview surface does not exist
+            //no  existe la vista
             return;
         }
-
-        // stop preview before making changes
+        // Detener la vista previa antes de realizar cambios
         try {
             mCamera.stopPreview();
         } catch (Exception e) {
-            // ignore: tried to stop a non-existent preview
         }
-
-        // set preview size and make any resize, rotate or
-        // reformatting changes here
-
-        // start preview with new settings
+        // Establecer el tamaño de vista previa y hacer cualquier cambio de tamaño, rotación o  cambios de formato aquí
+        // Iniciar la vista previa con la nueva configuración
         try {
             mCamera.setPreviewDisplay(mHolder);
             mCamera.startPreview();
-
         } catch (Exception e) {
-            Log.d(TAG, "Error starting camera preview: " + e.getMessage());
+            Log.d(TAG, "Error al iniciar la previsualización de la cámara: " + e.getMessage());
         }
     }
 }
