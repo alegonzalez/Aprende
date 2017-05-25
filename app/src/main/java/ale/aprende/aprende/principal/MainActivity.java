@@ -1,7 +1,10 @@
 package ale.aprende.aprende.principal;
 
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
+import android.support.multidex.MultiDex;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -18,12 +21,23 @@ public class MainActivity extends AppCompatActivity {
     ImageButton btnIngresar;
     ImageButton btnRegistrar;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         getSupportActionBar().setDisplayShowHomeEnabled(true);
         getSupportActionBar().setIcon(R.mipmap.ic_app);
+        if (getString(R.string.subscription_key).startsWith("Please")) {
+            new AlertDialog.Builder(this)
+                    .setTitle(getString(R.string.add_subscription_key_tip_title))
+                    .setMessage(getString(R.string.add_subscription_key_tip))
+                    .setCancelable(false)
+                    .show();
+        }
         DBHandler db1 = new DBHandler(this);
         SQLiteDatabase db = db1.getWritableDatabase();
         if (db != null) {
@@ -33,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         db.close();
         btnRegistrar = (ImageButton) findViewById(R.id.registrar);
         btnIngresar = (ImageButton) findViewById(R.id.ingresar);
-  }
+    }
 
     //onclick registrar
 
@@ -43,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //onclick para ingresar
-    public void ingresar(View view){
+    public void ingresar(View view) {
         Intent intent = new Intent(MainActivity.this, Ingresar.class);
         startActivity(intent);
     }

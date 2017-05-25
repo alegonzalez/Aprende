@@ -101,4 +101,14 @@
         android:layout_below="@+id/imageView4"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <ImageView
+        android:id="@+id/rostro"
+        android:layout_width="100dp"
+        android:layout_height="150dp"
+        android:layout_below="@+id/rbtMasculino"
+        android:layout_alignLeft="@+id/btnCargar"
+        android:layout_alignStart="@+id/btnCargar"
+        android:layout_marginBottom="60dp"/>
+
 </RelativeLayout>

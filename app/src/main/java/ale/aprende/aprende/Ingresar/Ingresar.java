@@ -4,11 +4,9 @@ import android.app.Activity;
 import android.hardware.Camera;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Surface;
 import android.view.View;
 import android.widget.FrameLayout;
-
 
 import java.io.IOException;
 
@@ -40,10 +38,8 @@ public class Ingresar extends AppCompatActivity {
             currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
         }
         mCamera = Camera.open(currentCameraId);
-
         setCameraDisplayOrientation(Ingresar.this, currentCameraId, mCamera);
         try {
-
             mCamera.setPreviewDisplay(mPreview.getHolder());
         } catch (IOException e) {
             e.printStackTrace();
