@@ -22,7 +22,7 @@ public class DBHandler extends SQLiteOpenHelper {
     //Nombre de la base de datos
     private static final String NOMBRE_BASE_DATOS = "aprende";
     //Sql de la creacion de la tabla persona
-    private String persona = "CREATE TABLE Persona(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, genero TEXT, imagen TEXT)";
+    private String persona = "CREATE TABLE Persona(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, genero TEXT, imagen TEXT, rostro TEXT)";
     //Sql de la creación de la tabla categoria
     private String categoria = "CREATE TABLE Categoria (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, nombre TEXT);";
     //Sql de la creación tabla subcategoria

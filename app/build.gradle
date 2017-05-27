@@ -14,7 +14,7 @@ android {
         testApplicationId "ale.aprende.aprende.pruebas"
         testInstrumentationRunner "android.test.InstrumentationTestRunner"
     }
-    testOptions{
+    testOptions {
         reportDir = "$project.buildDir/results/report"
         resultsDir = "$project.buildDir/results"
     }
