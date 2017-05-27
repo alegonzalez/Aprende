@@ -22,8 +22,6 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.microsoft.projectoxford.face.FaceServiceClient;
@@ -33,7 +31,6 @@ import com.microsoft.projectoxford.face.contract.VerifyResult;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -56,16 +53,15 @@ import ale.aprende.aprende.registrar.Registrar;
 public class Ingresar extends AppCompatActivity {
     private Camera mCamera;
     private CameraPreview mPreview;
-    private int currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
-    private BitmapFactory.Options options, o, o2;
+    private int idActualCamara = Camera.CameraInfo.CAMERA_FACING_BACK;
     private Bitmap imagen1, imagen2;
-    private FileInputStream fis;
     public ProgressDialog progressDialog;
-    private UUID mFaceId0;
-    private UUID mFaceId1;
+    private UUID mRostroId0;
+    private UUID mRostroId1;
     protected FaceListAdapter mFaceListAdapter0;
     protected FaceListAdapter mFaceListAdapter1;
-    Button btnDetectar, btnVerificar;
+    private Button btnDetectar, btnVerificar;
+    public static final int MEDIA_TYPE_IMAGE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,7 +95,7 @@ public class Ingresar extends AppCompatActivity {
     }
 
     public void reconocimiento(View view) {
-        new VerificationTask(mFaceId0, mFaceId1).execute();
+        new VerificationTask(mRostroId0, mRostroId1).execute();
     }
 
     /**
@@ -116,11 +112,11 @@ public class Ingresar extends AppCompatActivity {
                 String nombre_imagen = cursor.getString(cursor.getColumnIndex("imagen"));
                 String id = cursor.getString(cursor.getColumnIndex("id"));
                 resultado = nombre_imagen.split("\\.");
-                File file = new File(new File("/sdcard/Aprende/"), resultado[0] + "_" + id + "."+resultado[1]);
+                File file = new File(new File("/sdcard/Aprende/"), resultado[0] + "_" + id + "." + resultado[1]);
                 if (file.exists()) {
                     String rostro = cursor.getString(cursor.getColumnIndex("rostro"));
                     imagen1 = BitmapFactory.decodeFile(file.getAbsolutePath());
-                    mFaceId0 = UUID.fromString(rostro);
+                    mRostroId0 = UUID.fromString(rostro);
                     verificador = 1;
                 }
                 cursor.moveToNext();
@@ -133,13 +129,13 @@ public class Ingresar extends AppCompatActivity {
     public void frontal(View view) {
         mCamera.release();
         //swap the id of the camera to be used
-        if (currentCameraId == Camera.CameraInfo.CAMERA_FACING_BACK) {
-            currentCameraId = Camera.CameraInfo.CAMERA_FACING_FRONT;
+        if (idActualCamara == Camera.CameraInfo.CAMERA_FACING_BACK) {
+            idActualCamara = Camera.CameraInfo.CAMERA_FACING_FRONT;
         } else {
-            currentCameraId = Camera.CameraInfo.CAMERA_FACING_BACK;
+            idActualCamara = Camera.CameraInfo.CAMERA_FACING_BACK;
         }
-        mCamera = Camera.open(currentCameraId);
-        setCameraDisplayOrientation(Ingresar.this, currentCameraId, mCamera);
+        mCamera = Camera.open(idActualCamara);
+        setCameraDisplayOrientation(Ingresar.this, idActualCamara, mCamera);
         try {
             mCamera.setPreviewDisplay(mPreview.getHolder());
         } catch (IOException e) {
@@ -185,11 +181,11 @@ public class Ingresar extends AppCompatActivity {
     public static Camera getCameraInstance() {
         Camera c = null;
         try {
-            c = Camera.open(); // attempt to get a Camera instance
+            c = Camera.open();
         } catch (Exception e) {
-            // Camera is not available (in use or does not exist)
+
         }
-        return c; // returns null if camera is unavailable
+        return c;
     }
 
     //Tomar la foto
@@ -197,88 +193,73 @@ public class Ingresar extends AppCompatActivity {
 
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
-            if (pictureFile == null) {
+            File archivo_imagen = obtenerArchivoSalida(MEDIA_TYPE_IMAGE);
+            if (archivo_imagen == null) {
                 Log.d("", "Error creating media file, check storage permissions");
                 return;
             }
-
             try {
-                FileOutputStream fos = new FileOutputStream(pictureFile);
+                FileOutputStream fos = new FileOutputStream(archivo_imagen);
                 fos.write(data);
                 fos.close();
             } catch (FileNotFoundException e) {
-                Log.d("", "File not found: " + e.getMessage());
+                Log.d("", "Archivos no encontrados: " + e.getMessage());
             } catch (IOException e) {
-                Log.d("", "Error accessing file: " + e.getMessage());
+                Log.d("", "Error al acceder al archivo: " + e.getMessage());
             }
-            mFaceId1 = null;
-            imagen2 = BitmapFactory.decodeFile(pictureFile.getAbsolutePath());
+            mRostroId1 = null;
+            imagen2 = BitmapFactory.decodeFile(archivo_imagen.getAbsolutePath());
             detect(imagen2, 1);
-            pictureFile.delete();
+            archivo_imagen.delete();
         }
     };
 
-
-    public static final int MEDIA_TYPE_IMAGE = 1;
-
     /**
-     * Create a File for saving an image or video
+     * Crear un archivo para guardar una imagen
      */
-    private static File getOutputMediaFile(int type) {
-        // To be safe, you should check that the SDCard is mounted
-        // using Environment.getExternalStorageState() before doing this.
-
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "MyCameraApp");
-        // This location works best if you want the created images to be shared
-        // between applications and persist after your app has been uninstalled.
-
-        // Create the storage directory if it does not exist
+    private static File obtenerArchivoSalida(int type) {
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "MyCameraApp");
+        // Cree el directorio de almacenamiento si no existe
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
-                Log.d("MyCameraApp", "failed to create directory");
+                Log.d("MyCameraApp", "No se pudo crear el directorio");
                 return null;
             }
         }
-
-        // Create a media file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File mediaFile;
+        File archivo;
         if (type == MEDIA_TYPE_IMAGE) {
-            mediaFile = new File(mediaStorageDir.getPath() + File.separator +
+            archivo = new File(mediaStorageDir.getPath() + File.separator +
                     "IMG_" + timeStamp + ".jpg");
         } else {
             return null;
         }
-        return mediaFile;
+        return archivo;
     }
 
     //DETECTAR Y RECONOCER
 
 
-    // Background task for face verification.
+    // Tarea de fondo para la verificación de la cara.
     private class VerificationTask extends AsyncTask<Void, String, VerifyResult> {
-        // The IDs of two face to verify.
-        private UUID mFaceId0;
-        private UUID mFaceId1;
+        private UUID mRostroId0;
+        private UUID mRostroId1;
 
         VerificationTask(UUID faceId0, UUID faceId1) {
-            mFaceId0 = faceId0;
-            mFaceId1 = faceId1;
+            mRostroId0 = faceId0;
+            mRostroId1 = faceId1;
         }
 
         @Override
         protected VerifyResult doInBackground(Void... params) {
-            // Get an instance of face service client to detect faces in image.
+            // Obtener una instancia del cliente de servicio de cara para detectar las caras en la imagen.
             FaceServiceClient faceServiceClient = SampleApp.getFaceServiceClient();
             try {
-                publishProgress("Verifying...");
-
-                // Start verification.
+                publishProgress("Verificando");
+                // Inicio de la verificación
                 return faceServiceClient.verify(
-                        mFaceId0,      /* The first face ID to verify */
-                        mFaceId1);     /* The second face ID to verify */
+                        mRostroId0,      /* The first face ID to verify */
+                        mRostroId1);     /* The second face ID to verify */
             } catch (Exception e) {
                 publishProgress(e.getMessage());
                 addLog(e.getMessage());
@@ -289,7 +270,7 @@ public class Ingresar extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             progressDialog.show();
-            addLog("Request: Verifying face " + mFaceId0 + " and face " + mFaceId1);
+            addLog("Request: Verifying face " + mRostroId0 + " and face " + mRostroId1);
         }
 
         @Override
@@ -301,56 +282,42 @@ public class Ingresar extends AppCompatActivity {
         @Override
         protected void onPostExecute(VerifyResult result) {
             if (result != null) {
-                addLog("Response: Success. Face " + mFaceId0 + " and face "
-                        + mFaceId1 + (result.isIdentical ? " " : " don't ")
-                        + "belong to the same person");
+                addLog("Response: Success. Rostro " + mRostroId0 + " y el rostro "
+                        + mRostroId1 + (result.isIdentical ? " " : " no ")
+                        + "pertenece a la misma persona");
             }
-
-            // Show the result on screen when verification is done.
+            // Muestra el resultado en la pantalla cuando se realiza la verificación.
             setUiAfterVerification(result);
         }
     }
 
-    // Set the verify button is enabled or not.
-    private void setVerifyButtonEnabledStatus(boolean isEnabled) {
-        //Button button = (Button) findViewById(R.id.btnReconocer);
-        //button.setEnabled(isEnabled);
-    }
-
-    // Start detecting in image specified by index.
+    // Inicia la detección en la imagen especificada por índice.
     private void detect(Bitmap bitmap, int index) {
-        // Put the image into an input stream for detection.
+        //Poner la imagen en un flujo de entrada para su detección.
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
         ByteArrayInputStream inputStream = new ByteArrayInputStream(output.toByteArray());
-
-        // Start a background task to detect faces in the image.
+        // Iniciar una tarea en segundo plano para detectar rostros en la imagen.
         new DetectionTask(index).execute(inputStream);
-        // Set the status to show that detection starts.
-        setInfo("Detecting...");
+        // Establece el estado para mostrar que se inicia la detección.
+        setInfo("Detectando...");
     }
 
-    // Show the result on screen when verification is done.
+    // Mostrar el resultado en la pantalla cuando se realiza la verificación.
     private void setUiAfterVerification(VerifyResult result) {
-        // Verification is done, hide the progress dialog.
+        // Se realiza la verificación, ocultar el cuadro de diálogo de progreso.
         progressDialog.dismiss();
-
-        // Enable all the buttons.
-        // setAllButtonEnabledStatus(true);
-
-        // Show verification result.
+        // Mostrar el resultado de la verificación.
         if (result != null) {
             DecimalFormat formatter = new DecimalFormat("#0.00");
-            String verificationResult = (result.isIdentical ? "The same person" : "Different persons")
-                    + ". The confidence is " + formatter.format(result.confidence);
-            Toast.makeText(this, verificationResult, Toast.LENGTH_SHORT).show();
+            String verificationResult = (result.isIdentical ? "La misma persona" : "Diferente persona")
+                    + ". La confianza es de  " + formatter.format(result.confidence);
             setInfo(verificationResult);
         }
     }
 
-    // Background task of face detection.
+    // Tarea de fondo de detección de rostros.
     private class DetectionTask extends AsyncTask<InputStream, String, Face[]> {
-        // Index indicates detecting in which of the two images.
         private int mIndex;
         private boolean mSucceed = true;
 
@@ -360,18 +327,16 @@ public class Ingresar extends AppCompatActivity {
 
         @Override
         protected Face[] doInBackground(InputStream... params) {
-            // Get an instance of face service client to detect faces in image.
+            // Obtener una instancia del cliente de servicio de cara para detectar rostros en la imagen.
             FaceServiceClient faceServiceClient = SampleApp.getFaceServiceClient();
             try {
-                publishProgress("Detecting...");
+                publishProgress("Detectando...");
 
-                // Start detection.
+                // Inicio de la detección.
                 return faceServiceClient.detect(
-                        params[0],  /* Input stream of image to detect */
-                        true,       /* Whether to return face ID */
-                        false,       /* Whether to return face landmarks */
-                        /* Which face attributes to analyze, currently we support:
-                           age,gender,headPose,smile,facialHair */
+                        params[0],
+                        true,
+                        false,
                         null);
             } catch (Exception e) {
                 mSucceed = false;
@@ -383,8 +348,7 @@ public class Ingresar extends AppCompatActivity {
 
         @Override
         protected void onPreExecute() {
-            //progressDialog.show();
-            addLog("Request: Detecting in image" + mIndex);
+            progressDialog.show();
         }
 
         @Override
@@ -395,59 +359,39 @@ public class Ingresar extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Face[] result) {
-            // Show the result on screen when detection is done.
+            // Muestra el resultado en la pantalla cuando se realiza la detección.
             setUiAfterDetection(result, mIndex, mSucceed);
         }
-
-        // Show the result on screen when verification is done.
+        // Mostrar el resultado en la pantalla cuando se realiza la verificación.
         private void setUiAfterVerification(VerifyResult result) {
-            // Verification is done, hide the progress dialog.
+            // Se realiza la verificación, ocultar el cuadro de diálogo de progreso.
             progressDialog.dismiss();
-
-            // Enable all the buttons.
-            // setAllButtonEnabledStatus(true);
-
             // Show verification result.
             if (result != null) {
                 DecimalFormat formatter = new DecimalFormat("#0.00");
-                String verificationResult = (result.isIdentical ? "The same person" : "Different persons")
-                        + ". The confidence is " + formatter.format(result.confidence);
+                String verificationResult = (result.isIdentical ? "La misma persona" : "Diferente")
+                        + ". La confianza es de  " + formatter.format(result.confidence);
                 setInfo(verificationResult);
             }
         }
 
-        // Show the result on screen when detection in image that indicated by index is done.
+        // Muestra el resultado en la pantalla cuando se realiza la detección en la imagen indicada por índice.
         private void setUiAfterDetection(Face[] result, int index, boolean succeed) {
-            // setSelectImageButtonEnabledStatus(true, index);
-
             if (succeed) {
-                addLog("Response: Success. Detected "
-                        + result.length + " face(s) in image" + index);
-
-                setInfo(result.length + " face" + (result.length != 1 ? "s" : "") + " detected");
-
-                // Show the detailed list of detected faces.
+                addLog("Response: Success. Detectado "
+                        + result.length + " rostro(s) en la imagen" + index);
+                setInfo(result.length + " rostro" + (result.length != 1 ? "s" : "") + " detectado");
+                // Mostrar la lista detallada de caras detectadas.
                 FaceListAdapter faceListAdapter = new FaceListAdapter(result, index);
-
-                // Set the default face ID to the ID of first face, if one or more faces are detected.
+                // Establece el ID de cara predeterminado en el ID de la primera cara, si se detectan una o más caras.
                 if (faceListAdapter.faces.size() != 0) {
                     if (index == 0) {
-                        mFaceId0 = faceListAdapter.faces.get(0).faceId;
+                        mRostroId0 = faceListAdapter.faces.get(0).faceId;
                     } else {
-                        mFaceId1 = faceListAdapter.faces.get(0).faceId;
+                        mRostroId1 = faceListAdapter.faces.get(0).faceId;
                     }
-                    // Show the thumbnail of the default face.
-                    //ImageView imageView = (ImageView) findViewById(index == 0 ? R.id.image_0 : R.id.image_1);
-                    //imageView.setImageBitmap(faceListAdapter.faceThumbnails.get(0));
                 }
-
-                // Show the list of detected face thumbnails.
-                //   ListView listView = (ListView) findViewById(
-                //         index == 0 ? R.id.list_faces_0 : R.id.list_faces_1);
-                // listView.setAdapter(faceListAdapter);
-                // listView.setVisibility(View.VISIBLE);
-
-                // Set the face list adapters and bitmaps.
+                // Establece los adaptadores de lista de rostros y los mapas de bits.
                 if (index == 0) {
                     mFaceListAdapter0 = faceListAdapter;
                     imagen1 = null;
@@ -457,60 +401,35 @@ public class Ingresar extends AppCompatActivity {
                     btnDetectar.setEnabled(false);
                     btnVerificar.setEnabled(true);
                 }
-
             }
-
             if (result != null && result.length == 0) {
                 setInfo("El rostro no pudo ser detectado!");
                 btnDetectar.setEnabled(true);
             }
-
             if ((index == 0 && imagen1 == null) || (index == 1 && imagen2 == null) || index == 2) {
                 progressDialog.dismiss();
-            }
-
-            if (mFaceId0 != null && mFaceId1 != null) {
-                setVerifyButtonEnabledStatus(true);
             }
         }
     }
 
-    // Set the information panel on screen.
+    // Establece el panel de información en la pantalla.
     private void setInfo(String info) {
         Toast.makeText(this, info, Toast.LENGTH_SHORT).show();
     }
-
-    // The adapter of the GridView which contains the thumbnails of the detected faces.
+    // El adaptador del GridView que contiene las miniaturas de las caras detectadas.
     private class FaceListAdapter extends BaseAdapter {
-        // The detected faces.
+        // Las caras detectadas.
         List<Face> faces;
-
         int mIndex;
-
-        // The thumbnails of detected faces.
+        // Las miniaturas de las caras detectadas.
         List<Bitmap> faceThumbnails;
-
-        // Initialize with detection result and index indicating on which image the result is got.
+        // Inicializar con el resultado de la detección y el índice que indica en qué imagen se obtiene el resultado.
         FaceListAdapter(Face[] detectionResult, int index) {
             faces = new ArrayList<>();
             faceThumbnails = new ArrayList<>();
             mIndex = index;
-
             if (detectionResult != null) {
                 faces = Arrays.asList(detectionResult);
-                for (Face face : faces) {
-/*
-                    try {
-                        // Crop face thumbnail without landmarks drawn.
-                        faceThumbnails.add(ImageHelper.generateFaceThumbnail(
-                                index == 0 ? imagen1 : imagen2, face.faceRectangle));
-                    } catch (IOException e) {
-                        // Show the exception when generating face thumbnail fails.
-                        setInfo(e.getMessage());
-                    }
-                    */
-
-                }
             }
         }
 
@@ -541,9 +460,9 @@ public class Ingresar extends AppCompatActivity {
             convertView.setId(position);
 
             Bitmap thumbnailToShow = faceThumbnails.get(position);
-            if (mIndex == 0 && faces.get(position).faceId.equals(mFaceId0)) {
+            if (mIndex == 0 && faces.get(position).faceId.equals(mRostroId0)) {
                 thumbnailToShow = ImageHelper.highlightSelectedFaceThumbnail(thumbnailToShow);
-            } else if (mIndex == 1 && faces.get(position).faceId.equals(mFaceId1)) {
+            } else if (mIndex == 1 && faces.get(position).faceId.equals(mRostroId1)) {
                 thumbnailToShow = ImageHelper.highlightSelectedFaceThumbnail(thumbnailToShow);
             }
 
