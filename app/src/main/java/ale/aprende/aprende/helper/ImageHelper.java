@@ -214,7 +214,7 @@ public class ImageHelper {
 
     // Crop the face thumbnail out from the original image.
     // For better view for human, face rectangles are resized to the rate faceRectEnlargeRatio.
-    public static Bitmap generateFaceThumbnail(
+        public static Bitmap generateFaceThumbnail(
             Bitmap originalBitmap,
             FaceRectangle faceRectangle) throws IOException {
         FaceRectangle faceRect =
@@ -223,6 +223,7 @@ public class ImageHelper {
         return Bitmap.createBitmap(
                 originalBitmap, faceRect.left, faceRect.top, faceRect.width, faceRect.height);
     }
+
 
     // Return the number of times for the image to shrink when loading it into memory.
     // The SampleSize can only be a final value based on powers of 2.
