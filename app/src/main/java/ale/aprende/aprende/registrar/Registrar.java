@@ -1,39 +1,25 @@
 package ale.aprende.aprende.registrar;
 
-
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Environment;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.RadioButton;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.microsoft.projectoxford.face.FaceServiceClient;
@@ -50,7 +36,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import ale.aprende.aprende.Ingresar.Ingresar;
+
 import ale.aprende.aprende.helper.ImageHelper;
 import ale.aprende.aprende.helper.LogHelper;
 import ale.aprende.aprende.helper.SampleApp;
@@ -68,7 +54,6 @@ public class Registrar extends AppCompatActivity {
     private UUID mFaceId0;
     protected FaceListAdapter mFaceListAdapter0;
     private Bitmap mBitmap0;
-    Context context = this;
 
     // Background task of face detection.
     private class DetectionTask extends AsyncTask<InputStream, String, Face[]> {
@@ -106,7 +91,7 @@ public class Registrar extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             progressDialog.show();
-            agregarLog("Request: Detecting in image" + mIndex);
+            //agregarLog("Request: Detecting in image" + mIndex);
         }
 
         @Override
@@ -131,7 +116,6 @@ public class Registrar extends AppCompatActivity {
         SQLiteDatabase db = mdb.getWritableDatabase();
         Cursor cursor = db.rawQuery("select * from persona", null);
         String[] resultado;
-
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast()) {
                 String nombre_imagen = cursor.getString(cursor.getColumnIndex("imagen"));
@@ -169,12 +153,17 @@ public class Registrar extends AppCompatActivity {
             progressDialog = new ProgressDialog(this);
             progressDialog.setTitle(getString(R.string.progress_dialog_title));
         } else {
-            Intent intent = new Intent(Registrar.this, MainActivity.class);
-            startActivity(intent);
-            Toast.makeText(this, "Ya existe una foto registrada", Toast.LENGTH_SHORT).show();
-            finish();
+            regresar("Ya existe una foto registrada");
         }
 
+    }
+
+    //Este metodo regresa a la actividad principal
+    public void regresar(String mensaje) {
+        Intent intent = new Intent(Registrar.this, MainActivity.class);
+        startActivity(intent);
+        Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
+        finish();
     }
 
     //evento onclick para cargar la foto
@@ -191,25 +180,23 @@ public class Registrar extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ELEGIR_IMAGEN && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri uri = data.getData();
-            String url = uri.toString();
-            url = url.substring(url.lastIndexOf("//") + 1);
-            url = url.substring(0, 15);
-            if (Build.VERSION.SDK_INT > 19) {
-                if ((url.trim()) != "/media/external") {
-                    url = getRealPathFromURI_API11to18(Registrar.this, uri);
-                } else {
-                    url = getRealPathFromURI(uri);
-                }
-                nombreImagen = url.substring(url.lastIndexOf("/") + 1);
-            } else if (Build.VERSION.SDK_INT == 19) {
-                url = getRealPathFromURI_API11to18(Registrar.this, uri);
-                nombreImagen = url.substring(url.lastIndexOf("/") + 1);
+            if (uri.getScheme().equals("file")) {
+                nombreImagen = uri.getLastPathSegment();
             } else {
-                if ((url.trim()).equals("/media/external")) {
-                    url = getRealPathFromURI_API11to18(Registrar.this, uri);
-                    nombreImagen = url.substring(url.lastIndexOf("/") + 1);
-                } else {
-                    nombreImagen = url.substring(url.lastIndexOf("/") + 1);
+                Cursor cursor = null;
+                try {
+                    cursor = getContentResolver().query(uri, new String[]{
+                            MediaStore.Images.ImageColumns.DISPLAY_NAME
+                    }, null, null, null);
+
+                    if (cursor != null && cursor.moveToFirst()) {
+                        nombreImagen = cursor.getString(cursor.getColumnIndex(MediaStore.Images.ImageColumns.DISPLAY_NAME));
+                    }
+                } finally {
+
+                    if (cursor != null) {
+                        cursor.close();
+                    }
                 }
             }
             if (resultCode == RESULT_OK) {
@@ -235,43 +222,6 @@ public class Registrar extends AppCompatActivity {
                 }
             }
         }
-    }
-
-    // obtiene la ruta de la imagen
-    @SuppressLint("NewApi")
-    public static String getRealPathFromURI_API11to18(Context context, Uri contentUri) {
-        String[] proj = {MediaStore.Images.Media.DATA};
-        String result = null;
-        CursorLoader cursorLoader = new CursorLoader(
-                context,
-                contentUri, proj, null, null, null);
-        Cursor cursor = cursorLoader.loadInBackground();
-        if (cursor != null) {
-            int column_index =
-                    cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-            cursor.moveToFirst();
-            result = cursor.getString(column_index);
-        }
-        return result;
-    }
-
-    //@RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    private String getRealPathFromURI(Uri contentURI) {
-        String wholeID = DocumentsContract.getDocumentId(contentURI);
-        String id = wholeID.split(":")[1];
-        String[] column = {MediaStore.Images.Media.DATA};
-        String sel = MediaStore.Images.Media._ID + "=?";
-        Cursor cursor = getContentResolver().
-                query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                        column, sel, new String[]{id}, null);
-        String filePath = "";
-        int columnIndex = cursor.getColumnIndex(column[0]);
-        if (cursor.moveToFirst()) {
-            filePath = cursor.getString(columnIndex);
-        }
-        cursor.close();
-        return filePath;
     }
 
     //Iniciar la detección en la imagen especificada por índice
@@ -343,6 +293,7 @@ public class Registrar extends AppCompatActivity {
         String[] resultado;
         resultado = nombreImagen.split("\\.");
 
+        //File file = new File(new File("/sdcard/Aprende/"), resultado[0] + "_" + id + "." + resultado[1]);
         File file = new File(new File("/sdcard/Aprende/"), resultado[0] + "_" + id + "." + resultado[1]);
         if (file.exists()) {
             file.delete();
