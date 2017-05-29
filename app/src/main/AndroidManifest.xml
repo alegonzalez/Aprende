@@ -14,7 +14,6 @@
         android:required="false" />
 
     <application
-
         android:name=".helper.SampleApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_app"
@@ -28,7 +27,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
             android:name=".Ingresar.Ingresar"
             android:parentActivityName=".principal.MainActivity"
@@ -44,7 +42,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".principal.MainActivity" />
         </activity>
+        <activity android:name=".registrar.Cambiar_foto"></activity>
     </application>
-
 
 </manifest>

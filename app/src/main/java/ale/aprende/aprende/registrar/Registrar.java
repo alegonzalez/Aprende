@@ -162,7 +162,6 @@ public class Registrar extends AppCompatActivity {
     public void regresar(String mensaje) {
         Intent intent = new Intent(Registrar.this, MainActivity.class);
         startActivity(intent);
-        Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
         finish();
     }
 

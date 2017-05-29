@@ -50,6 +50,7 @@ import ale.aprende.aprende.R;
 import ale.aprende.aprende.helper.ImageHelper;
 import ale.aprende.aprende.helper.LogHelper;
 import ale.aprende.aprende.helper.SampleApp;
+import ale.aprende.aprende.registrar.Cambiar_foto;
 import ale.aprende.aprende.registrar.DBHandler;
 import ale.aprende.aprende.registrar.Registrar;
 
@@ -193,7 +194,7 @@ public class Ingresar extends AppCompatActivity {
         return (verificador == 0) ? false : true;
     }
 
-    //merodo onclick para cambio de camara
+    //metodo onclick para cambio de camara
     public void frontal(View view) {
         //swap the id of the camera to be used
         if (idActualCamara == Camera.CameraInfo.CAMERA_FACING_BACK) {
@@ -201,7 +202,7 @@ public class Ingresar extends AppCompatActivity {
         } else {
             idActualCamara = Camera.CameraInfo.CAMERA_FACING_BACK;
         }
-        if (Build.VERSION.SDK_INT != 21||Build.VERSION.SDK_INT !=22) {
+        if (Build.VERSION.SDK_INT != 21 || Build.VERSION.SDK_INT != 22) {
             mCamera.stopPreview();
             mCamera.release();
         }
@@ -520,6 +521,12 @@ public class Ingresar extends AppCompatActivity {
 
     private void addLog(String log) {
         LogHelper.addVerificationLog(log);
+    }
+
+    //metodo onclick para ir a la actividad, para cambiar la foto de perfil
+    public void cambiarFotoPerfil(View view) {
+        Intent cambiar = new Intent(Ingresar.this, Cambiar_foto.class);
+        startActivity(cambiar);
     }
 }
 
