@@ -8,12 +8,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+
 import android.hardware.Camera;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
@@ -62,6 +65,14 @@ public class Ingresar extends AppCompatActivity {
     protected FaceListAdapter mFaceListAdapter1;
     private Button btnDetectar, btnVerificar;
     public static final int MEDIA_TYPE_IMAGE = 1;
+    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+
+    static {
+        ORIENTATIONS.append(Surface.ROTATION_0, 90);
+        ORIENTATIONS.append(Surface.ROTATION_90, 0);
+        ORIENTATIONS.append(Surface.ROTATION_180, 270);
+        ORIENTATIONS.append(Surface.ROTATION_270, 180);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +87,7 @@ public class Ingresar extends AppCompatActivity {
             Toast.makeText(this, "No se encuentra una foto registrada", Toast.LENGTH_SHORT).show();
         } else {
             // crear la instancia de la camara
+            //  Toast.makeText(this, "HOLA", Toast.LENGTH_SHORT).show();
             mCamera = getCameraInstance();
             mPreview = new CameraPreview(this, mCamera);
             FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
@@ -86,6 +98,62 @@ public class Ingresar extends AppCompatActivity {
         progressDialog = new ProgressDialog(this);
         progressDialog.setTitle(getString(R.string.progress_dialog_title));
         LogHelper.clearVerificationLog();
+    }
+
+    @Override
+    public void onResume() {
+        try {
+            mCamera = Camera.open();
+        } catch (Exception e) {
+            //Log.e(TAG,"open camera failed",e);
+        }
+        Toast.makeText(this, "HOLLLLLAAAAAAAA", Toast.LENGTH_SHORT).show();
+        if (mPreview != null) {
+            mPreview.myStartPreview();  // restart preview after awake from phone sleeping
+        }
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mPreview != null) {
+            mPreview.setVisibility(View.GONE);
+            // mPreview.myStopPreview();  // stop preview in case phone is going to sleep
+        }
+    }
+
+    //Cambiar la horientación
+    public static void setCameraDisplayOrientation(Activity activity, int cameraId, android.hardware.Camera camera) {
+        android.hardware.Camera.CameraInfo info =
+                new android.hardware.Camera.CameraInfo();
+        android.hardware.Camera.getCameraInfo(cameraId, info);
+        int rotation = activity.getWindowManager().getDefaultDisplay()
+                .getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break;
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
+        }
+
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;  // compensate the mirror
+        } else {  // back-facing
+            result = (info.orientation - degrees + 360) % 360;
+        }
+        camera.setDisplayOrientation(result);
     }
 
     //metodo onclick para reconocer el rostro
@@ -125,14 +193,17 @@ public class Ingresar extends AppCompatActivity {
         return (verificador == 0) ? false : true;
     }
 
-    //Este metodo cambia la camara a frontal o vicebersa, es un onclick
+    //merodo onclick para cambio de camara
     public void frontal(View view) {
-        mCamera.release();
         //swap the id of the camera to be used
         if (idActualCamara == Camera.CameraInfo.CAMERA_FACING_BACK) {
             idActualCamara = Camera.CameraInfo.CAMERA_FACING_FRONT;
         } else {
             idActualCamara = Camera.CameraInfo.CAMERA_FACING_BACK;
+        }
+        if (Build.VERSION.SDK_INT != 21||Build.VERSION.SDK_INT !=22) {
+            mCamera.stopPreview();
+            mCamera.release();
         }
         mCamera = Camera.open(idActualCamara);
         setCameraDisplayOrientation(Ingresar.this, idActualCamara, mCamera);
@@ -142,39 +213,6 @@ public class Ingresar extends AppCompatActivity {
             e.printStackTrace();
         }
         mCamera.startPreview();
-    }
-
-    //Cambiar la horientación
-    public static void setCameraDisplayOrientation(Activity activity, int cameraId, android.hardware.Camera camera) {
-        android.hardware.Camera.CameraInfo info =
-                new android.hardware.Camera.CameraInfo();
-        android.hardware.Camera.getCameraInfo(cameraId, info);
-        int rotation = activity.getWindowManager().getDefaultDisplay()
-                .getRotation();
-        int degrees = 0;
-        switch (rotation) {
-            case Surface.ROTATION_0:
-                degrees = 0;
-                break;
-            case Surface.ROTATION_90:
-                degrees = 90;
-                break;
-            case Surface.ROTATION_180:
-                degrees = 180;
-                break;
-            case Surface.ROTATION_270:
-                degrees = 270;
-                break;
-        }
-
-        int result;
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            result = (info.orientation + degrees) % 360;
-            result = (360 - result) % 360;  // compensate the mirror
-        } else {  // back-facing
-            result = (info.orientation - degrees + 360) % 360;
-        }
-        camera.setDisplayOrientation(result);
     }
 
     //Una forma segura de obtener una instancia del objeto Cámara
@@ -187,6 +225,7 @@ public class Ingresar extends AppCompatActivity {
         }
         return c;
     }
+
 
     //Tomar la foto
     private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
@@ -237,7 +276,7 @@ public class Ingresar extends AppCompatActivity {
         return archivo;
     }
 
-    //DETECTAR Y RECONOCER
+//DETECTAR Y RECONOCER
 
 
     // Tarea de fondo para la verificación de la cara.
@@ -362,6 +401,7 @@ public class Ingresar extends AppCompatActivity {
             // Muestra el resultado en la pantalla cuando se realiza la detección.
             setUiAfterDetection(result, mIndex, mSucceed);
         }
+
         // Mostrar el resultado en la pantalla cuando se realiza la verificación.
         private void setUiAfterVerification(VerifyResult result) {
             // Se realiza la verificación, ocultar el cuadro de diálogo de progreso.
@@ -416,6 +456,7 @@ public class Ingresar extends AppCompatActivity {
     private void setInfo(String info) {
         Toast.makeText(this, info, Toast.LENGTH_SHORT).show();
     }
+
     // El adaptador del GridView que contiene las miniaturas de las caras detectadas.
     private class FaceListAdapter extends BaseAdapter {
         // Las caras detectadas.
@@ -423,6 +464,7 @@ public class Ingresar extends AppCompatActivity {
         int mIndex;
         // Las miniaturas de las caras detectadas.
         List<Bitmap> faceThumbnails;
+
         // Inicializar con el resultado de la detección y el índice que indica en qué imagen se obtiene el resultado.
         FaceListAdapter(Face[] detectionResult, int index) {
             faces = new ArrayList<>();

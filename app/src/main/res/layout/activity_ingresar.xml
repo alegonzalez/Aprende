@@ -11,16 +11,6 @@
 
     tools:context="ale.aprende.aprende.Ingresar.Ingresar">
 
-    <FrameLayout
-        android:id="@+id/camera_preview"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_above="@+id/button_capture"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="31dp"
-        android:layout_weight="1" />
-
     <Button
         android:id="@+id/button_capture"
         android:layout_width="wrap_content"
@@ -58,5 +48,14 @@
         android:layout_toRightOf="@+id/button_capture"
         android:drawableRight="@drawable/ic_send_black_48dp"
         android:onClick="reconocimiento" />
+    <FrameLayout
+        android:id="@+id/camera_preview"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:layout_marginBottom="35dp"
+        android:layout_above="@+id/button_capture"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>
