@@ -15,6 +15,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -182,6 +183,12 @@ public class Cambiar_foto extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        this.finish();
+    }
+
     //Este metodo se encarga de marcar el genero en el radiobutton
     private boolean marcarGenero(String genero) {
         if (genero.trim().equals("M")) {
@@ -211,9 +218,9 @@ public class Cambiar_foto extends AppCompatActivity {
     public void actualizar(View view) {
         String genero = (rbtFemenina.isChecked()) ? "F" : "M";
         if (noEligio == 1) {
-            if(!(ActualizarDatosGenero(genero))){
+            if (!(ActualizarDatosGenero(genero))) {
                 Toast.makeText(this, "No se pudo actualizar el genero", Toast.LENGTH_SHORT).show();
-            }else{
+            } else {
                 Intent intent = new Intent(this, Ingresar.class);
                 startActivity(intent);
                 finish();
