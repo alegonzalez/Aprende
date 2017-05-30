@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -66,14 +67,6 @@ public class Ingresar extends AppCompatActivity {
     protected FaceListAdapter mFaceListAdapter1;
     private Button btnDetectar, btnVerificar;
     public static final int MEDIA_TYPE_IMAGE = 1;
-    private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
-
-    static {
-        ORIENTATIONS.append(Surface.ROTATION_0, 90);
-        ORIENTATIONS.append(Surface.ROTATION_90, 0);
-        ORIENTATIONS.append(Surface.ROTATION_180, 270);
-        ORIENTATIONS.append(Surface.ROTATION_270, 180);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,9 +81,11 @@ public class Ingresar extends AppCompatActivity {
             Toast.makeText(this, "No se encuentra una foto registrada", Toast.LENGTH_SHORT).show();
         } else {
             // crear la instancia de la camara
-            mCamera = getCameraInstance();
-            mPreview = new CameraPreview(this, mCamera);
+
+                mCamera = getCameraInstance();
+
             FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+            mPreview = new CameraPreview(this, mCamera);
             preview.addView(mPreview);
         }
         // Initialize the two ListViews which contain the thumbnails of the detected faces.
@@ -102,26 +97,30 @@ public class Ingresar extends AppCompatActivity {
 
     @Override
     public void onResume() {
-        try {
-            mCamera = Camera.open();
-        } catch (Exception e) {
-            //Log.e(TAG,"open camera failed",e);
-        }
-        Toast.makeText(this, "HOLLLLLAAAAAAAA", Toast.LENGTH_SHORT).show();
-        if (mPreview != null) {
-            mPreview.myStartPreview();  // restart preview after awake from phone sleeping
-        }
         super.onResume();
+
+       // if (mCamera == null) {
+         //   mCamera = Camera.open();
+       // }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        finish();
     }
 
     @Override
     public void onPause() {
+        mCamera.release();
         super.onPause();
         if (mPreview != null) {
             mPreview.setVisibility(View.GONE);
             // mPreview.myStopPreview();  // stop preview in case phone is going to sleep
         }
+
     }
+
 
     //Cambiar la horientación
     public static void setCameraDisplayOrientation(Activity activity, int cameraId, android.hardware.Camera camera) {
@@ -146,13 +145,15 @@ public class Ingresar extends AppCompatActivity {
                 break;
         }
 
-        int result;
+        int result = 0;
+        /*
         if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
             result = (info.orientation + degrees) % 360;
             result = (360 - result) % 360;  // compensate the mirror
         } else {  // back-facing
             result = (info.orientation - degrees + 360) % 360;
         }
+        */
         camera.setDisplayOrientation(result);
     }
 
@@ -526,6 +527,8 @@ public class Ingresar extends AppCompatActivity {
     public void cambiarFotoPerfil(View view) {
         Intent cambiar = new Intent(Ingresar.this, Cambiar_foto.class);
         startActivity(cambiar);
+        setResult(Ingresar.RESULT_OK);
+        //finish();
     }
 }
 
