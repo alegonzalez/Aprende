@@ -247,15 +247,17 @@ public class Registrar extends AppCompatActivity {
     }
 
     // Establecer el panel de información en la pantalla..
-    private void establecerInformacion(String info) {
+    public boolean establecerInformacion(String info) {
         Toast.makeText(this, info, Toast.LENGTH_SHORT).show();
+        return true;
     }
 
     // Borra las caras detectadas indicadas por índice.
-    private void limpiarRostrosDetectados() {
+    public boolean limpiarRostrosDetectados() {
         ImageView imageView =
                 (ImageView) findViewById(R.id.imgPerfil);
         imageView.setImageResource(android.R.color.transparent);
+        return true;
     }
 
     // Agregar un elemento .
@@ -300,7 +302,7 @@ public class Registrar extends AppCompatActivity {
     }
 
     //guardar la imagen en los archivos de la aplicación del celular
-    private boolean guardarImagenDispositivo(String id) {
+    public boolean guardarImagenDispositivo(String id) {
         File direct = new File(Environment.getExternalStorageDirectory() + "/Aprende");
         if (!direct.exists()) {
             File wallpaperDirectory = new File("/sdcard/Aprende/");

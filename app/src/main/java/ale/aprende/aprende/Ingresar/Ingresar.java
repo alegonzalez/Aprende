@@ -82,7 +82,7 @@ public class Ingresar extends AppCompatActivity {
         } else {
             // crear la instancia de la camara
 
-                mCamera = getCameraInstance();
+            mCamera = getCameraInstance();
 
             FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
             mPreview = new CameraPreview(this, mCamera);
@@ -99,9 +99,9 @@ public class Ingresar extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
-       // if (mCamera == null) {
-         //   mCamera = Camera.open();
-       // }
+        if (mCamera == null) {
+            mCamera = Camera.open();
+        }
     }
 
     @Override

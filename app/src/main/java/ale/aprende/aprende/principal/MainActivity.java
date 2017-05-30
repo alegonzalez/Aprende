@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.multidex.MultiDex;
@@ -16,6 +17,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
+
+import com.hitomi.cmlibrary.CircleMenu;
+import com.hitomi.cmlibrary.OnMenuSelectedListener;
 
 import ale.aprende.aprende.Categoria;
 import ale.aprende.aprende.Ingresar.Ingresar;
@@ -27,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     //Declaración de variables
     private ImageButton btnIngresar, btnRegistrar;
     private static final int SOLICITUD_PERMISO = 1;
+    String arrayNombre[] = {"Registrar", "Ingresar"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,21 +58,22 @@ public class MainActivity extends AppCompatActivity {
             categoria.llenarTablaCategoria();
         }
         db.close();
-        btnRegistrar = (ImageButton) findViewById(R.id.registrar);
-        btnIngresar = (ImageButton) findViewById(R.id.ingresar);
-    }
-
-    //onclick registrar
-
-    public void registrar(View view) {
-        Intent intent = new Intent(MainActivity.this, Registrar.class);
-        startActivity(intent);
-    }
-
-    //onclick para ingresar
-    public void ingresar(View view) {
-        Intent intent = new Intent(MainActivity.this, Ingresar.class);
-        startActivity(intent);
+        CircleMenu circulo_menu = (CircleMenu) findViewById(R.id.circulo_menu);
+        circulo_menu.setMainMenu(Color.parseColor("#CDCDCD"), android.R.drawable.ic_menu_add, android.R.drawable.ic_menu_add)
+                .addSubMenu(Color.parseColor("#258CFF"), R.drawable.ic_perm_identity_black_48dp)
+                .addSubMenu(Color.parseColor("#C2185B"), R.drawable.ic_input_black_48dp)
+                .setOnMenuSelectedListener(new OnMenuSelectedListener() {
+                    @Override
+                    public void onMenuSelected(int i) {
+                        if (arrayNombre[i].equals("Registrar")) {
+                            Intent intent = new Intent(MainActivity.this, Registrar.class);
+                            startActivity(intent);
+                        } else {
+                            Intent intent = new Intent(MainActivity.this, Ingresar.class);
+                            startActivity(intent);
+                        }
+                    }
+                });
     }
 
     //Verificar permiso
@@ -77,12 +83,12 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Permiso concedido", Toast.LENGTH_SHORT).show();
         } else {
             explicarUsoPermiso();
-            solicitarPermisoAlmacenamiento();
+            solicitarPermisoAlmacenamiento("Pedimos los permisos");
         }
     }
 
     //Se le explica al usuario brevemente el motivo para aceptar el permiso
-    private void explicarUsoPermiso() {
+    public boolean explicarUsoPermiso() {
         AlertDialog.Builder mensaje = new AlertDialog.Builder(this);
         if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) &&
                 ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)) {
@@ -90,15 +96,16 @@ public class MainActivity extends AppCompatActivity {
             cuadroMensajeBasico();
             mensaje.show();
         }
-
+        return true;
     }
 
     //Pedimos el permiso o los permisos con un cuadro dialogo  del sistema
-    private void solicitarPermisoAlmacenamiento() {
+    public boolean solicitarPermisoAlmacenamiento(String mensaje) {
         ActivityCompat.requestPermissions(this,
                 new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA},
                 SOLICITUD_PERMISO);
-        Toast.makeText(this, "Pedimos los permisos", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
+        return true;
     }
 
     @Override
