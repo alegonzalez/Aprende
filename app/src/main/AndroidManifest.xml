@@ -20,7 +20,7 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".principal.MainActivity">
+        <activity android:name=".principal.Inicio">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,9 +28,13 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".principal.MainActivity">
+
+        </activity>
+        <activity
             android:name=".Ingresar.Ingresar"
             android:parentActivityName=".principal.MainActivity">
-        <meta-data
+            <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".principal.MainActivity" />
         </activity>
@@ -41,7 +45,7 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".principal.MainActivity" />
         </activity>
-        <activity android:name=".registrar.Cambiar_foto"></activity>
+        <activity android:name=".registrar.Cambiar_foto" />
     </application>
 
 </manifest>
