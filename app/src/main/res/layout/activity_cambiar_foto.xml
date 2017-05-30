@@ -10,7 +10,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="ale.aprende.aprende.registrar.Cambiar_foto">
     <Button
-        android:id="@+id/btnRegistrar"
+        android:id="@+id/btncambiar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -18,9 +18,9 @@
         android:backgroundTint="@color/accent"
         android:drawableLeft="@drawable/ic_account_circle_black"
         android:drawableTint="@color/boton"
-        android:text="Registrar"
+        android:text="Actualizar datos"
         android:textColor="@color/boton"
-        android:onClick="registrar" />
+        android:onClick="actualizar" />
 
     <ImageView
         android:id="@+id/imgPerfil"
@@ -30,15 +30,19 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         />
+
+
+
+
     <TextView
         android:id="@+id/txtSelecciónGenero"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Seleccione el género"
         android:layout_marginBottom="80dp"
-        android:layout_above="@+id/btnRegistrar"
-        android:layout_alignLeft="@+id/btnRegistrar"
-        android:layout_alignStart="@+id/btnRegistrar" />
+        android:layout_above="@+id/btncambiar"
+        android:layout_alignLeft="@+id/btncambiar"
+        android:layout_alignStart="@+id/btncambiar" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -54,7 +58,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/rbtFemenina"
-        android:layout_above="@+id/btnRegistrar"
+        android:layout_above="@+id/btncambiar"
         android:layout_alignLeft="@+id/imageView4"
         android:layout_alignStart="@+id/imageView4" />
 
@@ -63,7 +67,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/rbtMasculino"
-        android:layout_above="@+id/btnRegistrar"
+        android:layout_above="@+id/btncambiar"
         android:layout_alignLeft="@+id/imgMasculino"
         android:layout_alignStart="@+id/imgMasculino" />
 
@@ -73,8 +77,8 @@
         android:src="@drawable/masculino"
         android:id="@+id/imgMasculino"
         android:layout_above="@+id/rbtMasculino"
-        android:layout_toRightOf="@+id/btnRegistrar"
-        android:layout_toEndOf="@+id/btnRegistrar" />
+        android:layout_toRightOf="@+id/btncambiar"
+        android:layout_toEndOf="@+id/btncambiar" />
 
     <ImageView
         android:id="@+id/rostro"

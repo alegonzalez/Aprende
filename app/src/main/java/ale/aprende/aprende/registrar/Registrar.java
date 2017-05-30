@@ -13,10 +13,12 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
@@ -50,6 +52,7 @@ public class Registrar extends AppCompatActivity {
     public ImageView imageView, rostroimg = null;
     public String nombreImagen = "";
     private Bitmap bitmapPerfil;
+    private String fotoDetectada = "";
     ProgressDialog progressDialog;
     private UUID mFaceId0;
     protected FaceListAdapter mFaceListAdapter0;
@@ -128,6 +131,7 @@ public class Registrar extends AppCompatActivity {
                 cursor.moveToNext();
             }
         }
+        db.close();
         if (contador == 0) {
             rbtFemenina = (RadioButton) findViewById(R.id.rbtFemenina);
             rbtMasculino = (RadioButton) findViewById(R.id.rbtMasculino);
@@ -179,52 +183,60 @@ public class Registrar extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ELEGIR_IMAGEN && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri uri = data.getData();
-            if (uri.getScheme().equals("file")) {
-                nombreImagen = uri.getLastPathSegment();
-            } else {
-                Cursor cursor = null;
-                try {
-                    cursor = getContentResolver().query(uri, new String[]{
-                            MediaStore.Images.ImageColumns.DISPLAY_NAME
-                    }, null, null, null);
-
-                    if (cursor != null && cursor.moveToFirst()) {
-                        nombreImagen = cursor.getString(cursor.getColumnIndex(MediaStore.Images.ImageColumns.DISPLAY_NAME));
-                    }
-                } finally {
-
-                    if (cursor != null) {
-                        cursor.close();
-                    }
-                }
-            }
-            if (resultCode == RESULT_OK) {
-                // If image is selected successfully, set the image URI and bitmap.
-                Bitmap bitmap = ImageHelper.loadSizeLimitedBitmapFromUri(
-                        data.getData(), getContentResolver());
-                if (bitmap != null) {
-                    limpiarRostrosDetectados();
-                    // Add verification log.
-                    agregarLog("Imagen" + 0 + ": " + data.getData() + " redimensionado a " + bitmap.getWidth()
-                            + "x" + bitmap.getHeight());
-                }
-                try {
-                    ImageView img = (ImageView) findViewById(R.id.rostro);
-                    img.setImageBitmap(null);
-                    bitmapPerfil = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                    imageView = (ImageView) findViewById(R.id.imgPerfil);
-                    imageView.setImageBitmap(bitmapPerfil);
-                    mBitmap0 = bitmap;
-                    detectar(bitmapPerfil, 0);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            nombreImagen = obtenerNombreImagen(uri);
+            cargarImagen(data, uri);
         }
     }
 
+    //Este metodo se encarga de mostrar la imagen del usuario
+    public void cargarImagen(Intent datos, Uri uri) {
+        // If image is selected successfully, set the image URI and bitmap.
+        Bitmap bitmap = ImageHelper.loadSizeLimitedBitmapFromUri(
+                datos.getData(), getContentResolver());
+        if (bitmap != null) {
+            limpiarRostrosDetectados();
+            // Add verification log.
+            agregarLog("Imagen" + 0 + ": " + datos.getData() + " redimensionado a " + bitmap.getWidth()
+                    + "x" + bitmap.getHeight());
+        }
+        try {
+            ImageView img = (ImageView) findViewById(R.id.rostro);
+            img.setImageBitmap(null);
+            bitmapPerfil = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+            imageView = (ImageView) findViewById(R.id.imgPerfil);
+            imageView.setImageBitmap(bitmapPerfil);
+            mBitmap0 = bitmap;
+            detectar(bitmapPerfil, 0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String obtenerNombreImagen(Uri uri) {
+        if (uri.getScheme().equals("file")) {
+            nombreImagen = uri.getLastPathSegment();
+        } else {
+            Cursor cursor = null;
+            try {
+                cursor = getContentResolver().query(uri, new String[]{
+                        MediaStore.Images.ImageColumns.DISPLAY_NAME
+                }, null, null, null);
+
+                if (cursor != null && cursor.moveToFirst()) {
+                    nombreImagen = cursor.getString(cursor.getColumnIndex(MediaStore.Images.ImageColumns.DISPLAY_NAME));
+                }
+            } finally {
+
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+        }
+        return nombreImagen;
+    }
+
     //Iniciar la detección en la imagen especificada por índice
-    private void detectar(Bitmap bitmap, int index) {
+    public void detectar(Bitmap bitmap, int index) {
         // Put the image into an input stream for detection.
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
@@ -253,17 +265,21 @@ public class Registrar extends AppCompatActivity {
 
     //metodo onclick para registrar
     public void registrar(View view) {
-
+        Button btn = (Button) findViewById(R.id.btnRegistrar);
+        btn.setEnabled(false);
         if (rostroimg == null) {
             Toast.makeText(this, "Debes seleccionar una foto de perfil del niño", Toast.LENGTH_LONG).show();
+            btn.setEnabled(true);
             return;
         } else if (!(validarSeleccionGenero(rbtMasculino, rbtFemenina))) {
             Toast.makeText(this, "Debes seleccionar el género", Toast.LENGTH_LONG).show();
+            btn.setEnabled(true);
             return;
         }
         String id = registrarBaseDatos();
         guardarImagenDispositivo(id);
         Intent intent = new Intent(Registrar.this, MainActivity.class);
+        btn.setEnabled(true);
         startActivity(intent);
     }
 
@@ -277,6 +293,7 @@ public class Registrar extends AppCompatActivity {
         values.put("genero", genero);
         values.put("imagen", nombreImagen);
         values.put("rostro", mFaceId0.toString());
+        values.put("rostro_detectado", fotoDetectada.toString());
         long id = db.insert("persona", null, values);
         db.close();
         return Long.toString(id);
@@ -291,8 +308,6 @@ public class Registrar extends AppCompatActivity {
         }
         String[] resultado;
         resultado = nombreImagen.split("\\.");
-
-        //File file = new File(new File("/sdcard/Aprende/"), resultado[0] + "_" + id + "." + resultado[1]);
         File file = new File(new File("/sdcard/Aprende/"), resultado[0] + "_" + id + "." + resultado[1]);
         if (file.exists()) {
             file.delete();
@@ -331,7 +346,10 @@ public class Registrar extends AppCompatActivity {
                 mFaceId0 = faceListAdapter.faces.get(0).faceId;
                 rostroimg = (ImageView) findViewById(R.id.rostro);
                 rostroimg.setImageBitmap(faceListAdapter.faceThumbnails.get(0));
+                fotoDetectada = convertirBitmapAString(faceListAdapter.faceThumbnails.get(0));
             }
+
+
             mFaceListAdapter0 = faceListAdapter;
             mBitmap0 = null;
         }
@@ -341,6 +359,17 @@ public class Registrar extends AppCompatActivity {
         if (mBitmap0 == null) {
             progressDialog.dismiss();
         }
+    }
+
+    //Convierte de bitmap a string
+    public String convertirBitmapAString(Bitmap bitmap) {
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        byte[] b = baos.toByteArray();
+        String temp = Base64.encodeToString(b, Base64.DEFAULT);
+        return temp;
+
     }
 
     // El adaptador del GridView que contiene las miniaturas de las caras detectadas.
@@ -404,10 +433,7 @@ public class Registrar extends AppCompatActivity {
 
             // Show the face thumbnail.
             ((ImageView) convertView.findViewById(R.id.image_face)).setImageBitmap(thumbnailToShow);
-
             return convertView;
         }
     }
-
-
 }

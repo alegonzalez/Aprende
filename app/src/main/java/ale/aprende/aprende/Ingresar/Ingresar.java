@@ -88,7 +88,6 @@ public class Ingresar extends AppCompatActivity {
             Toast.makeText(this, "No se encuentra una foto registrada", Toast.LENGTH_SHORT).show();
         } else {
             // crear la instancia de la camara
-            //  Toast.makeText(this, "HOLA", Toast.LENGTH_SHORT).show();
             mCamera = getCameraInstance();
             mPreview = new CameraPreview(this, mCamera);
             FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
