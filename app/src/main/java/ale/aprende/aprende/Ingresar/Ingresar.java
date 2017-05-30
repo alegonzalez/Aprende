@@ -47,6 +47,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import ale.aprende.aprende.MenuJuego;
 import ale.aprende.aprende.R;
 import ale.aprende.aprende.helper.ImageHelper;
 import ale.aprende.aprende.helper.LogHelper;
@@ -146,14 +147,6 @@ public class Ingresar extends AppCompatActivity {
         }
 
         int result = 0;
-        /*
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-            result = (info.orientation + degrees) % 360;
-            result = (360 - result) % 360;  // compensate the mirror
-        } else {  // back-facing
-            result = (info.orientation - degrees + 360) % 360;
-        }
-        */
         camera.setDisplayOrientation(result);
     }
 
@@ -310,7 +303,7 @@ public class Ingresar extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             progressDialog.show();
-            addLog("Request: Verifying face " + mRostroId0 + " and face " + mRostroId1);
+            addLog("Request: Verificando rostro " + mRostroId0 + " y el rostro " + mRostroId1);
         }
 
         @Override
@@ -350,9 +343,17 @@ public class Ingresar extends AppCompatActivity {
         // Mostrar el resultado de la verificación.
         if (result != null) {
             DecimalFormat formatter = new DecimalFormat("#0.00");
-            String verificationResult = (result.isIdentical ? "La misma persona" : "Diferente persona")
-                    + ". La confianza es de  " + formatter.format(result.confidence);
-            setInfo(verificationResult);
+            String verificationResult = (result.isIdentical ? "La misma persona" : "Diferente persona");
+            //+ ". La confianza es de  " + formatter.format(result.confidence);
+            if (verificationResult.trim() == "La misma persona") {
+                Intent intento = new Intent(Ingresar.this, MenuJuego.class);
+                startActivity(intento);
+                finish();
+            } else {
+                verificationResult += ". La confianza es de  " + formatter.format(result.confidence);
+                setInfo(verificationResult);
+            }
+
         }
     }
 
