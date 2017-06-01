@@ -27,7 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".principal.MainActivity"></activity>
+        <activity android:name=".principal.MainActivity" />
         <activity
             android:name=".Ingresar.Ingresar"
             android:parentActivityName=".principal.MainActivity">
@@ -46,7 +46,15 @@
         <activity
             android:name=".MenuJuego"
             android:label="@string/title_activity_menu_juego"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".Relaciones_espaciales" />
+        <activity android:name=".Colores" />
+        <activity android:name=".Numeros" />
+        <activity
+            android:name=".Figuras_geometricas"
+            android:label="@string/title_activity_figuras_geometricas"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".Abecedario" />
     </application>
 
 </manifest>

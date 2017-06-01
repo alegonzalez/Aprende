@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -17,7 +16,6 @@ import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
@@ -73,6 +71,9 @@ public class Ingresar extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(ale.aprende.aprende.R.layout.activity_ingresar);
+        Intent intento = new Intent(Ingresar.this, MenuJuego.class);
+        startActivity(intento);
+        finish();
         btnDetectar = (Button) findViewById(R.id.btnDetectar);
         btnVerificar = (Button) findViewById(R.id.btnReconocimiento);
         btnVerificar.setEnabled(false);

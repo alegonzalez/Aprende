@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
             categoria.llenarTablaCategoria();
         }
         db.close();
+
         CircleMenu circulo_menu = (CircleMenu) findViewById(R.id.circulo_menu);
         circulo_menu.setMainMenu(Color.parseColor("#CDCDCD"), android.R.drawable.ic_menu_add, android.R.drawable.ic_menu_add)
                 .addSubMenu(Color.parseColor("#258CFF"), R.drawable.ic_perm_identity_black_48dp)

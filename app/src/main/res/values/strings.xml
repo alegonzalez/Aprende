@@ -3,7 +3,17 @@
     <!-- Please refer to https://www.microsoft.com/cognitive-services/en-us/ to get your subscription key -->
     <!-- If you have one subscription key, you can add it here to use the service -->
     <string name="subscription_key">a8d1ed6d7a654c9e94bb590df8e7d837</string>
-
+    <string name="text_outside_circle_button_text_normal">Text Outside Circle Button(Normal)</string>
+    <string name="text_inside_circle_button_text_normal">Text Inside Circle Button(Normal)</string>
+    <string name="text_ham_button_text_normal">Ham Button Text(Normal)</string>
+    <string name="relaciones_espaciales">Relaciones espaciales</string>
+    <string name="Colores">Colores</string>
+    <string name="Numeros">Números</string>
+    <string name="figuras_geometricas">Figuras geométricas</string>
+    <string name="abecedario">Abecedario</string>
+    <string name="iconoBloqueado">Bloqueado</string>
+    <string name="iconoLogrado">Ingresar</string>
+    <string name="text_ham_button_sub_text_normal">Ham Button Sub Text(Normal)</string>
     <!-- Main activity -->
     <string name="detection">Detection</string>
     <!-- Tips to get subscription key shown on main activity-->
@@ -91,4 +101,5 @@
     <string name="user_provided_person_group_name">Person group name</string>
     <string name="user_provided_person_group_description_data">User data</string>
     <string name="title_activity_menu_juego">MenuJuego</string>
+    <string name="title_activity_figuras_geometricas">Figuras_geometricas</string>
 </resources>

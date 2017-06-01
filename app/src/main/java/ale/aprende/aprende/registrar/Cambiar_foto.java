@@ -169,7 +169,7 @@ public class Cambiar_foto extends AppCompatActivity {
                 String id = cursor.getString(cursor.getColumnIndex("id"));
                 if (file.exists()) {
                     idBasedatos = Integer.parseInt(id);
-                    String rostro = cursor.getString(cursor.getColumnIndex("rostro"));
+                   // String rostro = cursor.getString(cursor.getColumnIndex("rostro"));
                     Bitmap rostroBitmap = convertitStringABitmap(nombre_imagen);
                     ImageView imgagen_Perfil = (ImageView) findViewById(R.id.rostro);
                     imgagen_Perfil.setImageBitmap(rostroBitmap);
