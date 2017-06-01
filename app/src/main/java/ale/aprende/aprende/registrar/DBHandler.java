@@ -48,13 +48,14 @@ public class DBHandler extends SQLiteOpenHelper {
     //Sql creación de la tabla estadistica
     private String estadistica = "CREATE TABLE Estadistica (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id_pregunta INTEGER, cantidad_errores INTEGER , id_persona INTEGER NOT NULL, " + " FOREIGN KEY (id_pregunta) REFERENCES Pregunta (id)" + " " + "" +
             "FOREIGN KEY (id_persona) REFERENCES Persona (id)" + ");";
+    private String progreso = "CREATE TABLE Progreso (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id_persona INTEGER NOT NULL, id_subcategoria INTEGER NOT NULL, cantidad_preguntas, estado BOOLEAN, " + " FOREIGN KEY (id_persona) REFERENCES Persona (id)" + " " + "" +
+            "FOREIGN KEY (id_subcategoria) REFERENCES SubCategoria (id)" + ");";
     SQLiteDatabase db;
 
     public DBHandler(Context context) {
         super(context, NOMBRE_BASE_DATOS, null, VERSION_BASE_DATOS);
-        db=this.getWritableDatabase();
+        db = this.getWritableDatabase();
     }
-
 
 
     @Override
@@ -67,6 +68,7 @@ public class DBHandler extends SQLiteOpenHelper {
         db.execSQL(imagen_respuesta_pregunta);
         db.execSQL(respuesta);
         db.execSQL(estadistica);
+        db.execSQL(progreso);
     }
 
     @Override
@@ -80,6 +82,7 @@ public class DBHandler extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + imagen_respuesta_pregunta);
         db.execSQL("DROP TABLE IF EXISTS " + respuesta);
         db.execSQL("DROP TABLE IF EXISTS " + estadistica);
+        db.execSQL("DROP TABLE IF EXISTS " + progreso);
         // Creando las tablas de nuevo
         onCreate(db);
     }
