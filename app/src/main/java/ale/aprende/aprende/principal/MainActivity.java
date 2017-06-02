@@ -9,29 +9,50 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Build;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.multidex.MultiDex;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.util.Pair;
 import android.view.View;
+import android.view.animation.Animation;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.Toast;
 
-import com.hitomi.cmlibrary.CircleMenu;
-import com.hitomi.cmlibrary.OnMenuSelectedListener;
 
+import com.nightonke.boommenu.BoomButtons.BoomButton;
+import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
+import com.nightonke.boommenu.BoomMenuButton;
+import com.nightonke.boommenu.ButtonEnum;
+import com.nightonke.boommenu.OnBoomListener;
+import com.nightonke.boommenu.Piece.PiecePlaceEnum;
+import com.nightonke.boommenu.Util;
+
+import java.util.ArrayList;
+
+import ale.aprende.aprende.Abecedario;
+import ale.aprende.aprende.BuilderManager;
 import ale.aprende.aprende.Categoria;
+import ale.aprende.aprende.Colores;
+import ale.aprende.aprende.Figuras_geometricas;
 import ale.aprende.aprende.Ingresar.Ingresar;
+import ale.aprende.aprende.MenuJuego;
+import ale.aprende.aprende.Numeros;
 import ale.aprende.aprende.R;
+import ale.aprende.aprende.Relaciones_espaciales;
 import ale.aprende.aprende.registrar.DBHandler;
 import ale.aprende.aprende.registrar.Registrar;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     //Declaración de variables
-    private ImageButton btnIngresar, btnRegistrar;
+    private BoomMenuButton bmb;
     private static final int SOLICITUD_PERMISO = 1;
-    String arrayNombre[] = {"Registrar", "Ingresar"};
+    private ArrayList<Pair> piecesAndButtons = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,24 +79,83 @@ public class MainActivity extends AppCompatActivity {
             categoria.llenarTablaCategoria();
         }
         db.close();
+        bmb = (BoomMenuButton) findViewById(R.id.botonPrinipal);
+        assert bmb != null;
+        bmb.setButtonEnum(ButtonEnum.Ham);
+        bmb.setPiecePlaceEnum(PiecePlaceEnum.HAM_2);
+        bmb.setButtonPlaceEnum(ButtonPlaceEnum.HAM_2);
+        bmb.setBottomHamButtonTopMargin(Util.dp2px(50));
+        ListView listView = (ListView) findViewById(R.id.list_view);
+        assert listView != null;
+        listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,
+                BuilderManager.getHamButtonData(piecesAndButtons)));
+        cargarBotones(bmb);
+        listView.setVisibility(View.GONE);
+        MenuJuego mn = new MenuJuego();
+        Animation resultado = mn.elaborarAnimacion(bmb);
+        bmb.startAnimation(resultado);
+        listenClickEventOf(R.id.botonPrinipal);
+        bmb.performClick();
+        //Evento click en el botón
+        bmb.setOnBoomListener(new OnBoomListener() {
+            @Override
+            public void onClicked(int index, BoomButton boomButton) {
+                if (index == 0) {
+                    Intent intento = new Intent(MainActivity.this, Registrar.class);
+                    startActivity(intento);
+                } else {
+                    Intent intento = new Intent(MainActivity.this, Ingresar.class);
+                    startActivity(intento);
+                }
+            }
 
-        CircleMenu circulo_menu = (CircleMenu) findViewById(R.id.circulo_menu);
-        circulo_menu.setMainMenu(Color.parseColor("#CDCDCD"), android.R.drawable.ic_menu_add, android.R.drawable.ic_menu_add)
-                .addSubMenu(Color.parseColor("#258CFF"), R.drawable.ic_perm_identity_black_48dp)
-                .addSubMenu(Color.parseColor("#C2185B"), R.drawable.ic_input_black_48dp)
-                .setOnMenuSelectedListener(new OnMenuSelectedListener() {
-                    @Override
-                    public void onMenuSelected(int i) {
-                        if (arrayNombre[i].equals("Registrar")) {
-                            Intent intent = new Intent(MainActivity.this, Registrar.class);
-                            startActivity(intent);
-                        } else {
-                            Intent intent = new Intent(MainActivity.this, Ingresar.class);
-                            startActivity(intent);
-                        }
-                    }
-                });
+            @Override
+            public void onBackgroundClick() {
+
+            }
+
+            @Override
+            public void onBoomWillHide() {
+
+            }
+
+            @Override
+            public void onBoomDidHide() {
+
+            }
+
+            @Override
+            public void onBoomWillShow() {
+
+            }
+
+            @Override
+            public void onBoomDidShow() {
+
+            }
+        });
+
+
     }
+
+    private void listenClickEventOf(int bmb) {
+        findViewById(bmb).setOnClickListener(this);
+    }
+
+    //Carga los botones en donde aparace las opciones de registrar e ingresar
+    private void cargarBotones(BoomMenuButton boton) {
+        int posicion = 5;
+        boton.setPiecePlaceEnum((PiecePlaceEnum) piecesAndButtons.get(posicion).first);
+        boton.setButtonPlaceEnum((ButtonPlaceEnum) piecesAndButtons.get(posicion).second);
+        boton.clearBuilders();
+        for (int i = 0; i < boton.getPiecePlaceEnum().pieceNumber(); i++)
+            if (i == 0) {
+                boton.addBuilder(BuilderManager.getHamButtonBuilder(R.string.registrar, R.drawable.registrar, 0));
+            } else {
+                boton.addBuilder(BuilderManager.getHamButtonBuilder(R.string.ingresar, R.drawable.ingresar, 0));
+            }
+    }
+
 
     //Verificar permiso
     private void verificarPermiso() {
@@ -133,5 +213,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         mensaje.show();
+    }
+
+    @Override
+    public void onClick(View v) {
+
     }
 }
