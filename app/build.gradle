@@ -38,7 +38,6 @@ dependencies {
     compile 'com.android.support:design:25.3.1'
     compile 'com.microsoft.projectoxford:face:1.3.0'
     compile 'com.google.code.gson:gson:2.3.1'
-    compile 'com.github.Hitomis:CircleMenu:v1.0.2'
     compile 'com.nightonke:boommenu:2.1.0'
 
 }

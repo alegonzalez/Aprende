@@ -13,6 +13,8 @@
     <string name="abecedario">Abecedario</string>
     <string name="iconoBloqueado">Bloqueado</string>
     <string name="iconoLogrado">Ingresar</string>
+    <string name="registrar">Registrar</string>
+    <string name="ingresar">Ingresar</string>
     <string name="text_ham_button_sub_text_normal">Ham Button Sub Text(Normal)</string>
     <!-- Main activity -->
     <string name="detection">Detection</string>

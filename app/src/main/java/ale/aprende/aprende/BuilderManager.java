@@ -112,11 +112,17 @@ public class BuilderManager {
         return new HamButton.Builder()
                 .normalImageRes(imagen)
                 .normalTextRes(nombre)
-                .buttonHeight(90)
                 .imagePadding(n)
                 .subTextPadding(n)
                 .normalTextRes(nombre);
         //.subNormalTextRes(icono);
+    }
+
+    public static HamButton.Builder getHamButtonBuilder(int nombre, int icono, int g) {
+        return new HamButton.Builder()
+                .normalImageRes(icono)
+                .normalTextRes(nombre)
+                .normalTextRes(nombre);
     }
 
     static HamButton.Builder getHamButtonBuilder(String text, String subText) {
@@ -176,7 +182,7 @@ public class BuilderManager {
         return data;
     }
 
-    static List<String> getHamButtonData(ArrayList<Pair> piecesAndButtons) {
+    public static List<String> getHamButtonData(ArrayList<Pair> piecesAndButtons) {
         List<String> data = new ArrayList<>();
         for (int p = 0; p < PiecePlaceEnum.values().length - 1; p++) {
             for (int b = 0; b < ButtonPlaceEnum.values().length - 1; b++) {

@@ -22,6 +22,7 @@ import com.nightonke.boommenu.ButtonEnum;
 import com.nightonke.boommenu.OnBoomListener;
 import com.nightonke.boommenu.OnBoomListenerAdapter;
 import com.nightonke.boommenu.Piece.PiecePlaceEnum;
+import com.nightonke.boommenu.Util;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         bmb.setButtonEnum(ButtonEnum.Ham);
         bmb.setPiecePlaceEnum(PiecePlaceEnum.HAM_1);
         bmb.setButtonPlaceEnum(ButtonPlaceEnum.HAM_1);
+        bmb.setBottomHamButtonTopMargin(Util.dp2px(20));
         ListView listView = (ListView) findViewById(R.id.list_view);
         assert listView != null;
         listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,
@@ -164,7 +166,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
 
     public Animation elaborarAnimacion(BoomMenuButton boton) {
         Animation animation = new AlphaAnimation(0.0f, 1.0f);
-        animation.setDuration(1100);
+        animation.setDuration(800);
         //animation.setStartOffset(10);
         animation.setRepeatMode(Animation.REVERSE);
         animation.setRepeatCount(Animation.INFINITE);

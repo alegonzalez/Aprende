@@ -71,9 +71,6 @@ public class Ingresar extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(ale.aprende.aprende.R.layout.activity_ingresar);
-        Intent intento = new Intent(Ingresar.this, MenuJuego.class);
-        startActivity(intento);
-        finish();
         btnDetectar = (Button) findViewById(R.id.btnDetectar);
         btnVerificar = (Button) findViewById(R.id.btnReconocimiento);
         btnVerificar.setEnabled(false);
@@ -117,7 +114,7 @@ public class Ingresar extends AppCompatActivity {
         mCamera.release();
         super.onPause();
         if (mPreview != null) {
-            mPreview.setVisibility(View.GONE);
+           // mPreview.setVisibility(View.GONE);
             // mPreview.myStopPreview();  // stop preview in case phone is going to sleep
         }
 
