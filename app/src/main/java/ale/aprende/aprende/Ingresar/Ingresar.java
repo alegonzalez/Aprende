@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -16,6 +17,7 @@ import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
@@ -114,7 +116,7 @@ public class Ingresar extends AppCompatActivity {
         mCamera.release();
         super.onPause();
         if (mPreview != null) {
-           // mPreview.setVisibility(View.GONE);
+            // mPreview.setVisibility(View.GONE);
             // mPreview.myStopPreview();  // stop preview in case phone is going to sleep
         }
 
@@ -144,7 +146,7 @@ public class Ingresar extends AppCompatActivity {
                 break;
         }
 
-        int result = 0;
+        int result = 90;
         camera.setDisplayOrientation(result);
     }
 
@@ -152,6 +154,7 @@ public class Ingresar extends AppCompatActivity {
     public void deteccionRostro(View view) {
         btnDetectar.setEnabled(false);
         mCamera.takePicture(null, null, mPicture);
+
     }
 
     public void reconocimiento(View view) {
@@ -238,9 +241,34 @@ public class Ingresar extends AppCompatActivity {
             } catch (IOException e) {
                 Log.d("", "Error al acceder al archivo: " + e.getMessage());
             }
+
             mRostroId1 = null;
             imagen2 = BitmapFactory.decodeFile(archivo_imagen.getAbsolutePath());
-            detect(imagen2, 1);
+            int width = imagen2.getWidth();
+
+            int height = imagen2.getHeight();
+
+
+            int newWidth = 200;
+
+            int newHeight = 200;
+
+            // calculate the scale - in this case = 0.4f
+
+            float scaleWidth = ((float) newWidth) / width;
+
+            float scaleHeight = ((float) newHeight) / height;
+
+            Matrix matrix = new Matrix();
+
+            matrix.postScale(scaleWidth, scaleHeight);
+            if (idActualCamara == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                matrix.postRotate(270);
+            } else {
+                matrix.postRotate(90);
+            }
+            Bitmap resizedBitmap = Bitmap.createBitmap(imagen2, 0, 0, width, height, matrix, true);
+            detect(resizedBitmap, 1);
             archivo_imagen.delete();
         }
     };
