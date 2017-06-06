@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -14,6 +16,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -55,6 +58,7 @@ public class Registrar extends AppCompatActivity {
     private String fotoDetectada = "";
     ProgressDialog progressDialog;
     private UUID mFaceId0;
+    private int cambio = 0;
     protected FaceListAdapter mFaceListAdapter0;
     private Bitmap mBitmap0;
 
@@ -177,19 +181,35 @@ public class Registrar extends AppCompatActivity {
         startActivityForResult(Intent.createChooser(gallIntent, "Seleccione la imagen"), ELEGIR_IMAGEN);
     }
 
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+        return Uri.parse(path);
+    }
+
+    public String getRealPathFromURI(Uri uri) {
+        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+        cursor.moveToFirst();
+        int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+        return cursor.getString(idx);
+    }
+
     //Se ejecuta cuando se selecciona la imagen a cargar desde galeria
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ELEGIR_IMAGEN && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            File finalFile = new File(getRealPathFromURI(data.getData()));
             Uri uri = data.getData();
             nombreImagen = obtenerNombreImagen(uri);
-            cargarImagen(data, uri);
+            cargarImagen(data, uri, finalFile);
+
         }
     }
 
     //Este metodo se encarga de mostrar la imagen del usuario
-    public void cargarImagen(Intent datos, Uri uri) {
+    public void cargarImagen(Intent datos, Uri uri, File archivo) {
         // If image is selected successfully, set the image URI and bitmap.
         Bitmap bitmap = ImageHelper.loadSizeLimitedBitmapFromUri(
                 datos.getData(), getContentResolver());
@@ -202,7 +222,10 @@ public class Registrar extends AppCompatActivity {
         try {
             ImageView img = (ImageView) findViewById(R.id.rostro);
             img.setImageBitmap(null);
+            ExifInterface exif = new ExifInterface(archivo.getAbsolutePath());
             bitmapPerfil = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            bitmapPerfil = orientacionImagen(orientation);
             imageView = (ImageView) findViewById(R.id.imgPerfil);
             imageView.setImageBitmap(bitmapPerfil);
             mBitmap0 = bitmap;
@@ -210,6 +233,35 @@ public class Registrar extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public Bitmap orientacionImagen(int orientation) {
+        switch (orientation) {
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                bitmapPerfil = rotateBitmap(bitmapPerfil, 90);
+                cambio = 1;
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                bitmapPerfil = rotateBitmap(bitmapPerfil, 180);
+                cambio = 2;
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                bitmapPerfil = rotateBitmap(bitmapPerfil, 270);
+                cambio = 3;
+                break;
+            case ExifInterface.ORIENTATION_NORMAL:
+                bitmapPerfil = rotateBitmap(bitmapPerfil, 270);
+                cambio = 4;
+            default:
+                break;
+        }
+        return bitmapPerfil;
+    }
+
+    public static Bitmap rotateBitmap(Bitmap bitmap, int degrees) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degrees);
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
     public String obtenerNombreImagen(Uri uri) {
@@ -344,14 +396,20 @@ public class Registrar extends AppCompatActivity {
             // Muestra la lista detallada de las caras detectadas.
             FaceListAdapter faceListAdapter = new FaceListAdapter(result, index);
             // Establezca el ID de cara predeterminado en el ID de la primera cara, si se detectan una o más caras.
+           Bitmap bitmap = null;
             if (faceListAdapter.faces.size() != 0) {
                 mFaceId0 = faceListAdapter.faces.get(0).faceId;
                 rostroimg = (ImageView) findViewById(R.id.rostro);
-                rostroimg.setImageBitmap(faceListAdapter.faceThumbnails.get(0));
-                fotoDetectada = convertirBitmapAString(faceListAdapter.faceThumbnails.get(0));
+                if (cambio == 1) {
+                     bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 90);
+                } else if (cambio == 2) {
+                     bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 180);
+                } else if (cambio == 3 || cambio == 4) {
+                     bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 270);
+                }
+                rostroimg.setImageBitmap(bitmap);
+                fotoDetectada = convertirBitmapAString(bitmap);
             }
-
-
             mFaceListAdapter0 = faceListAdapter;
             mBitmap0 = null;
         }
