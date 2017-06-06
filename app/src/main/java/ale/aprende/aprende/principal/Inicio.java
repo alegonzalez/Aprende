@@ -37,6 +37,7 @@ public class Inicio extends AppCompatActivity {
             @Override
             public void onFinish() {
                 Intent intent = new Intent(Inicio.this, MainActivity.class);
+                intent.addCategory(Intent.CATEGORY_HOME);
                 startActivity(intent);
                 finish();
             }

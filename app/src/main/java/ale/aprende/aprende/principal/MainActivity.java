@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.multidex.MultiDex;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +21,7 @@ import android.util.Pair;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bmb.setPiecePlaceEnum(PiecePlaceEnum.HAM_2);
         bmb.setButtonPlaceEnum(ButtonPlaceEnum.HAM_2);
         bmb.setBottomHamButtonTopMargin(Util.dp2px(50));
+        bmb.setUse3DTransformAnimation(true);
         ListView listView = (ListView) findViewById(R.id.list_view);
         assert listView != null;
         listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,
@@ -95,11 +98,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Animation resultado = mn.elaborarAnimacion(bmb);
         bmb.startAnimation(resultado);
         listenClickEventOf(R.id.botonPrinipal);
-        bmb.performClick();
+        bmb.setAutoBoom(true);
+
         //Evento click en el botón
         bmb.setOnBoomListener(new OnBoomListener() {
             @Override
             public void onClicked(int index, BoomButton boomButton) {
+                Toast.makeText(MainActivity.this, "HOLA", Toast.LENGTH_SHORT).show();
                 if (index == 0) {
                     Intent intento = new Intent(MainActivity.this, Registrar.class);
                     startActivity(intento);
@@ -135,8 +140,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
 
-
+/*
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                levantarMenu();
+            }
+        }, 100);
+        */
     }
+
+    /*
+        public void levantarMenu() {
+            bmb.isBoomed();    // Whether the BMB is boomed.
+            bmb.isReBoomed();
+            Toast.makeText(this, "HOLAA", Toast.LENGTH_SHORT).show();
+            bmb.setOnClickListener(this);
+        }
+    */
 
     private void listenClickEventOf(int bmb) {
         findViewById(bmb).setOnClickListener(this);

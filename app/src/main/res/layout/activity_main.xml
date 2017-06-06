@@ -21,7 +21,9 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
+        app:bmb_backPressListened="true"
         />
+
 
     <ListView
         android:id="@+id/list_view"
