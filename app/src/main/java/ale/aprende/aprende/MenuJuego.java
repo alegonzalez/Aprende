@@ -1,12 +1,20 @@
 package ale.aprende.aprende;
 
+import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.media.AudioManager;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
@@ -16,7 +24,10 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.nightonke.boommenu.BoomButtons.BoomButton;
+import com.nightonke.boommenu.BoomButtons.BoomButtonBuilder;
 import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
+import com.nightonke.boommenu.BoomButtons.HamButton;
+import com.nightonke.boommenu.BoomButtons.OnBMClickListener;
 import com.nightonke.boommenu.BoomMenuButton;
 import com.nightonke.boommenu.ButtonEnum;
 import com.nightonke.boommenu.OnBoomListener;
@@ -28,14 +39,16 @@ import java.io.File;
 import java.util.ArrayList;
 
 
+import ale.aprende.aprende.principal.MainActivity;
 import ale.aprende.aprende.registrar.DBHandler;
 
-public class MenuJuego extends AppCompatActivity implements View.OnClickListener {
+public class MenuJuego extends AppCompatActivity implements View.OnClickListener, RecognitionListener {
     private ArrayList<android.util.Pair> piecesAndButtons = new ArrayList<>();
     private BoomMenuButton bmb;
-    ViewTreeObserver vto;
     private int id_usuario;
     private Boolean[] lista;
+    private Intent recognizerIntent;
+    private SpeechRecognizer speech = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +63,8 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         bmb.setPiecePlaceEnum(PiecePlaceEnum.HAM_1);
         bmb.setButtonPlaceEnum(ButtonPlaceEnum.HAM_1);
         bmb.setBottomHamButtonTopMargin(Util.dp2px(20));
+        bmb.performClick();
+        bmb.setAutoBoom(true);
         ListView listView = (ListView) findViewById(R.id.list_view);
         assert listView != null;
         listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,
@@ -57,11 +72,15 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         cargarBotones(listView);
         animacionBoton(bmb);
         listenClickEventOf(R.id.bmb);
+        hacerAudio();
         //Evento click en el botón
         bmb.setOnBoomListener(new OnBoomListener() {
+
             @Override
             public void onClicked(int index, BoomButton boomButton) {
+
                 if (index == 0 && lista[index] == true) {
+                    Toast.makeText(MenuJuego.this, "ENTRARARARARARA", Toast.LENGTH_SHORT).show();
                     Intent intento = new Intent(MenuJuego.this, Relaciones_espaciales.class);
                     abrirActividad(intento);
                 } else if (index == 1 && lista[index] == true) {
@@ -94,17 +113,27 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
 
             @Override
             public void onBoomWillShow() {
-
             }
 
             @Override
             public void onBoomDidShow() {
-
             }
-
         });
+        hacerAudio();
+        AudioManager amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
     }
 
+    public void hacerAudio() {
+        speech = SpeechRecognizer.createSpeechRecognizer(this);
+        speech.setRecognitionListener(this);
+        recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "es");
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+        speech.startListening(recognizerIntent);
+    }
 
     private void listenClickEventOf(int bmb) {
         findViewById(bmb).setOnClickListener(this);
@@ -235,5 +264,135 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     //Este metodo se utiliza para abrir as actividades
     public void abrirActividad(Intent intento) {
         startActivity(intento);
+    }
+
+    //Metodos de la implementacion de RecognitionListener
+    @Override
+    public void onReadyForSpeech(Bundle params) {
+
+    }
+
+    @Override
+    public void onBeginningOfSpeech() {
+
+    }
+
+    @Override
+    public void onRmsChanged(float rmsdB) {
+
+    }
+
+    @Override
+    public void onBufferReceived(byte[] buffer) {
+
+    }
+
+    @Override
+    public void onEndOfSpeech() {
+
+    }
+
+    @Override
+    public void onError(int errorCode) {
+        if (errorCode != 7 && errorCode != 8) {
+            Toast.makeText(this, "" + getErrorText(errorCode), Toast.LENGTH_SHORT).show();
+        } else {
+            hacerAudio();
+        }
+    }
+//Este metodo se obtiene el texto que dice la persona
+    @Override
+    public void onResults(Bundle results) {
+        ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+        String texto = "";
+        for (String result : matches)
+            if (result.equals("Relaciones espaciales") || result.equals("relaciones espaciales")) {
+                abrirRelacionesEspaciales();
+            } else if (result.equals("Caballo") || result.equals("caballo") ||result.equals("caballos") || result.equals("Caballos")) {
+                abrirRelacionesEspaciales();
+            }
+        hacerAudio();
+    }
+
+    @Override
+    public void onResume() {
+        hacerAudio();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (speech != null) {
+            speech.destroy();
+        }
+
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (speech != null) {
+            speech.destroy();
+        }
+
+    }
+    @Override
+    protected void onRestart() {
+        hacerAudio();
+        super.onRestart();
+    }
+
+    @Override
+    public void onPartialResults(Bundle partialResults) {
+
+    }
+
+    @Override
+    public void onEvent(int eventType, Bundle params) {
+
+    }
+
+    public static String getErrorText(int errorCode) {
+        String message;
+        switch (errorCode) {
+            case SpeechRecognizer.ERROR_AUDIO:
+                message = "Error de grabación de audio";
+                break;
+            case SpeechRecognizer.ERROR_CLIENT:
+                message = "Error del lado del cliente";
+                break;
+            case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                message = "Permisos insuficientes";
+                break;
+            case SpeechRecognizer.ERROR_NETWORK:
+                message = "Error de red";
+                break;
+            case SpeechRecognizer.ERROR_NETWORK_TIMEOUT:
+                message = "Tiempo de espera de la red";
+                break;
+            case SpeechRecognizer.ERROR_NO_MATCH:
+                message = "No coinciden";
+                break;
+            case SpeechRecognizer.ERROR_RECOGNIZER_BUSY:
+                message = "Reconocimiento Servicio ocupado";
+                break;
+            case SpeechRecognizer.ERROR_SERVER:
+                message = "Error del servidor";
+                break;
+            case SpeechRecognizer.ERROR_SPEECH_TIMEOUT:
+                message = "Sin entrada de voz";
+                break;
+            default:
+                message = "No lo entendí, por favor, inténtelo de nuevo.";
+                break;
+        }
+        return message;
+    }
+
+    //Abrir la actividad de relaciones espaciales
+    public void abrirRelacionesEspaciales() {
+        Intent intent = new Intent(MenuJuego.this, Relaciones_espaciales.class);
+        startActivity(intent);
+        speech.destroy();
     }
 }

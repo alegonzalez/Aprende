@@ -98,9 +98,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Animation resultado = mn.elaborarAnimacion(bmb);
         bmb.startAnimation(resultado);
         listenClickEventOf(R.id.botonPrinipal);
+        bmb.getOnBoomListener();
         bmb.setAutoBoom(true);
-
+        /*
+        bmb.performClick();
+        bmb.callOnClick();
+        bmb.getOnBoomListener();
+        BoomButton btnn = null;
+        bmb.onButtonClick(1, btnn);
+        */
         //Evento click en el botón
+
         bmb.setOnBoomListener(new OnBoomListener() {
             @Override
             public void onClicked(int index, BoomButton boomButton) {
@@ -132,13 +140,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onBoomWillShow() {
 
+
+
+                //   btn.performClick();
+
             }
 
             @Override
             public void onBoomDidShow() {
 
+
             }
         });
+
 
 /*
         final Handler handler = new Handler();
