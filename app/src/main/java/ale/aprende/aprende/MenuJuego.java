@@ -80,7 +80,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             public void onClicked(int index, BoomButton boomButton) {
 
                 if (index == 0 && lista[index] == true) {
-                    Toast.makeText(MenuJuego.this, "ENTRARARARARARA", Toast.LENGTH_SHORT).show();
                     Intent intento = new Intent(MenuJuego.this, Relaciones_espaciales.class);
                     abrirActividad(intento);
                 } else if (index == 1 && lista[index] == true) {
@@ -263,6 +262,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
 
     //Este metodo se utiliza para abrir as actividades
     public void abrirActividad(Intent intento) {
+        intento.putExtra("id_usuario", id_usuario);
         startActivity(intento);
     }
 
@@ -300,7 +300,8 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             hacerAudio();
         }
     }
-//Este metodo se obtiene el texto que dice la persona
+
+    //Este metodo se obtiene el texto que dice la persona
     @Override
     public void onResults(Bundle results) {
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
@@ -308,7 +309,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         for (String result : matches)
             if (result.equals("Relaciones espaciales") || result.equals("relaciones espaciales")) {
                 abrirRelacionesEspaciales();
-            } else if (result.equals("Caballo") || result.equals("caballo") ||result.equals("caballos") || result.equals("Caballos")) {
+            } else if (result.equals("Caballo") || result.equals("caballo") || result.equals("caballos") || result.equals("Caballos")) {
                 abrirRelacionesEspaciales();
             }
         hacerAudio();
@@ -317,6 +318,8 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     @Override
     public void onResume() {
         hacerAudio();
+        AudioManager amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
         super.onResume();
     }
 
@@ -326,8 +329,11 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         if (speech != null) {
             speech.destroy();
         }
+        AudioManager amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
 
     }
+
     @Override
     protected void onStop() {
         super.onStop();
@@ -336,6 +342,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         }
 
     }
+
     @Override
     protected void onRestart() {
         hacerAudio();
@@ -391,7 +398,9 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
 
     //Abrir la actividad de relaciones espaciales
     public void abrirRelacionesEspaciales() {
+        Toast.makeText(this, "ID usuario: " + id_usuario, Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(MenuJuego.this, Relaciones_espaciales.class);
+        intent.putExtra("id_usuario", id_usuario);
         startActivity(intent);
         speech.destroy();
     }

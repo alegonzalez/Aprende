@@ -52,6 +52,7 @@ import ale.aprende.aprende.R;
 import ale.aprende.aprende.helper.ImageHelper;
 import ale.aprende.aprende.helper.LogHelper;
 import ale.aprende.aprende.helper.SampleApp;
+import ale.aprende.aprende.principal.MainActivity;
 import ale.aprende.aprende.registrar.Cambiar_foto;
 import ale.aprende.aprende.registrar.DBHandler;
 import ale.aprende.aprende.registrar.Registrar;
@@ -99,25 +100,42 @@ public class Ingresar extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-
         if (mCamera == null) {
             mCamera = Camera.open();
+        } else {
+            // mCamera.startPreview();
         }
     }
 
+    /*
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        finish();
+    protected void onDestroy(){
+
+        if(camera!=null){
+            camera.stopPreview();
+            camera.setPreviewCallback(null);
+
+            camera.release();
+            camera = null;
+        }
+
+
+    }
+    */
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent(Ingresar.this, MainActivity.class);
+        startActivity(intent);
+        super.onBackPressed();
     }
 
     @Override
     public void onPause() {
-        mCamera.release();
         super.onPause();
-        if (mPreview != null) {
-            // mPreview.setVisibility(View.GONE);
-            // mPreview.myStopPreview();  // stop preview in case phone is going to sleep
+        if (mCamera != null) {
+            mPreview.getHolder().removeCallback(mPreview);
+            mCamera.release();
         }
 
     }
@@ -555,7 +573,6 @@ public class Ingresar extends AppCompatActivity {
         Intent cambiar = new Intent(Ingresar.this, Cambiar_foto.class);
         startActivity(cambiar);
         setResult(Ingresar.RESULT_OK);
-        //finish();
     }
 }
 

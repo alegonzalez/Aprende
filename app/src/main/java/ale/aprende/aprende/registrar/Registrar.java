@@ -180,15 +180,8 @@ public class Registrar extends AppCompatActivity {
 
         startActivityForResult(Intent.createChooser(gallIntent, "Seleccione la imagen"), ELEGIR_IMAGEN);
     }
-
-    public Uri getImageUri(Context inContext, Bitmap inImage) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
-        return Uri.parse(path);
-    }
-
-    public String getRealPathFromURI(Uri uri) {
+    //Obtener
+    public String obtenerDireccionImagen(Uri uri) {
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
         cursor.moveToFirst();
         int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
@@ -200,7 +193,7 @@ public class Registrar extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == ELEGIR_IMAGEN && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            File finalFile = new File(getRealPathFromURI(data.getData()));
+            File finalFile = new File(obtenerDireccionImagen(data.getData()));
             Uri uri = data.getData();
             nombreImagen = obtenerNombreImagen(uri);
             cargarImagen(data, uri, finalFile);
@@ -220,12 +213,13 @@ public class Registrar extends AppCompatActivity {
                     + "x" + bitmap.getHeight());
         }
         try {
-            ImageView img = (ImageView) findViewById(R.id.rostro);
-            img.setImageBitmap(null);
+           // ImageView img = (ImageView) findViewById(R.id.rostro);
+            //img.setImageBitmap(null);
             ExifInterface exif = new ExifInterface(archivo.getAbsolutePath());
             bitmapPerfil = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-            bitmapPerfil = orientacionImagen(orientation);
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, -1);
+
+            bitmapPerfil = orientacionImagen(orientation);//ExifInterface.ORIENTATION_NORMAL
             imageView = (ImageView) findViewById(R.id.imgPerfil);
             imageView.setImageBitmap(bitmapPerfil);
             mBitmap0 = bitmap;
@@ -235,6 +229,7 @@ public class Registrar extends AppCompatActivity {
         }
     }
 
+    //Se encarga de verifica la orientacion que tiene la imagen al ser cargada
     public Bitmap orientacionImagen(int orientation) {
         switch (orientation) {
             case ExifInterface.ORIENTATION_ROTATE_90:
@@ -396,18 +391,18 @@ public class Registrar extends AppCompatActivity {
             // Muestra la lista detallada de las caras detectadas.
             FaceListAdapter faceListAdapter = new FaceListAdapter(result, index);
             // Establezca el ID de cara predeterminado en el ID de la primera cara, si se detectan una o más caras.
-           Bitmap bitmap = null;
+            Bitmap bitmap = null;
             if (faceListAdapter.faces.size() != 0) {
                 mFaceId0 = faceListAdapter.faces.get(0).faceId;
-                rostroimg = (ImageView) findViewById(R.id.rostro);
+              //  rostroimg = (ImageView) findViewById(R.id.rostro);
                 if (cambio == 1) {
-                     bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 90);
+                    bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 90);
                 } else if (cambio == 2) {
-                     bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 180);
+                    bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 180);
                 } else if (cambio == 3 || cambio == 4) {
-                     bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 270);
+                    bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 270);
                 }
-                rostroimg.setImageBitmap(bitmap);
+                //rostroimg.setImageBitmap(bitmap);
                 fotoDetectada = convertirBitmapAString(bitmap);
             }
             mFaceListAdapter0 = faceListAdapter;

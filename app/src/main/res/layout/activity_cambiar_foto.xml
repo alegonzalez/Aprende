@@ -80,14 +80,6 @@
         android:layout_toRightOf="@+id/btncambiar"
         android:layout_toEndOf="@+id/btncambiar" />
 
-    <ImageView
-        android:id="@+id/rostro"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/btnCargar"
-        android:layout_alignRight="@+id/imageView4"
-        android:layout_alignEnd="@+id/imageView4"
-        android:layout_marginBottom="36dp" />
 
     <Button
         android:id="@+id/btnCargar"

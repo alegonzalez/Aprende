@@ -8,6 +8,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -15,6 +17,7 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -57,6 +60,7 @@ public class Cambiar_foto extends AppCompatActivity {
     private String nombreBasedatosImagen = "";
     private int idBasedatos = 0;
     private int noEligio = 1;
+    private int cambio = 0;
     ProgressDialog progressDialog;
     protected FaceListAdapter mFaceListAdapter0;
     Registrar r = new Registrar();
@@ -169,10 +173,10 @@ public class Cambiar_foto extends AppCompatActivity {
                 String id = cursor.getString(cursor.getColumnIndex("id"));
                 if (file.exists()) {
                     idBasedatos = Integer.parseInt(id);
-                   // String rostro = cursor.getString(cursor.getColumnIndex("rostro"));
+                    // String rostro = cursor.getString(cursor.getColumnIndex("rostro"));
                     Bitmap rostroBitmap = convertitStringABitmap(nombre_imagen);
-                    ImageView imgagen_Perfil = (ImageView) findViewById(R.id.rostro);
-                    imgagen_Perfil.setImageBitmap(rostroBitmap);
+                    //ImageView imgagen_Perfil = (ImageView) findViewById(R.id.rostro);
+                    //imgagen_Perfil.setImageBitmap(rostroBitmap);
                 }
                 cursor.moveToNext();
             }
@@ -185,8 +189,10 @@ public class Cambiar_foto extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        Intent intent = new Intent(Cambiar_foto.this,Ingresar.class);
+        startActivity(intent);
         super.onBackPressed();
-        this.finish();
+
     }
 
     //Este metodo se encarga de marcar el genero en el radiobutton
@@ -284,7 +290,7 @@ public class Cambiar_foto extends AppCompatActivity {
         cv.put("genero", genero);
         cv.put("imagen", nombreImagen);
         cv.put("rostro", mFaceId0.toString());
-        cv.put("rostro_detectado", fotoDetectada);
+        cv.put("rostro_detectado", fotoDetectada.toString());
         db.update("Persona", cv, "id=" + idBasedatos, null);
         db.close();
         return true;
@@ -296,7 +302,34 @@ public class Cambiar_foto extends AppCompatActivity {
         gallIntent.setType("image/*");
         startActivityForResult(Intent.createChooser(gallIntent, "Seleccione la imagen"), ELEGIR_IMAGEN);
     }
-
+    //Se encarga de verifica la orientacion que tiene la imagen al ser cargada
+    public Bitmap orientacionImagen(int orientation) {
+        switch (orientation) {
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                bitmapPerfil = rotateBitmap(bitmapPerfil, 90);
+                cambio = 1;
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                bitmapPerfil = rotateBitmap(bitmapPerfil, 180);
+                cambio = 2;
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                bitmapPerfil = rotateBitmap(bitmapPerfil, 270);
+                cambio = 3;
+                break;
+            case ExifInterface.ORIENTATION_NORMAL:
+                bitmapPerfil = rotateBitmap(bitmapPerfil, 270);
+                cambio = 4;
+            default:
+                break;
+        }
+        return bitmapPerfil;
+    }
+    public static Bitmap rotateBitmap(Bitmap bitmap, int degrees) {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(degrees);
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+    }
     //Este metodo se ejecuta despues de seleccionar la imagen o no elegir la imagen
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -304,7 +337,12 @@ public class Cambiar_foto extends AppCompatActivity {
         if (requestCode == ELEGIR_IMAGEN && resultCode == RESULT_OK && data != null && data.getData() != null) {
             noEligio = 0;
             Uri uri = data.getData();
-            // nombreImagen = r.obtenerNombreImagen(uri);
+            Cursor cursor1 = getContentResolver().query(uri, null, null, null, null);
+            cursor1.moveToFirst();
+            int idx = cursor1.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
+            String ruta =  cursor1.getString(idx);
+            cursor1.close();
+            File archivoFoto = new File(ruta);
             if (uri.getScheme().equals("file")) {
                 nombreImagen = uri.getLastPathSegment();
             } else {
@@ -324,20 +362,23 @@ public class Cambiar_foto extends AppCompatActivity {
                     }
                 }
             }
-            // r.cargarImagen(data, uri);
-            // If image is selected successfully, set the image URI and bitmap.
+
+            // Si la imagen se selecciona correctamente, se configure la URI y la imagen de mapa de bits.
             Bitmap bitmap = ImageHelper.loadSizeLimitedBitmapFromUri(
                     data.getData(), getContentResolver());
             if (bitmap != null) {
                 limpiarRostrosDetectados();
-                // Add verification log.
                 agregarLog("Imagen" + 0 + ": " + data.getData() + " redimensionado a " + bitmap.getWidth()
                         + "x" + bitmap.getHeight());
             }
             try {
-                ImageView img = (ImageView) findViewById(R.id.rostro);
-                img.setImageBitmap(null);
+                 ExifInterface exif = new ExifInterface(archivoFoto.getAbsolutePath());
                 bitmapPerfil = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
+                  int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_ROTATE_90);
+                   bitmapPerfil = orientacionImagen(orientation);
+               // ImageView img = (ImageView) findViewById(R.id.rostro);
+                //img.setImageBitmap(null);
+                //bitmapPerfil = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
                 imageView = (ImageView) findViewById(R.id.imgPerfil);
                 imageView.setImageBitmap(bitmapPerfil);
                 mBitmap0 = bitmap;
@@ -386,14 +427,24 @@ public class Cambiar_foto extends AppCompatActivity {
             // Muestra la lista detallada de las caras detectadas.
             Cambiar_foto.FaceListAdapter faceListAdapter = new Cambiar_foto.FaceListAdapter(result, index);
             // Establezca el ID de cara predeterminado en el ID de la primera cara, si se detectan una o más caras.
+            Bitmap bitmap = null;
             if (faceListAdapter.faces.size() != 0) {
                 mFaceId0 = faceListAdapter.faces.get(0).faceId;
-                rostroimg = (ImageView) findViewById(R.id.rostro);
-                rostroimg.setImageBitmap(faceListAdapter.faceThumbnails.get(0));
-                fotoDetectada = r.convertirBitmapAString(faceListAdapter.faceThumbnails.get(0));
+                //rostroimg = (ImageView) findViewById(R.id.rostro);
+                int ancho = faceListAdapter.faceThumbnails.get(0).getWidth();
+                int alto = faceListAdapter.faceThumbnails.get(0).getHeight();
+                bitmap = bitmapPerfil;
+                bitmap = Bitmap.createScaledBitmap(bitmap, alto, ancho, true);;
+                if (cambio == 1) {
+                    bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 90);
+                } else if (cambio == 2) {
+                    bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 180);
+                } else if (cambio == 3 || cambio == 4) {
+                    bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 270);
+                }
+               // rostroimg.setImageBitmap(bitmap);
+                fotoDetectada = convertirBitmapAString(bitmap);
             }
-
-
             mFaceListAdapter0 = faceListAdapter;
             mBitmap0 = null;
         }
@@ -468,4 +519,16 @@ public class Cambiar_foto extends AppCompatActivity {
     private void setInfo(String info) {
         Toast.makeText(Cambiar_foto.this, info, Toast.LENGTH_SHORT).show();
     }
+
+    //Convierte de bitmap a string
+    public String convertirBitmapAString(Bitmap bitmap) {
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+        byte[] b = baos.toByteArray();
+        String temp = Base64.encodeToString(b, Base64.DEFAULT);
+        return temp;
+
+    }
+
 }
