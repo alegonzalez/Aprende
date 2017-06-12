@@ -17,7 +17,6 @@ import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
@@ -54,7 +53,7 @@ import ale.aprende.aprende.helper.LogHelper;
 import ale.aprende.aprende.helper.SampleApp;
 import ale.aprende.aprende.principal.MainActivity;
 import ale.aprende.aprende.registrar.Cambiar_foto;
-import ale.aprende.aprende.registrar.DBHandler;
+import ale.aprende.aprende.bd.DBHandler;
 import ale.aprende.aprende.registrar.Registrar;
 
 public class Ingresar extends AppCompatActivity {

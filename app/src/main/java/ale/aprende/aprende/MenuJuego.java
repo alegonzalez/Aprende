@@ -1,6 +1,5 @@
 package ale.aprende.aprende;
 
-import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -13,10 +12,7 @@ import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Menu;
 import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
@@ -24,14 +20,10 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.nightonke.boommenu.BoomButtons.BoomButton;
-import com.nightonke.boommenu.BoomButtons.BoomButtonBuilder;
 import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
-import com.nightonke.boommenu.BoomButtons.HamButton;
-import com.nightonke.boommenu.BoomButtons.OnBMClickListener;
 import com.nightonke.boommenu.BoomMenuButton;
 import com.nightonke.boommenu.ButtonEnum;
 import com.nightonke.boommenu.OnBoomListener;
-import com.nightonke.boommenu.OnBoomListenerAdapter;
 import com.nightonke.boommenu.Piece.PiecePlaceEnum;
 import com.nightonke.boommenu.Util;
 
@@ -39,8 +31,7 @@ import java.io.File;
 import java.util.ArrayList;
 
 
-import ale.aprende.aprende.principal.MainActivity;
-import ale.aprende.aprende.registrar.DBHandler;
+import ale.aprende.aprende.bd.DBHandler;
 
 public class MenuJuego extends AppCompatActivity implements View.OnClickListener, RecognitionListener {
     private ArrayList<android.util.Pair> piecesAndButtons = new ArrayList<>();

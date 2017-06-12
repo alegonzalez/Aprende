@@ -2,27 +2,19 @@ package ale.aprende.aprende.principal;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 import android.os.Build;
-import android.os.Handler;
 import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
-import android.support.multidex.MultiDex;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.util.Pair;
 import android.view.View;
 import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -37,17 +29,14 @@ import com.nightonke.boommenu.Util;
 
 import java.util.ArrayList;
 
-import ale.aprende.aprende.Abecedario;
 import ale.aprende.aprende.BuilderManager;
-import ale.aprende.aprende.Categoria;
-import ale.aprende.aprende.Colores;
-import ale.aprende.aprende.Figuras_geometricas;
+import ale.aprende.aprende.bd.Categoria;
 import ale.aprende.aprende.Ingresar.Ingresar;
 import ale.aprende.aprende.MenuJuego;
-import ale.aprende.aprende.Numeros;
 import ale.aprende.aprende.R;
-import ale.aprende.aprende.Relaciones_espaciales;
-import ale.aprende.aprende.registrar.DBHandler;
+import ale.aprende.aprende.bd.DBHandler;
+import ale.aprende.aprende.bd.Pregunta;
+import ale.aprende.aprende.bd.Respuesta;
 import ale.aprende.aprende.registrar.Registrar;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -79,6 +68,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (db != null) {
             Categoria categoria = new Categoria(db);
             categoria.llenarTablaCategoria();
+            Pregunta p = new Pregunta();
+            p.llenarTablaPregunta(getApplicationContext());
+            Respuesta r = new Respuesta();
+            r.llenarTablaRespuesta(getApplicationContext());
         }
         db.close();
         bmb = (BoomMenuButton) findViewById(R.id.botonPrinipal);
@@ -139,7 +132,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onBoomWillShow() {
-
 
 
                 //   btn.performClick();

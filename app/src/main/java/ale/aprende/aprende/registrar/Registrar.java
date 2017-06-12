@@ -16,7 +16,6 @@ import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,6 +41,7 @@ import java.util.List;
 import java.util.UUID;
 
 
+import ale.aprende.aprende.bd.DBHandler;
 import ale.aprende.aprende.helper.ImageHelper;
 import ale.aprende.aprende.helper.LogHelper;
 import ale.aprende.aprende.helper.SampleApp;
