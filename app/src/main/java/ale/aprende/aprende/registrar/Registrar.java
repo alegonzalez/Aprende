@@ -61,6 +61,7 @@ public class Registrar extends AppCompatActivity {
     private int cambio = 0;
     protected FaceListAdapter mFaceListAdapter0;
     private Bitmap mBitmap0;
+    private int detectado = 0;
 
     // Background task of face detection.
     private class DetectionTask extends AsyncTask<InputStream, String, Face[]> {
@@ -316,7 +317,7 @@ public class Registrar extends AppCompatActivity {
     public void registrar(View view) {
         Button btn = (Button) findViewById(R.id.btnRegistrar);
         btn.setEnabled(false);
-        if (rostroimg == null) {
+        if (detectado == 0) {
             Toast.makeText(this, "Debes seleccionar una foto de perfil del niño", Toast.LENGTH_LONG).show();
             btn.setEnabled(true);
             return;
@@ -385,6 +386,7 @@ public class Registrar extends AppCompatActivity {
     private void setUiAfterDetection(Face[] result, int index, boolean succeed) {
 
         if (succeed) {
+            detectado = 1;
             agregarLog("Response: Success. Detectado "
                     + result.length + " rostro(s) en imagen" + index);
             establecerInformacion(result.length + " rostro" + (result.length != 1 ? "s" : "") + " detectado");
@@ -407,6 +409,8 @@ public class Registrar extends AppCompatActivity {
             }
             mFaceListAdapter0 = faceListAdapter;
             mBitmap0 = null;
+        }else{
+            detectado = 0;
         }
         if (result != null && result.length == 0) {
             establecerInformacion("No se pudo detectar el rostro, intenta con otra foto");
