@@ -38,7 +38,6 @@ public class Pregunta {
                     ContentValues values = new ContentValues();
                     values.put("audio", audio[j]);
                     values.put("nombre_imagen", audio[j] + "_" + nombreImagen[i]);
-                    values.put("estado", false);
                     values.put("id_subcategoria", id_subcategoria);
                     db.insert("Pregunta", null, values);
                 }

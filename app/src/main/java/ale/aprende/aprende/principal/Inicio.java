@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ProgressBar;
 
+import ale.aprende.aprende.MenuJuego;
 import ale.aprende.aprende.R;
 
 public class Inicio extends AppCompatActivity {

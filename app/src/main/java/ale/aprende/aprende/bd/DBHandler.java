@@ -32,10 +32,10 @@ public class DBHandler extends SQLiteOpenHelper {
             + " FOREIGN KEY (" + "id_categoria" + ") REFERENCES " + "Categoria" + "(" + "id" + "));";
     //Sql de la creación tabla pregunta
     private String pregunta = "CREATE TABLE Pregunta " +
-            "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,audio TEXT,nombre_imagen TEXT,estado BOOLEAN,id_subcategoria INTEGER NOT NULL," +
+            "(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,audio TEXT,nombre_imagen TEXT,id_subcategoria INTEGER NOT NULL," +
             "FOREIGN KEY (id_subcategoria) REFERENCES  SubCategoria ( id));" + ")";
     //Sql de  la creación de la tabla intermedia entre usuario y pregunta
-    private String persona_pregunta = "CREATE TABLE Persona_Pregunta (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,id_persona INTEGER NOT NULL,id_pregunta INTEGER NOT NULL," +
+    private String persona_pregunta = "CREATE TABLE Persona_Pregunta (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,id_persona INTEGER NOT NULL,id_pregunta INTEGER NOT NULL,estado BOOLEAN," +
             " FOREIGN KEY (id_persona) REFERENCES Persona(id) " + "," + " FOREIGN KEY (id_pregunta) REFERENCES Pregunta(id)" + ")";
     //Sql de  la creación de la tabla  entre imagen_respuesta
     private String imagen_respuesta = "CREATE TABLE Imagen_Respuesta (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,id_pregunta INTEGER NOT NULL,nombre_imagen TEXT ,estado BOOLEAN,audio TEXT,"+

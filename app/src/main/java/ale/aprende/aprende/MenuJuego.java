@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -34,12 +35,15 @@ import java.util.ArrayList;
 import ale.aprende.aprende.bd.DBHandler;
 
 public class MenuJuego extends AppCompatActivity implements View.OnClickListener, RecognitionListener {
+    //Declaración de variables
     private ArrayList<android.util.Pair> piecesAndButtons = new ArrayList<>();
     private BoomMenuButton bmb;
     private int id_usuario;
     private Boolean[] lista;
     private Intent recognizerIntent;
     private SpeechRecognizer speech = null;
+    AudioManager amanager;
+    int verificarSonido = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,12 +53,10 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         setSupportActionBar(toolbar);
         id_usuario = obtenerIdUsuario();
         bmb = (BoomMenuButton) findViewById(R.id.bmb);
-        assert bmb != null;
         bmb.setButtonEnum(ButtonEnum.Ham);
         bmb.setPiecePlaceEnum(PiecePlaceEnum.HAM_1);
         bmb.setButtonPlaceEnum(ButtonPlaceEnum.HAM_1);
         bmb.setBottomHamButtonTopMargin(Util.dp2px(20));
-        bmb.performClick();
         bmb.setAutoBoom(true);
         ListView listView = (ListView) findViewById(R.id.list_view);
         assert listView != null;
@@ -71,6 +73,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             public void onClicked(int index, BoomButton boomButton) {
 
                 if (index == 0 && lista[index] == true) {
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
                     Intent intento = new Intent(MenuJuego.this, Relaciones_espaciales.class);
                     abrirActividad(intento);
                 } else if (index == 1 && lista[index] == true) {
@@ -110,8 +113,8 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             }
         });
         hacerAudio();
-        AudioManager amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+        amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        //amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
     }
 
     public void hacerAudio() {
@@ -142,7 +145,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     }
 
     //Verificar el tipo de pantalla para la colocación de botones
-
     public boolean cargarBotones(ListView ls) {
         lista = verificarTemasBloqueados();
         String[] temas = {"relaciones_espaciales", "Colores", "Numeros", "figuras_geometricas", "abecedario"};
@@ -308,8 +310,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
 
     @Override
     public void onResume() {
-        hacerAudio();
-        AudioManager amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        speech.startListening(recognizerIntent);
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
         super.onResume();
     }
@@ -317,27 +318,8 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     @Override
     protected void onPause() {
         super.onPause();
-        if (speech != null) {
-            speech.destroy();
-        }
-        AudioManager amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        speech.destroy();
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (speech != null) {
-            speech.destroy();
-        }
-
-    }
-
-    @Override
-    protected void onRestart() {
-        hacerAudio();
-        super.onRestart();
     }
 
     @Override
@@ -393,6 +375,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         Intent intent = new Intent(MenuJuego.this, Relaciones_espaciales.class);
         intent.putExtra("id_usuario", id_usuario);
         startActivity(intent);
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         speech.destroy();
     }
 }

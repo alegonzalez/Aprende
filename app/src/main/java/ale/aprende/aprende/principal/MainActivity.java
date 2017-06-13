@@ -93,13 +93,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         listenClickEventOf(R.id.botonPrinipal);
         bmb.getOnBoomListener();
         bmb.setAutoBoom(true);
-        /*
-        bmb.performClick();
-        bmb.callOnClick();
-        bmb.getOnBoomListener();
-        BoomButton btnn = null;
-        bmb.onButtonClick(1, btnn);
-        */
         //Evento click en el botón
 
         bmb.setOnBoomListener(new OnBoomListener() {
@@ -110,8 +103,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Intent intento = new Intent(MainActivity.this, Registrar.class);
                     startActivity(intento);
                 } else {
-                    Intent intento = new Intent(MainActivity.this, Ingresar.class);
-                    startActivity(intento);
+                    //Intent intento = new Intent(MainActivity.this, Ingresar.class);
+                    //startActivity(intento);
+                    Intent intent =new Intent(MainActivity.this, MenuJuego.class);
+                    startActivity(intent);
                 }
             }
 
@@ -146,26 +141,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
 
-/*
-        final Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                levantarMenu();
-            }
-        }, 100);
-        */
-    }
-
-    /*
-        public void levantarMenu() {
-            bmb.isBoomed();    // Whether the BMB is boomed.
-            bmb.isReBoomed();
-            Toast.makeText(this, "HOLAA", Toast.LENGTH_SHORT).show();
-            bmb.setOnClickListener(this);
-        }
-    */
-
+}
     private void listenClickEventOf(int bmb) {
         findViewById(bmb).setOnClickListener(this);
     }
