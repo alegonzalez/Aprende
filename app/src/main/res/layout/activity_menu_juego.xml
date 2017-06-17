@@ -15,7 +15,6 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         app:bmb_draggable="true"
-        app:bmb_buttonEnum="ham"
         />
 
     <ListView
