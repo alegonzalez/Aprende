@@ -63,17 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     .setCancelable(false)
                     .show();
         }
-        DBHandler db1 = new DBHandler(this);
-        SQLiteDatabase db = db1.getWritableDatabase();
-        if (db != null) {
-            Categoria categoria = new Categoria(db);
-            categoria.llenarTablaCategoria();
-            Pregunta p = new Pregunta();
-            p.llenarTablaPregunta(getApplicationContext());
-            Respuesta r = new Respuesta();
-            r.llenarTablaRespuesta(getApplicationContext());
-        }
-        db.close();
+
         bmb = (BoomMenuButton) findViewById(R.id.botonPrinipal);
         assert bmb != null;
         bmb.setButtonEnum(ButtonEnum.Ham);
@@ -98,14 +88,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         bmb.setOnBoomListener(new OnBoomListener() {
             @Override
             public void onClicked(int index, BoomButton boomButton) {
-                Toast.makeText(MainActivity.this, "HOLA", Toast.LENGTH_SHORT).show();
                 if (index == 0) {
                     Intent intento = new Intent(MainActivity.this, Registrar.class);
                     startActivity(intento);
                 } else {
                     //Intent intento = new Intent(MainActivity.this, Ingresar.class);
                     //startActivity(intento);
-                    Intent intent =new Intent(MainActivity.this, MenuJuego.class);
+                    Intent intent = new Intent(MainActivity.this, MenuJuego.class);
                     startActivity(intent);
                 }
             }
@@ -141,7 +130,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
 
 
-}
+    }
+
     private void listenClickEventOf(int bmb) {
         findViewById(bmb).setOnClickListener(this);
     }
@@ -164,7 +154,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //Verificar permiso
     private void verificarPermiso() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "Permiso concedido", Toast.LENGTH_SHORT).show();
         } else {
             explicarUsoPermiso();
@@ -180,6 +171,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mensaje.setMessage("Se guardará la imagen de perfil en su dispositivo, y se realizará el uso de la cámara");
             cuadroMensajeBasico();
             mensaje.show();
+        } else if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECORD_AUDIO)) {
+            mensaje.setMessage("Grabación de audio en la aplicación");
+            cuadroMensajeBasico();
+            mensaje.show();
         }
         return true;
     }
@@ -187,9 +182,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //Pedimos el permiso o los permisos con un cuadro dialogo  del sistema
     public boolean solicitarPermisoAlmacenamiento(String mensaje) {
         ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA},
+                new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO},
                 SOLICITUD_PERMISO);
-        Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show();
         return true;
     }
 
@@ -197,7 +192,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == SOLICITUD_PERMISO) {
-            if (grantResults.length == 2 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length == 3 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED
+                    && grantResults[2] == PackageManager.PERMISSION_GRANTED) {
                 //Realizamos la accion permiso concedido
                 Toast.makeText(this, "Permiso Concedido", Toast.LENGTH_SHORT).show();
             } else {

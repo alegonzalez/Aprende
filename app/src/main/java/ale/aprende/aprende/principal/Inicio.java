@@ -1,6 +1,7 @@
 package ale.aprende.aprende.principal;
 
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
@@ -10,6 +11,10 @@ import android.widget.ProgressBar;
 
 import ale.aprende.aprende.MenuJuego;
 import ale.aprende.aprende.R;
+import ale.aprende.aprende.bd.Categoria;
+import ale.aprende.aprende.bd.DBHandler;
+import ale.aprende.aprende.bd.Pregunta;
+import ale.aprende.aprende.bd.Respuesta;
 
 public class Inicio extends AppCompatActivity {
     public static final int segundos = 8;
@@ -24,7 +29,30 @@ public class Inicio extends AppCompatActivity {
         pbProgreso = (ProgressBar) findViewById(R.id.pgCarga);
         pbProgreso.setMax(maximo_pregreso());
         pbProgreso.setScaleY(4f);
+        execWithThread();
         iniciarAnimacion();
+    }
+
+
+    public void execWithThread() {
+        new Thread(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        DBHandler db1 = new DBHandler(getApplicationContext());
+                        SQLiteDatabase db = db1.getWritableDatabase();
+                        if (db != null) {
+                            Categoria categoria = new Categoria(db);
+                            categoria.llenarTablaCategoria();
+                            Pregunta p = new Pregunta();
+                            p.llenarTablaPregunta(getApplicationContext());
+                            Respuesta r = new Respuesta();
+                            r.llenarTablaRespuesta(getApplicationContext());
+                        }
+                        db.close();
+                    }
+                }
+        ).start();
     }
 
     private void iniciarAnimacion() {
