@@ -40,10 +40,9 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     private BoomMenuButton bmb;
     private int id_usuario;
     private Boolean[] lista;
-    private Intent recognizerIntent;
-    private SpeechRecognizer speech = null;
     AudioManager amanager;
-    int verificarSonido = 0;
+    public SpeechRecognizer speech;
+    private Intent recognizerIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,27 +64,29 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         cargarBotones(listView);
         animacionBoton(bmb);
         listenClickEventOf(R.id.bmb);
-        hacerAudio();
         //Evento click en el botón
         bmb.setOnBoomListener(new OnBoomListener() {
-
             @Override
             public void onClicked(int index, BoomButton boomButton) {
-
                 if (index == 0 && lista[index] == true) {
-                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                    //amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
                     Intent intento = new Intent(MenuJuego.this, Relaciones_espaciales.class);
                     abrirActividad(intento);
+                    finish();
                 } else if (index == 1 && lista[index] == true) {
+                    //amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
                     Intent intento = new Intent(MenuJuego.this, Colores.class);
                     abrirActividad(intento);
                 } else if (index == 2 && lista[index] == true) {
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
                     Intent intento = new Intent(MenuJuego.this, Numeros.class);
                     abrirActividad(intento);
                 } else if (index == 3 && lista[index] == true) {
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
                     Intent intento = new Intent(MenuJuego.this, Figuras_geometricas.class);
                     abrirActividad(intento);
                 } else if (index == 4 && lista[index] == true) {
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
                     Intent intento = new Intent(MenuJuego.this, Abecedario.class);
                     abrirActividad(intento);
                 }
@@ -112,29 +113,17 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             public void onBoomDidShow() {
             }
         });
-        hacerAudio();
-        amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        //amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-    }
+        if (speech == null) {
+         //   hacerAudio();
+        }
 
-    public void hacerAudio() {
-        speech = SpeechRecognizer.createSpeechRecognizer(this);
-        speech.setRecognitionListener(this);
-        recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "es");
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, this.getPackageName());
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
-        speech.startListening(recognizerIntent);
+        amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
     }
 
     private void listenClickEventOf(int bmb) {
         findViewById(bmb).setOnClickListener(this);
     }
 
-    @Override
-    public void onClick(View v) {
-    }
 
     //Obtiene el id del usuario que se encuentra desde la imagen
     public int obtenerIdUsuario() {
@@ -188,7 +177,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     public Animation elaborarAnimacion(BoomMenuButton boton) {
         Animation animation = new AlphaAnimation(0.0f, 1.0f);
         animation.setDuration(800);
-        //animation.setStartOffset(10);
+
         animation.setRepeatMode(Animation.REVERSE);
         animation.setRepeatCount(Animation.INFINITE);
         return animation;
@@ -201,11 +190,18 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         SQLiteDatabase db = mdb.getWritableDatabase();
         Cursor cursor = db.rawQuery("select * from Progreso where id= " + id_usuario, null);
         if (!(cursor.moveToFirst()) || cursor.getCount() == 0) {
+            Relaciones_espaciales r = new Relaciones_espaciales();
+            int numero = r.sortear(4);
             ContentValues values = new ContentValues();
             values.put("id_persona", id_usuario);
-            values.put("id_subcategoria", 1);
+            values.put("id_subcategoria", 1);//numero+1);
             values.put("estado", false);
             db.insert("Progreso", null, values);
+            estado[0] = true;
+            estado[1] = false;
+            estado[2] = false;
+            estado[3] = false;
+            estado[4] = false;
         } else {
             while (!cursor.isAfterLast()) {
                 int estado_tema = (cursor.getInt(cursor.getColumnIndex("estado")));
@@ -250,6 +246,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                 cursor.moveToNext();
             }
         }
+        db.close();
         return estado;
     }
 
@@ -257,6 +254,56 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     public void abrirActividad(Intent intento) {
         intento.putExtra("id_usuario", id_usuario);
         startActivity(intento);
+    }
+
+
+    @Override
+    public void onResume() {
+        speech = hacerAudio();
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        speech.destroy();
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (speech != null) {
+            speech.destroy();
+            Toast.makeText(this, "Entro", Toast.LENGTH_SHORT).show();
+        }
+
+        super.onDestroy();
+    }
+
+    //Abrir la actividad de relaciones espaciales
+    public void abrirRelacionesEspaciales() {
+        Intent intent = new Intent(MenuJuego.this, Relaciones_espaciales.class);
+        intent.putExtra("id_usuario", id_usuario);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    public void onClick(View v) {
+
+    }
+
+    //Reconocimiento de vooz
+    public SpeechRecognizer hacerAudio() {
+        speech = SpeechRecognizer.createSpeechRecognizer(this);
+        speech.setRecognitionListener(this);
+        recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "es");
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+        speech.startListening(recognizerIntent);
+        return speech;
     }
 
     //Metodos de la implementacion de RecognitionListener
@@ -287,9 +334,9 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
 
     @Override
     public void onError(int errorCode) {
-        if (errorCode != 7 && errorCode != 8) {
-            Toast.makeText(this, "" + getErrorText(errorCode), Toast.LENGTH_SHORT).show();
-        } else {
+        Toast.makeText(this, getErrorText(errorCode), Toast.LENGTH_SHORT).show();
+        if (speech != null) {
+            speech.destroy();
             hacerAudio();
         }
     }
@@ -306,20 +353,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                 abrirRelacionesEspaciales();
             }
         hacerAudio();
-    }
-
-    @Override
-    public void onResume() {
-        speech.startListening(recognizerIntent);
-        amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        speech.destroy();
-        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
     }
 
     @Override
@@ -369,13 +402,4 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         return message;
     }
 
-    //Abrir la actividad de relaciones espaciales
-    public void abrirRelacionesEspaciales() {
-        Toast.makeText(this, "ID usuario: " + id_usuario, Toast.LENGTH_SHORT).show();
-        Intent intent = new Intent(MenuJuego.this, Relaciones_espaciales.class);
-        intent.putExtra("id_usuario", id_usuario);
-        startActivity(intent);
-        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-        speech.destroy();
-    }
 }

@@ -21,24 +21,26 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true">
+        android:layout_alignLeft="@+id/imgPregunta"
+        android:layout_alignStart="@+id/imgPregunta"
+    >
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:id="@+id/imgBtnPrimeraOpcion"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             />
-
+la
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:id="@+id/imgBtnSegundaOpcion"/>
 
         <ImageButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:id="@+id/imgBtnTerceraOpcion"/>
     </LinearLayout>
 
