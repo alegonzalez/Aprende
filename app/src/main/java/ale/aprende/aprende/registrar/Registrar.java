@@ -29,6 +29,8 @@ import android.widget.Toast;
 import com.microsoft.projectoxford.face.FaceServiceClient;
 import com.microsoft.projectoxford.face.contract.Face;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -178,9 +180,9 @@ public class Registrar extends AppCompatActivity {
     public void cargarFoto(View view) {
         Intent gallIntent = new Intent(Intent.ACTION_GET_CONTENT);
         gallIntent.setType("image/*");
-
         startActivityForResult(Intent.createChooser(gallIntent, "Seleccione la imagen"), ELEGIR_IMAGEN);
     }
+
     //Obtener
     public String obtenerDireccionImagen(Uri uri) {
         Cursor cursor = getContentResolver().query(uri, null, null, null, null);
@@ -198,7 +200,6 @@ public class Registrar extends AppCompatActivity {
             Uri uri = data.getData();
             nombreImagen = obtenerNombreImagen(uri);
             cargarImagen(data, uri, finalFile);
-
         }
     }
 
@@ -214,7 +215,7 @@ public class Registrar extends AppCompatActivity {
                     + "x" + bitmap.getHeight());
         }
         try {
-           // ImageView img = (ImageView) findViewById(R.id.rostro);
+            // ImageView img = (ImageView) findViewById(R.id.rostro);
             //img.setImageBitmap(null);
             ExifInterface exif = new ExifInterface(archivo.getAbsolutePath());
             bitmapPerfil = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
@@ -351,6 +352,13 @@ public class Registrar extends AppCompatActivity {
 
     //guardar la imagen en los archivos de la aplicación del celular
     public boolean guardarImagenDispositivo(String id) {
+        //Elimina la carpeta
+        File dir = new File("/sdcard/Aprende");
+        try {
+            FileUtils.deleteDirectory(dir);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         File direct = new File(Environment.getExternalStorageDirectory() + "/Aprende");
         if (!direct.exists()) {
             File wallpaperDirectory = new File("/sdcard/Aprende/");
@@ -358,6 +366,7 @@ public class Registrar extends AppCompatActivity {
         }
         String[] resultado;
         resultado = nombreImagen.split("\\.");
+
         File file = new File(new File("/sdcard/Aprende/"), resultado[0] + "_" + id + "." + resultado[1]);
         if (file.exists()) {
             file.delete();
@@ -396,20 +405,21 @@ public class Registrar extends AppCompatActivity {
             Bitmap bitmap = null;
             if (faceListAdapter.faces.size() != 0) {
                 mFaceId0 = faceListAdapter.faces.get(0).faceId;
-              //  rostroimg = (ImageView) findViewById(R.id.rostro);
+                //  rostroimg = (ImageView) findViewById(R.id.rostro);
                 if (cambio == 1) {
                     bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 90);
                 } else if (cambio == 2) {
                     bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 180);
                 } else if (cambio == 3 || cambio == 4) {
                     bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 270);
+                } else {
+                    bitmap = rotateBitmap(faceListAdapter.faceThumbnails.get(0), 0);
                 }
-                //rostroimg.setImageBitmap(bitmap);
                 fotoDetectada = convertirBitmapAString(bitmap);
             }
             mFaceListAdapter0 = faceListAdapter;
             mBitmap0 = null;
-        }else{
+        } else {
             detectado = 0;
         }
         if (result != null && result.length == 0) {
