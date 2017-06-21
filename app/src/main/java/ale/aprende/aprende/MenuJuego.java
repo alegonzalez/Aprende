@@ -5,23 +5,31 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Movie;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.Parcelable;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.method.MovementMethod;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.nightonke.boommenu.BoomButtons.BoomButton;
 import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
+import com.nightonke.boommenu.BoomButtons.TextOutsideCircleButton;
 import com.nightonke.boommenu.BoomMenuButton;
 import com.nightonke.boommenu.ButtonEnum;
 import com.nightonke.boommenu.OnBoomListener;
@@ -43,6 +51,9 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     AudioManager amanager;
     public SpeechRecognizer speech;
     private Intent recognizerIntent;
+    final static long REFRESH_TIME = 15000;
+    final Handler handler = new Handler();
+    private RelativeLayout rl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +69,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         bmb.setBottomHamButtonTopMargin(Util.dp2px(20));
         bmb.setAutoBoom(true);
         ListView listView = (ListView) findViewById(R.id.list_view);
+
         assert listView != null;
         listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,
                 BuilderManager.getHamButtonData(piecesAndButtons)));
@@ -113,9 +125,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             public void onBoomDidShow() {
             }
         });
-        if (speech == null) {
-         //   hacerAudio();
-        }
 
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
     }
@@ -139,6 +148,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         String[] temas = {"relaciones_espaciales", "Colores", "Numeros", "figuras_geometricas", "abecedario"};
         int texto = 0;
         int position = 14;
+
         ls.setVisibility(View.GONE);
         bmb.setPiecePlaceEnum((PiecePlaceEnum) piecesAndButtons.get(position).first);
         bmb.setButtonPlaceEnum((ButtonPlaceEnum) piecesAndButtons.get(position).second);
@@ -146,19 +156,24 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         for (int i = 0; i < bmb.getPiecePlaceEnum().pieceNumber(); i++)
             if (temas[i].equals("relaciones_espaciales")) {
                 texto = R.string.relaciones_espaciales;
-                bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
+                //bmb.addBuilder(BuilderManager.getTextOutsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
+             bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
             } else if (temas[i].equals("Colores")) {
                 texto = R.string.Colores;
-                bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
+               // bmb.addBuilder(BuilderManager.getTextOutsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
+               bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
             } else if (temas[i].equals("Numeros")) {
                 texto = R.string.Numeros;
+                //bmb.addBuilder(BuilderManager.getTextOutsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
                 bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
             } else if (temas[i].equals("figuras_geometricas")) {
                 texto = R.string.figuras_geometricas;
+                //bmb.addBuilder(BuilderManager.getTextOutsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
                 bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
             } else {
                 texto = R.string.abecedario;
-                bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
+                //bmb.addBuilder(BuilderManager.getTextOutsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
+                   bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
             }
         return true;
     }
@@ -188,14 +203,16 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         Boolean[] estado = new Boolean[5];
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
-        Cursor cursor = db.rawQuery("select * from Progreso where id= " + id_usuario, null);
+        Cursor cursor = db.rawQuery("select * from Progreso where id_persona= " + id_usuario, null);
         if (!(cursor.moveToFirst()) || cursor.getCount() == 0) {
             Relaciones_espaciales r = new Relaciones_espaciales();
             int numero = r.sortear(4);
             ContentValues values = new ContentValues();
             values.put("id_persona", id_usuario);
-            values.put("id_subcategoria", 1);//numero+1);
+            values.put("id_subcategoria", numero+1);
             values.put("estado", false);
+            values.put("cantidad_preguntas", 3);
+            values.put("cantidad_errores", 0);
             db.insert("Progreso", null, values);
             estado[0] = true;
             estado[1] = false;
@@ -246,6 +263,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                 cursor.moveToNext();
             }
         }
+        cursor.close();
         db.close();
         return estado;
     }
@@ -275,9 +293,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     protected void onDestroy() {
         if (speech != null) {
             speech.destroy();
-            Toast.makeText(this, "Entro", Toast.LENGTH_SHORT).show();
         }
-
         super.onDestroy();
     }
 
@@ -334,7 +350,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
 
     @Override
     public void onError(int errorCode) {
-        Toast.makeText(this, getErrorText(errorCode), Toast.LENGTH_SHORT).show();
         if (speech != null) {
             speech.destroy();
             hacerAudio();
@@ -402,4 +417,11 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         return message;
     }
 
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            Toast.makeText(MenuJuego.this, "JAJAJAJA", Toast.LENGTH_SHORT).show();
+            handler.postDelayed(this, REFRESH_TIME);
+        }
+    };
 }

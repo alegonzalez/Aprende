@@ -138,6 +138,7 @@ public class Registrar extends AppCompatActivity {
                 cursor.moveToNext();
             }
         }
+        cursor.close();
         db.close();
         if (contador == 0) {
             rbtFemenina = (RadioButton) findViewById(R.id.rbtFemenina);

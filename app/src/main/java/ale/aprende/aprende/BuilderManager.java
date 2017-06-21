@@ -47,12 +47,88 @@ public class BuilderManager {
         if (imageResourceIndex >= imageResources.length) imageResourceIndex = 0;
         return imageResources[imageResourceIndex++];
     }
+
+    static SimpleCircleButton.Builder getSimpleCircleButtonBuilder() {
+        return new SimpleCircleButton.Builder()
+                .normalImageRes(getImageResource());
+    }
+
+    static SimpleCircleButton.Builder getSquareSimpleCircleButtonBuilder(int nombre, int icono) {
+        int imagen = 0;
+        if (icono != 1) {
+            imagen = R.drawable.ic_https_black_48dp;
+        } else if (nombre == R.string.relaciones_espaciales) {
+            imagen = R.drawable.horse;
+        }
+        Rect n = new Rect(10, 1, 1, 1);
+        return new SimpleCircleButton.Builder()
+                .isRound(false)
+                .shadowCornerRadius(Util.dp2px(20))
+                .buttonCornerRadius(Util.dp2px(20))
+                .normalImageRes(getImageResource());
+    }
+
+    static TextInsideCircleButton.Builder getTextInsideCircleButtonBuilder() {
+        return new TextInsideCircleButton.Builder()
+                .normalImageRes(getImageResource())
+                .normalTextRes(R.string.text_inside_circle_button_text_normal);
+    }
+
+    static TextInsideCircleButton.Builder getSquareTextInsideCircleButtonBuilder() {
+        return new TextInsideCircleButton.Builder()
+                .isRound(false)
+                .shadowCornerRadius(Util.dp2px(10))
+                .buttonCornerRadius(Util.dp2px(10))
+                .normalImageRes(getImageResource())
+                .normalTextRes(R.string.text_inside_circle_button_text_normal);
+    }
+
+    static TextInsideCircleButton.Builder getTextInsideCircleButtonBuilderWithDifferentPieceColor() {
+        return new TextInsideCircleButton.Builder()
+                .normalImageRes(getImageResource())
+                .normalTextRes(R.string.text_inside_circle_button_text_normal)
+                .pieceColor(Color.WHITE);
+    }
+
+    static TextOutsideCircleButton.Builder getTextOutsideCircleButtonBuilder(int nombre, int icono) {
+        int imagen = 0;
+        if (icono != 1) {
+            imagen = R.drawable.ic_https_black_48dp;
+        } else if (nombre == R.string.relaciones_espaciales) {
+            imagen = R.drawable.horse;
+        }
+        Rect n = new Rect(10, 1, 1, 1);
+        return new TextOutsideCircleButton.Builder()
+                .normalImageRes(imagen)
+                .normalTextRes(nombre)
+                .isRound(false)
+                .shadowCornerRadius(Util.dp2px(15))
+                .buttonCornerRadius(Util.dp2px(15));
+
+    }
+
+    static TextOutsideCircleButton.Builder getSquareTextOutsideCircleButtonBuilder() {
+        return new TextOutsideCircleButton.Builder()
+                .isRound(false)
+                .shadowCornerRadius(Util.dp2px(15))
+                .buttonCornerRadius(Util.dp2px(15))
+                .normalImageRes(getImageResource())
+                .normalTextRes(R.string.text_outside_circle_button_text_normal);
+    }
+
+    static TextOutsideCircleButton.Builder getTextOutsideCircleButtonBuilderWithDifferentPieceColor() {
+        return new TextOutsideCircleButton.Builder()
+                .normalImageRes(getImageResource())
+                .normalTextRes(R.string.text_outside_circle_button_text_normal)
+                .pieceColor(Color.WHITE);
+    }
+
     //
     static HamButton.Builder getHamButtonBuilder(int nombre, int icono) {
         int imagen = 0;
         if (icono != 1) {
             imagen = R.drawable.ic_https_black_48dp;
-        }else if(nombre == R.string.relaciones_espaciales){
+        } else if (nombre == R.string.relaciones_espaciales) {
             imagen = R.drawable.horse;
         }
         Rect n = new Rect(10, 1, 1, 1);

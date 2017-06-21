@@ -19,29 +19,31 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_alignParentBottom="true"
         android:layout_alignLeft="@+id/imgPregunta"
+        android:layout_alignParentBottom="true"
         android:layout_alignStart="@+id/imgPregunta"
-    >
+        android:orientation="horizontal">
 
         <ImageButton
+            android:id="@+id/imgBtnPrimeraOpcion"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:id="@+id/imgBtnPrimeraOpcion"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            />
-la
-        <ImageButton
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:id="@+id/imgBtnSegundaOpcion"/>
+            android:onClick="opcion1" />
+
 
         <ImageButton
+            android:id="@+id/imgBtnSegundaOpcion"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:id="@+id/imgBtnTerceraOpcion"/>
+            android:onClick="opcion2"/>
+
+        <ImageButton
+            android:id="@+id/imgBtnTerceraOpcion"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:onClick="opcion3"/>
     </LinearLayout>
 
 

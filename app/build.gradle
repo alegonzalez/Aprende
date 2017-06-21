@@ -44,4 +44,5 @@ dependencies {
     compile 'com.nightonke:boommenu:2.1.0'
     //compile 'org.apache.commons:commons-io:1.3.2'
     compile 'commons-io:commons-io:1.3.2'
+    compile 'org.apache.commons:commons-lang3:3.6'
 }
