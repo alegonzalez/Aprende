@@ -131,30 +131,38 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 if (cantidad_preguntas == 0) {
                     if (cantidad_errores == 3) {
                         cantidad_preguntas = 3;
-                        ponerErroresEstadisticas(cantidad_errores, 3, db);
+                        ponerErroresEstadisticas(0, 1, db);
                         cantidad_errores = 0;
                         abrirRelacionesEspaciales();
                     } else if (cantidad_errores == 2) {
                         cantidad_preguntas = 2;
-                        ponerErroresEstadisticas(cantidad_errores, 2, db);
+                        ponerErroresEstadisticas(0, 1, db);
                         cantidad_errores = 0;
                         abrirRelacionesEspaciales();
                     } else if (cantidad_errores == 1) {
                         cantidad_preguntas = 1;
-                        ponerErroresEstadisticas(cantidad_errores, 1, db);
+                        ponerErroresEstadisticas(0, 1, db);
                         cantidad_errores = 0;
                         abrirRelacionesEspaciales();
                     } else {
                         //Tema superado
                         actualizarEstadoProgreso(db);
-                        ponerErroresEstadisticas(cantidad_errores, 0, db);
+                        ponerErroresEstadisticas(0, 1, db);
                         int rs = obtenerSiguienteSubctegoria(db);
+                        if (rs != 0) {
+                            insertarNuevaSubCategoria(rs, db);
+                            abrirRelacionesEspaciales();
+                            Toast.makeText(this, "Felicidades pequeño sigue asi", Toast.LENGTH_SHORT).show();
+                        } else {
+                            //Insertar en la tabla de progreso  la primer subcategoria de colores
+                        }
                         insertarNuevaSubCategoria(rs, db);
                         Toast.makeText(this, "Felicidades tema superado", Toast.LENGTH_SHORT).show();
                         abrirRelacionesEspaciales();
                     }
                     actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
                 } else {
+                    ponerErroresEstadisticas(0, 1, db);
                     actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
                     abrirRelacionesEspaciales();
                 }
@@ -165,6 +173,8 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         } else {
             //Reproducir audio para motivar al niño
             cantidad_errores += 1;
+            ponerErroresEstadisticas(cantidad_errores,0,db);
+            cantidad_errores = 0;
             actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
             Toast.makeText(this, "Vamos intentalo nuevamente", Toast.LENGTH_SHORT).show();
         }
@@ -190,44 +200,44 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             if (cantidad_preguntas <= 0) {
                 if (cantidad_errores == 6 || cantidad_errores == 5) {
                     cantidad_preguntas = 3;
-                    ponerErroresEstadisticas(cantidad_errores, 3, db);
+                    ponerErroresEstadisticas(0, 1, db);
                     cantidad_errores = 0;
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 4 || cantidad_errores == 3) {
                     cantidad_preguntas = 2;
-                    ponerErroresEstadisticas(cantidad_errores, 2, db);
+                    ponerErroresEstadisticas(0, 1, db);
                     cantidad_errores = 0;
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2 || cantidad_errores == 1) {
                     cantidad_preguntas = 1;
-                    ponerErroresEstadisticas(cantidad_errores, 1, db);
+                    ponerErroresEstadisticas(0, 1, db);
                     cantidad_errores = 0;
                     abrirRelacionesEspaciales();
                 } else {
                     //Excelente paso  la subcategoria
                     actualizarEstadoProgreso(db);
                     int resultado = obtenerSiguienteSubctegoria(db);
-                    ponerErroresEstadisticas(cantidad_errores, 0, db);
+                    ponerErroresEstadisticas(0, 1, db);
                     if (resultado != 0) {
                         insertarNuevaSubCategoria(resultado, db);
                         abrirRelacionesEspaciales();
                         Toast.makeText(this, "Felicidades pequeño sigue asi", Toast.LENGTH_SHORT).show();
                     } else {
-                        Intent intento = new Intent(Relaciones_espaciales.this, MenuJuego.class);
-                        startActivity(intento);
-                        finish();
+                        //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
                 }
             } else {
+                ponerErroresEstadisticas(0, 1, db);
                 abrirRelacionesEspaciales();
             }
             actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
         }
     }
+
     //Actualizar en la tabla de estadistica la cantidad de errores y preguntas que le pertenece a una subcategoria
     public void ponerErroresEstadisticas(int cantidad_errores, int cantidad_preguntas, SQLiteDatabase db) {
         Cursor estadistica = db.rawQuery("select cantidad_errores,cantidad_preguntas " + " from Estadistica " +
-                " where id = " + id_subcategoria + " and " + " id_persona= " + id_usuario, null);
+                " where id_subcategoria = " + id_subcategoria + " and " + " id_persona= " + id_usuario, null);
         if (estadistica.getCount() > 0 && estadistica.moveToFirst()) {
             cantidad_preguntas += Integer.parseInt(estadistica.getString(estadistica.getColumnIndex("cantidad_preguntas")));
             cantidad_errores += Integer.parseInt(estadistica.getString(estadistica.getColumnIndex("cantidad_errores")));
@@ -433,7 +443,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         values.put("id_persona", id_usuario);
         values.put("id_subcategoria", id_subcategoria);
         values.put("cantidad_errores", 0);
-        values.put("cantidad_preguntas", 3);
+        values.put("cantidad_preguntas", 0);
         values.put("porcentaje", 0);
         db.insert("Estadistica", null, values);
         db.close();
