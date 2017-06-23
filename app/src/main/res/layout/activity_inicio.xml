@@ -9,8 +9,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="ale.aprende.aprende.principal.Inicio"
-    android:background="@android:color/holo_blue_bright">
+    tools:context="ale.aprende.aprende.principal.Inicio">
 
     <ImageView
         android:layout_width="200dp"
