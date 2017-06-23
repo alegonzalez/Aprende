@@ -209,7 +209,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             int numero = r.sortear(4);
             ContentValues values = new ContentValues();
             values.put("id_persona", id_usuario);
-            values.put("id_subcategoria", numero+1);
+            values.put("id_subcategoria",numero+1);
             values.put("estado", false);
             values.put("cantidad_preguntas", 3);
             values.put("cantidad_errores", 0);
@@ -292,6 +292,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     @Override
     protected void onDestroy() {
         if (speech != null) {
+            speech.stopListening();
             speech.destroy();
         }
         super.onDestroy();

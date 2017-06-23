@@ -1,6 +1,7 @@
 package ale.aprende.aprende;
 
 import android.animation.ObjectAnimator;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -64,6 +65,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         verificarTipoSubcategoria(subcategoria);
         pregunta.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
+
             @Override
             public void onCompletion(MediaPlayer mp) {
                 pregunta.stop();
@@ -117,69 +119,102 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             cantidad_errores = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_errores")));
         }
         if (respuesta.equals("v")) {
+            ocultarBotones();
+            verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+
+        } else {
+            //Reproducir audio para motivar al niño
+            cantidad_errores += 1;
+            ponerErroresEstadisticas(cantidad_errores, 0, db);
+            actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
+            cantidad_errores = 0;
+            Toast.makeText(this, "Vamos intentalo nuevamente", Toast.LENGTH_SHORT).show();
+        }
+        cursor.close();
+        db.close();
+    }
+
+    //verifica que no se inserte una pregunta que ya este en la tabla
+    public void noRepetir(Cursor cursor, SQLiteDatabase db) {
+        int pasada = 0;
+        if (cursor.moveToFirst()) {
+            while (!cursor.isAfterLast()) {
+                if (id_pregunta.equals(cursor.getString(cursor.getColumnIndex("id_pregunta")))) {
+                    pasada = 1;
+                }
+                cursor.moveToNext();
+            }
+        }
+        if (pasada != 1) {
             ContentValues values = new ContentValues();
             values.put("id_persona", id_usuario);
             values.put("id_pregunta", id_pregunta);
             values.put("estado", true);
             db.insert("Persona_Pregunta", null, values);
-            ocultarBotones();
-            if (nombreSubcategoria.equals("derecha") || nombreSubcategoria.equals("izquierda")) {
-                List<String> subcategoria = new ArrayList<>();
-                subcategoria.add(id_subcategoria);
-                subcategoria.add(nombreSubcategoria.substring(0, 1).toUpperCase() + nombreSubcategoria.substring(1));
-                cantidad_preguntas -= 1;
-                if (cantidad_preguntas == 0) {
-                    if (cantidad_errores == 3) {
-                        cantidad_preguntas = 3;
-                        ponerErroresEstadisticas(0, 1, db);
-                        cantidad_errores = 0;
-                        abrirRelacionesEspaciales();
-                    } else if (cantidad_errores == 2) {
-                        cantidad_preguntas = 2;
-                        ponerErroresEstadisticas(0, 1, db);
-                        cantidad_errores = 0;
-                        abrirRelacionesEspaciales();
-                    } else if (cantidad_errores == 1) {
-                        cantidad_preguntas = 1;
-                        ponerErroresEstadisticas(0, 1, db);
-                        cantidad_errores = 0;
-                        abrirRelacionesEspaciales();
-                    } else {
-                        //Tema superado
-                        actualizarEstadoProgreso(db);
-                        ponerErroresEstadisticas(0, 1, db);
-                        int rs = obtenerSiguienteSubctegoria(db);
-                        if (rs != 0) {
-                            insertarNuevaSubCategoria(rs, db);
-                            abrirRelacionesEspaciales();
-                            Toast.makeText(this, "Felicidades pequeño sigue asi", Toast.LENGTH_SHORT).show();
-                        } else {
-                            //Insertar en la tabla de progreso  la primer subcategoria de colores
-                        }
-                        insertarNuevaSubCategoria(rs, db);
-                        Toast.makeText(this, "Felicidades tema superado", Toast.LENGTH_SHORT).show();
-                        abrirRelacionesEspaciales();
-                    }
-                    actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
-                } else {
+        }
+    }
+
+    public void verificar(int cantidad_preguntas, int cantidad_errores, SQLiteDatabase db, Cursor cursor) {
+
+        Cursor pregunta = db.rawQuery("select id_pregunta from Persona_Pregunta where id_persona = " + id_usuario, null);
+        noRepetir(pregunta, db);
+        if (nombreSubcategoria.equals("derecha") || nombreSubcategoria.equals("izquierda")) {
+            List<String> subcategoria = new ArrayList<>();
+            subcategoria.add(id_subcategoria);
+            subcategoria.add(nombreSubcategoria.substring(0, 1).toUpperCase() + nombreSubcategoria.substring(1));
+            cantidad_preguntas -= 1;
+            if (cantidad_preguntas == 0) {
+                if (cantidad_errores == 3) {
+                    cantidad_preguntas = 3;
+                    ponerErroresEstadisticas(0, 3, db);
+                    cantidad_errores = 0;
+                    abrirRelacionesEspaciales();
+                } else if (cantidad_errores == 2) {
+                    cantidad_preguntas = 2;
+                    ponerErroresEstadisticas(0, 2, db);
+                    cantidad_errores = 0;
+                    abrirRelacionesEspaciales();
+                } else if (cantidad_errores == 1) {
+                    cantidad_preguntas = 1;
                     ponerErroresEstadisticas(0, 1, db);
-                    actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
+                    cantidad_errores = 0;
+                    abrirRelacionesEspaciales();
+                } else {
+                    //Tema superado
+                    actualizarEstadoProgreso(db);
+                    ponerErroresEstadisticas(0, 0, db);
+                    int rs = obtenerSiguienteSubctegoria(db);
+                    if (rs != 0) {
+                        insertarNuevaSubCategoria(rs, db);
+                        Cursor est = verificarDatosTablaEstadistica(db);
+                        if (est.getCount() <= 0) {
+                            insertarEstadistica();
+                        }
+                        abrirRelacionesEspaciales();
+                        Toast.makeText(this, "Felicidades pequeño sigue asi", Toast.LENGTH_SHORT).show();
+                    } else {
+                        //Insertar en la tabla de progreso  la primer subcategoria de colores
+                    }
+                    //  insertarNuevaSubCategoria(rs, db);
+                    Toast.makeText(this, "Felicidades tema superado", Toast.LENGTH_SHORT).show();
                     abrirRelacionesEspaciales();
                 }
+                // actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
+                actualizarProgreso(cantidad_preguntas, 0, db);
             } else {
-                verificarErrores(cursor, db, cantidad_preguntas, cantidad_errores);
-                cursor.close();
+                actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
+                abrirRelacionesEspaciales();
             }
         } else {
-            //Reproducir audio para motivar al niño
-            cantidad_errores += 1;
-            ponerErroresEstadisticas(cantidad_errores,0,db);
-            cantidad_errores = 0;
-            actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
-            Toast.makeText(this, "Vamos intentalo nuevamente", Toast.LENGTH_SHORT).show();
+            verificarErrores(cursor, db, cantidad_preguntas, cantidad_errores);
+            cursor.close();
         }
-        cursor.close();
-        db.close();
+    }
+
+    //Verifica si ya se inserto en la tabla de estadistica, si no para insertar
+    private Cursor verificarDatosTablaEstadistica(SQLiteDatabase db) {
+        Cursor estadistica = db.rawQuery("select id_subcategoria from Estadistica where id_subcategoria = " + id_subcategoria + " and id_persona= " + id_usuario, null);
+        return estadistica;
     }
 
     //Actualiza el progreso de las preguntas y cantidad de errores
@@ -193,33 +228,36 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     public void verificarErrores(Cursor cursor, SQLiteDatabase db, int cantidad_preguntas, int cantidad_errores) {
         if (cursor.moveToFirst()) {
             cantidad_preguntas -= 1;
-            actualizarCantidadPreguntas(db, cantidad_preguntas);
             List<String> subcategoria = new ArrayList<>();
             subcategoria.add(id_subcategoria);
             subcategoria.add(nombreSubcategoria.substring(0, 1).toUpperCase() + nombreSubcategoria.substring(1));
             if (cantidad_preguntas <= 0) {
                 if (cantidad_errores == 6 || cantidad_errores == 5) {
                     cantidad_preguntas = 3;
-                    ponerErroresEstadisticas(0, 1, db);
-                    cantidad_errores = 0;
+                    ponerErroresEstadisticas(0, cantidad_preguntas, db);
+                    actualizarProgreso(cantidad_preguntas, 0, db);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 4 || cantidad_errores == 3) {
                     cantidad_preguntas = 2;
-                    ponerErroresEstadisticas(0, 1, db);
-                    cantidad_errores = 0;
+                    ponerErroresEstadisticas(0, cantidad_preguntas, db);
+                    actualizarProgreso(cantidad_preguntas, 0, db);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2 || cantidad_errores == 1) {
                     cantidad_preguntas = 1;
-                    ponerErroresEstadisticas(0, 1, db);
-                    cantidad_errores = 0;
+                    ponerErroresEstadisticas(0, cantidad_preguntas, db);
+                    actualizarProgreso(cantidad_preguntas, 0, db);
                     abrirRelacionesEspaciales();
                 } else {
                     //Excelente paso  la subcategoria
                     actualizarEstadoProgreso(db);
                     int resultado = obtenerSiguienteSubctegoria(db);
-                    ponerErroresEstadisticas(0, 1, db);
+                    //    ponerErroresEstadisticas(0, 1, db);
                     if (resultado != 0) {
                         insertarNuevaSubCategoria(resultado, db);
+                        Cursor est = verificarDatosTablaEstadistica(db);
+                        if (est.getCount() <= 0) {
+                            insertarEstadistica();
+                        }
                         abrirRelacionesEspaciales();
                         Toast.makeText(this, "Felicidades pequeño sigue asi", Toast.LENGTH_SHORT).show();
                     } else {
@@ -227,12 +265,13 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     }
                 }
             } else {
-                ponerErroresEstadisticas(0, 1, db);
+                actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
                 abrirRelacionesEspaciales();
             }
-            actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
         }
+        //actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
     }
+
 
     //Actualizar en la tabla de estadistica la cantidad de errores y preguntas que le pertenece a una subcategoria
     public void ponerErroresEstadisticas(int cantidad_errores, int cantidad_preguntas, SQLiteDatabase db) {
@@ -443,7 +482,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         values.put("id_persona", id_usuario);
         values.put("id_subcategoria", id_subcategoria);
         values.put("cantidad_errores", 0);
-        values.put("cantidad_preguntas", 0);
+        values.put("cantidad_preguntas", 3);
         values.put("porcentaje", 0);
         db.insert("Estadistica", null, values);
         db.close();
@@ -839,10 +878,18 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
     @Override
     public void onError(int error) {
+        Toast.makeText(this, "" + error, Toast.LENGTH_SHORT).show();
+        hacerAudio();
+        /*
         if (speech != null) {
-            speech.destroy();
-            hacerAudio();
+            //speech.destroy();
+            speech.stopListening();
+            speech.cancel();
+
+        } else {
+            Toast.makeText(this, "ESTANULLL", Toast.LENGTH_SHORT).show();
         }
+        */
     }
 
     @Override
@@ -853,8 +900,435 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             if (result.equals("Atras") || result.equals("atras") || result.equals("anterior") || result.equals("Anterior")) {
                 Intent menu = new Intent(Relaciones_espaciales.this, MenuJuego.class);
                 startActivity(menu);
+            } else {
+                verificarPreguntaYrespuesta(result);
             }
         hacerAudio();
+    }
+
+    public void incorrecto(SQLiteDatabase db, Cursor cursor) {
+        int cantidad_preguntas = 0;
+        int cantidad_errores = 0;
+        if (cursor.moveToFirst()) {
+            cantidad_preguntas = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_preguntas")));
+            cantidad_errores = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_errores")));
+        }
+        ponerErroresEstadisticas(1, 0, db);
+        actualizarProgreso(cantidad_preguntas, cantidad_errores + 1, db);
+        Toast.makeText(this, "Vamos intentalo nuevamente", Toast.LENGTH_SHORT).show();
+    }
+
+    //Verifica las respuestas de las preguntas segun la subcategoria
+    public void verificarPreguntaYrespuesta(String texto) {
+        DBHandler mdb = new DBHandler(getApplicationContext());
+        SQLiteDatabase db = mdb.getWritableDatabase();
+        Cursor cursor = db.rawQuery("select cantidad_preguntas,cantidad_errores " + " from Progreso " +
+                " where id_subcategoria = " + id_subcategoria + " and " + " id_persona= " + id_usuario, null);
+        int cantidad_preguntas = 0;
+        int cantidad_errores = 0;
+        if (cursor.moveToFirst()) {
+            cantidad_preguntas = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_preguntas")));
+            cantidad_errores = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_errores")));
+        }
+        if (id_pregunta.equals("1") && id_subcategoria.equals("1")) {
+            if (texto.equals("Gato") || texto.equals("gato") || texto.equals("sombrero") || texto.equals("Sombrero")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Perro") || texto.equals("perro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("2") && id_subcategoria.equals("1")) {
+            if (texto.equals("Radio") || texto.equals("radio") || texto.equals("Micrófono") || texto.equals("micrófono")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Sombrero") || texto.equals("sombrero")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("3") && id_subcategoria.equals("1")) {
+            if (texto.equals("Medalla") || texto.equals("medalla") || texto.equals("Cronómetro") || texto.equals("cronómetro")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Balón") || texto.equals("balón")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("4") && id_subcategoria.equals("1")) {
+            if (texto.equals("Estrella") || texto.equals("estrella") || texto.equals("Corazón") || texto.equals("corazón")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("círculo") || texto.equals("Círculo")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("5") && id_subcategoria.equals("1")) {
+            if (texto.equals("Cuadro") || texto.equals("cuadro") || texto.equals("Cuadrado") || texto.equals("cuadrado")
+                    || texto.equals("Círculo") || texto.equals("círculo")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("triángulo") || texto.equals("Triángulo")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("6") && id_subcategoria.equals("1")) {
+            if (texto.equals("Bolso") || texto.equals("bolso") || texto.equals("Micrófono") || texto.equals("micrófono")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Botella") || texto.equals("botella")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("7") && id_subcategoria.equals("1")) {
+            if (texto.equals("Conejo") || texto.equals("conejo") || texto.equals("Pájaro") || texto.equals("pájaro")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Tortuga") || texto.equals("tortuga")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("8") && id_subcategoria.equals("1")) {
+            if (texto.equals("Estrella") || texto.equals("estrella") || texto.equals("Triángulo") || texto.equals("triángulo")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Cuadro") || texto.equals("Cuadrado") || texto.equals("cuadrado") || texto.equals("cuadro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("9") && id_subcategoria.equals("1")) {
+            if (texto.equals("Pájaro") || texto.equals("pájaro")
+                    || texto.equals("Gato") || texto.equals("gato")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Perro") || texto.equals("perro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("10") && id_subcategoria.equals("1")) {
+            if (texto.equals("Perro") || texto.equals("perro") || texto.equals("Conejo") || texto.equals("conejo")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Pájaro") || texto.equals("pájaro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("11") && id_subcategoria.equals("2")) {
+            if (texto.equals("Mono") || texto.equals("mono") || texto.equals("Perro") || texto.equals("perro")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Pájaro") || texto.equals("pájaro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("12") && id_subcategoria.equals("2")) {
+            if (texto.equals("Tortuga") || texto.equals("tortuga") || texto.equals("Mono") || texto.equals("mono")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Perro") || texto.equals("perro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("13") && id_subcategoria.equals("2")) {
+            if (texto.equals("Cangrejo") || texto.equals("cangrejo") || texto.equals("Mono") || texto.equals("mono")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Perro") || texto.equals("perro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("14") && id_subcategoria.equals("2")) {
+            if (texto.equals("Sombrero") || texto.equals("sombrero") || texto.equals("Anteojos") || texto.equals("anteojos")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Bolso") || texto.equals("bolso")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("15") && id_subcategoria.equals("2")) {
+            if (texto.equals("Lupa") || texto.equals("lupa") || texto.equals("Llave") || texto.equals("llave")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("micrófono") || texto.equals("Micrófono")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("16") && id_subcategoria.equals("2")) {
+            if (texto.equals("Perro") || texto.equals("perro") || texto.equals("Conejo") || texto.equals("conejo")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Pájaro") || texto.equals("pájaro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("17") && id_subcategoria.equals("2")) {
+            if (texto.equals("Perro") || texto.equals("perro") || texto.equals("Mono") || texto.equals("mono")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Gusano") || texto.equals("gusano")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("18") && id_subcategoria.equals("2")) {
+            if (texto.equals("Gato") || texto.equals("gato") || texto.equals("Pájaro") || texto.equals("pajaro")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Conejo") || texto.equals("conejo")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("19") && id_subcategoria.equals("2")) {
+            if (texto.equals("Llave") || texto.equals("llave") || texto.equals("Bolso") || texto.equals("bolso")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Carro") || texto.equals("carro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("20") && id_subcategoria.equals("3")) {
+            if (texto.equals("Cangrejo") || texto.equals("cangrejo") || texto.equals("Perro") || texto.equals("perro")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Pájaro") || texto.equals("pájaro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("21") && id_subcategoria.equals("3")) {
+            if (texto.equals("Lápiz") || texto.equals("lápiz")
+                    || texto.equals("Lapicero") || texto.equals("lapicero")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Regla") || texto.equals("regla")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("22") && id_subcategoria.equals("3")) {
+            if (texto.equals("Gusano") || texto.equals("gusano") || texto.equals("Perro") || texto.equals("perro")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Mono") || texto.equals("mono")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("23") && id_subcategoria.equals("3")) {
+            if (texto.equals("Flor") || texto.equals("flor")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Sol") || texto.equals("sol")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("24") && id_subcategoria.equals("3")) {
+            if (texto.equals("Lagartija") || texto.equals("lagartija") || texto.equals("Gato") || texto.equals("gato")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Perro") || texto.equals("perro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("25") && id_subcategoria.equals("3")) {
+            if (texto.equals("Reloj") || texto.equals("reloj") || texto.equals("Llave") || texto.equals("llave")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Libro") || texto.equals("libro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("26") && id_subcategoria.equals("3")) {
+            if (texto.equals("Balón") || texto.equals("balón")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Guitarra") || texto.equals("guitarra")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("27") && id_subcategoria.equals("3")) {
+            if (texto.equals("Computadora") || texto.equals("computadora") || texto.equals("Tijeras") || texto.equals("tijeras")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Lupa") || texto.equals("lupa")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("28") && id_subcategoria.equals("3")) {
+            if (texto.equals("Balón") || texto.equals("balón") || texto.equals("Medalla") || texto.equals("medalla")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Llave") || texto.equals("llave")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("29") && id_subcategoria.equals("3")) {
+            if (texto.equals("Zanahoria") || texto.equals("zanahoria") || texto.equals("Manzana") || texto.equals("manzana")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Huevo") || texto.equals("huevo")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("30") && id_subcategoria.equals("4")) {
+            if (texto.equals("Perro") || texto.equals("perro") || texto.equals("Gusano") || texto.equals("gusano")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Conejo") || texto.equals("conejo")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("31") && id_subcategoria.equals("4")) {
+            if (texto.equals("Pingüino") || texto.equals("pingüino") || texto.equals("Mono") || texto.equals("mono")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Perro") || texto.equals("perro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("32") && id_subcategoria.equals("4")) {
+            if (texto.equals("Canasta") || texto.equals("canasta") || texto.equals("Sombrero") || texto.equals("sombrero")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Queque") || texto.equals("queque")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("33") && id_subcategoria.equals("4")) {
+            if (texto.equals("Perro") || texto.equals("perro") || texto.equals("pájaro") || texto.equals("Pájaro")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Mono") || texto.equals("mono")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("34") && id_subcategoria.equals("4")) {
+            if (texto.equals("Sombrero") || texto.equals("sombrero") || texto.equals("Anteojos") || texto.equals("anteojos")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Helado") || texto.equals("helado")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("35") && id_subcategoria.equals("4")) {
+            if (texto.equals("Perro") || texto.equals("perro") || texto.equals("Mono") || texto.equals("mono")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("pájaro") || texto.equals("Pájaro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("36") && id_subcategoria.equals("4")) {
+            if (texto.equals("Conejo") || texto.equals("conejo") || texto.equals("Tortuga") || texto.equals("tortuga")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Jirafa") || texto.equals("jirafa")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("37") && id_subcategoria.equals("4")) {
+            if (texto.equals("Anteojos") || texto.equals("anteojos") || texto.equals("Sombrero") || texto.equals("sombrero")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Huevo") || texto.equals("huevo")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("38") && id_subcategoria.equals("4")) {
+            if (texto.equals("Árbol") || texto.equals("árbol") || texto.equals("Llave") || texto.equals("llave")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Casa") || texto.equals("casa")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("39") && id_subcategoria.equals("4")) {
+            if (texto.equals("Mono") || texto.equals("mono") || texto.equals("Perro") || texto.equals("perro")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Tortuga") || texto.equals("tortuga")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("40") && id_subcategoria.equals("5")) {
+            if (texto.equals("Perro") || texto.equals("perro") || texto.equals("Jirafa") || texto.equals("jirafa")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Mono") || texto.equals("mono")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("41") && id_subcategoria.equals("5")) {
+            if (texto.equals("Perro") || texto.equals("perro") || texto.equals("Gato") || texto.equals("gato")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Sombrero") || texto.equals("sombrero")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("42") && id_subcategoria.equals("5")) {
+            if (texto.equals("Gusano") || texto.equals("gusano") || texto.equals("Mono") || texto.equals("mono")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Pájaro") || texto.equals("pájaro")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("43") && id_subcategoria.equals("5")) {
+            if (texto.equals("Muñeco") || texto.equals("muñeco") || texto.equals("Cangrejo") || texto.equals("cangrejo")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Queque") || texto.equals("queque")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("44") && id_subcategoria.equals("5")) {
+            if (texto.equals("Pingüino") || texto.equals("pingüino") || texto.equals("Perro") || texto.equals("perro")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Tucán") || texto.equals("Tucan") || texto.equals("tucan") || texto.equals("tucán")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("45") && id_subcategoria.equals("5")) {
+            if (texto.equals("Gorra") || texto.equals("gorra") || texto.equals("Helado") || texto.equals("helado")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Anteojos") || texto.equals("anteojos")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("46") && id_subcategoria.equals("5")) {
+            if (texto.equals("Muñeco") || texto.equals("muñeco") || texto.equals("Canasta") || texto.equals("canasta")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Queque") || texto.equals("queque")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("47") && id_subcategoria.equals("5")) {
+            if (texto.equals("Flamingo") || texto.equals("flamingo") || texto.equals("Mono") || texto.equals("mono")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Tortuga") || texto.equals("tortuga")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("48") && id_subcategoria.equals("5")) {
+            if (texto.equals("Lapicero") || texto.equals("lapicero") || texto.equals("Regla") || texto.equals("regla")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto(db, cursor);
+            } else if (texto.equals("Pizarra") || texto.equals("pizarra")) {
+                verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+            }
+        } else if (id_pregunta.equals("49") && id_subcategoria.equals("6")) {
+            derecha(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("50") && id_subcategoria.equals("6")) {
+            derecha(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("51") && id_subcategoria.equals("6")) {
+            derecha(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("52") && id_subcategoria.equals("6")) {
+            derecha(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("53") && id_subcategoria.equals("6")) {
+            derecha(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("54") && id_subcategoria.equals("6")) {
+            derecha(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("55") && id_subcategoria.equals("6")) {
+            derecha(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("56") && id_subcategoria.equals("6")) {
+            derecha(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("57") && id_subcategoria.equals("6")) {
+            derecha(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("58") && id_subcategoria.equals("6")) {
+            derecha(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("59") && id_subcategoria.equals("7")) {
+            izquerda(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("60") && id_subcategoria.equals("7")) {
+            izquerda(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("61") && id_subcategoria.equals("7")) {
+            izquerda(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("62") && id_subcategoria.equals("7")) {
+            izquerda(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("63") && id_subcategoria.equals("7")) {
+            izquerda(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("64") && id_subcategoria.equals("7")) {
+            izquerda(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("65") && id_subcategoria.equals("7")) {
+            izquerda(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("66") && id_subcategoria.equals("7")) {
+            izquerda(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("67") && id_subcategoria.equals("7")) {
+            izquerda(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        } else if (id_pregunta.equals("68") && id_subcategoria.equals("7")) {
+            izquerda(texto, db, cursor, cantidad_preguntas, cantidad_errores);
+        }
+    }
+
+    //Este metodo valida por la voz si dijo derecha el niño
+    public void derecha(String texto, SQLiteDatabase db, Cursor cursor, int cantidad_preguntas, int cantidad_errores) {
+        if (texto.equals("Izquierda") || texto.equals("izquierda")) {
+            //Incorrecto vamos intentalo nuevamente
+            incorrecto(db, cursor);
+        } else if (texto.equals("Derecha") || texto.equals("derecha")) {
+            verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+        }
+    }
+
+    public void izquerda(String texto, SQLiteDatabase db, Cursor cursor, int cantidad_preguntas, int cantidad_errores) {
+        if (texto.equals("Derecha") || texto.equals("derecha")) {
+            //Incorrecto vamos intentalo nuevamente
+            incorrecto(db, cursor);
+        } else if (texto.equals("Izquierda") || texto.equals("izquierda")) {
+            verificar(cantidad_preguntas, cantidad_errores, db, cursor);
+        }
     }
 
     @Override
@@ -873,6 +1347,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         speech.setRecognitionListener(this);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "es");
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 10000);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
         speech.startListening(recognizerIntent);
@@ -902,5 +1377,4 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         }
         super.onDestroy();
     }
-
 }
