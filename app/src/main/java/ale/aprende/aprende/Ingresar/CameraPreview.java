@@ -2,6 +2,7 @@ package ale.aprende.aprende.Ingresar;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.os.Build;
 import android.util.Log;
@@ -41,7 +42,10 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
         try {
             if (mCamera != null) {
-                mCamera.setDisplayOrientation(90);
+                if(getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE){
+                    mCamera.setDisplayOrientation(90);
+                }
+
                 mCamera.setPreviewDisplay(holder);
                 mCamera.startPreview();
             }

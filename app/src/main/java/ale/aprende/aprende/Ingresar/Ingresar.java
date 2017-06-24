@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -38,6 +39,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -66,61 +69,62 @@ public class Ingresar extends AppCompatActivity {
     private UUID mRostroId1;
     protected FaceListAdapter mFaceListAdapter0;
     protected FaceListAdapter mFaceListAdapter1;
-    private Button btnDetectar, btnVerificar;
+    private Button btnDetectar;
     public static final int MEDIA_TYPE_IMAGE = 1;
+    FrameLayout preview;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(ale.aprende.aprende.R.layout.activity_ingresar);
         btnDetectar = (Button) findViewById(R.id.btnDetectar);
-        btnVerificar = (Button) findViewById(R.id.btnReconocimiento);
-        btnVerificar.setEnabled(false);
         if (!(verificarImagenFolder())) {
             Intent intent = new Intent(Ingresar.this, Registrar.class);
             startActivity(intent);
             Toast.makeText(this, "No se encuentra una foto registrada", Toast.LENGTH_SHORT).show();
+            finish();
         } else {
             // crear la instancia de la camara
-
             mCamera = getCameraInstance();
-
-            FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                mCamera.setDisplayOrientation(0);
+            }
+            preview = (FrameLayout) findViewById(R.id.camera_preview);
             mPreview = new CameraPreview(this, mCamera);
             preview.addView(mPreview);
+            progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle(getString(R.string.progress_dialog_title));
+            LogHelper.clearVerificationLog();
         }
-        // Initialize the two ListViews which contain the thumbnails of the detected faces.
-
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setTitle(getString(R.string.progress_dialog_title));
-        LogHelper.clearVerificationLog();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (mCamera == null) {
-            mCamera = Camera.open();
-        } else {
-            // mCamera.startPreview();
+        try {
+            if (mCamera == null) {
+                // preview.removeAllViews();
+                mCamera = Camera.open(0);
+                //mPreview = new CameraPreview(this, mCamera);
+                //preview.addView(mPreview);
+            } else {
+                // mCamera.startPreview();
+            }
+            //mPreview.myStartPreview();
+        } catch (Exception e) {
+
         }
+
     }
 
-    /*
+
     @Override
-    protected void onDestroy(){
+    protected void onDestroy() {
 
-        if(camera!=null){
-            camera.stopPreview();
-            camera.setPreviewCallback(null);
-
-            camera.release();
-            camera = null;
-        }
-
-
+        mCamera.release();
+        super.onDestroy();
     }
-    */
+
 
     @Override
     public void onBackPressed() {
@@ -134,14 +138,20 @@ public class Ingresar extends AppCompatActivity {
         super.onPause();
         if (mCamera != null) {
             mPreview.getHolder().removeCallback(mPreview);
-            mCamera.release();
+
+            /*
+            if (Build.VERSION.SDK_INT == 22) {
+                mCamera.release();
+            }
+*/
         }
 
     }
 
 
     //Cambiar la horientación
-    public static void setCameraDisplayOrientation(Activity activity, int cameraId, android.hardware.Camera camera) {
+    public void setCameraDisplayOrientation(Activity activity, int cameraId, android.hardware.Camera camera) {
+
         android.hardware.Camera.CameraInfo info =
                 new android.hardware.Camera.CameraInfo();
         android.hardware.Camera.getCameraInfo(cameraId, info);
@@ -162,9 +172,11 @@ public class Ingresar extends AppCompatActivity {
                 degrees = 270;
                 break;
         }
-
-        int result = 90;
-        camera.setDisplayOrientation(result);
+        if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            mCamera.setDisplayOrientation(0);
+        } else {
+            mCamera.setDisplayOrientation(90);
+        }
     }
 
     //metodo onclick para reconocer el rostro
@@ -172,10 +184,6 @@ public class Ingresar extends AppCompatActivity {
         btnDetectar.setEnabled(false);
         mCamera.takePicture(null, null, mPicture);
 
-    }
-
-    public void reconocimiento(View view) {
-        new VerificationTask(mRostroId0, mRostroId1).execute();
     }
 
     /**
@@ -280,11 +288,22 @@ public class Ingresar extends AppCompatActivity {
 
             matrix.postScale(scaleWidth, scaleHeight);
             if (idActualCamara == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                matrix.postRotate(270);
+                if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    matrix.postRotate(0);
+                } else {
+                    matrix.postRotate(270);
+                }
+
             } else {
-                matrix.postRotate(90);
+                if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    matrix.postRotate(0);
+                } else {
+                    matrix.postRotate(90);
+                }
+
             }
             Bitmap resizedBitmap = Bitmap.createBitmap(imagen2, 0, 0, width, height, matrix, true);
+
             detect(resizedBitmap, 1);
             archivo_imagen.delete();
         }
@@ -463,6 +482,7 @@ public class Ingresar extends AppCompatActivity {
         // Muestra el resultado en la pantalla cuando se realiza la detección en la imagen indicada por índice.
         private void setUiAfterDetection(Face[] result, int index, boolean succeed) {
             if (succeed) {
+
                 addLog("Response: Success. Detectado "
                         + result.length + " rostro(s) en la imagen" + index);
                 setInfo(result.length + " rostro" + (result.length != 1 ? "s" : "") + " detectado");
@@ -484,8 +504,10 @@ public class Ingresar extends AppCompatActivity {
                     mFaceListAdapter1 = faceListAdapter;
                     imagen2 = null;
                     btnDetectar.setEnabled(false);
-                    btnVerificar.setEnabled(true);
                 }
+                new VerificationTask(mRostroId0, mRostroId1).execute();
+            } else {
+                preview.removeAllViews();
             }
             if (result != null && result.length == 0) {
                 setInfo("El rostro no pudo ser detectado!");
@@ -571,6 +593,7 @@ public class Ingresar extends AppCompatActivity {
     public void cambiarFotoPerfil(View view) {
         Intent cambiar = new Intent(Ingresar.this, Cambiar_foto.class);
         startActivity(cambiar);
+        finish();
         setResult(Ingresar.RESULT_OK);
     }
 }
