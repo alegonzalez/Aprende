@@ -22,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -29,6 +30,7 @@ import android.widget.Toast;
 
 import com.nightonke.boommenu.BoomButtons.BoomButton;
 import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
+import com.nightonke.boommenu.BoomButtons.TextInsideCircleButton;
 import com.nightonke.boommenu.BoomButtons.TextOutsideCircleButton;
 import com.nightonke.boommenu.BoomMenuButton;
 import com.nightonke.boommenu.ButtonEnum;
@@ -63,16 +65,29 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         setSupportActionBar(toolbar);
         id_usuario = obtenerIdUsuario();
         bmb = (BoomMenuButton) findViewById(R.id.bmb);
-        bmb.setButtonEnum(ButtonEnum.Ham);
-        bmb.setPiecePlaceEnum(PiecePlaceEnum.HAM_1);
-        bmb.setButtonPlaceEnum(ButtonPlaceEnum.HAM_1);
-        bmb.setBottomHamButtonTopMargin(Util.dp2px(20));
+        bmb.setButtonEnum(ButtonEnum.TextInsideCircle);
+        // bmb.setPiecePlaceEnum(PiecePlaceEnum.DOT_1);
+        // bmb.setButtonPlaceEnum(ButtonPlaceEnum.SC_1);
+        //bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder());
+        //bmb.setBottomHamButtonTopMargin(Util.dp2px(20));
         bmb.setAutoBoom(true);
         ListView listView = (ListView) findViewById(R.id.list_view);
 
         assert listView != null;
         listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,
-                BuilderManager.getHamButtonData(piecesAndButtons)));
+                BuilderManager.getCircleButtonData(piecesAndButtons)));
+/*
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                bmb.setPiecePlaceEnum((PiecePlaceEnum) piecesAndButtons.get(position).first);
+                bmb.setButtonPlaceEnum((ButtonPlaceEnum) piecesAndButtons.get(position).second);
+                bmb.clearBuilders();
+                for (int i = 0; i < bmb.getPiecePlaceEnum().pieceNumber(); i++)
+                    bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder());
+            }
+        });
+*/
         cargarBotones(listView);
         animacionBoton(bmb);
         listenClickEventOf(R.id.bmb);
@@ -147,33 +162,38 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         lista = verificarTemasBloqueados();
         String[] temas = {"relaciones_espaciales", "Colores", "Numeros", "figuras_geometricas", "abecedario"};
         int texto = 0;
-        int position = 14;
-
+        int position = 57;
         ls.setVisibility(View.GONE);
         bmb.setPiecePlaceEnum((PiecePlaceEnum) piecesAndButtons.get(position).first);
         bmb.setButtonPlaceEnum((ButtonPlaceEnum) piecesAndButtons.get(position).second);
         bmb.clearBuilders();
         for (int i = 0; i < bmb.getPiecePlaceEnum().pieceNumber(); i++)
             if (temas[i].equals("relaciones_espaciales")) {
+                TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
+                //        bmb.addBuilder(builder);
                 texto = R.string.relaciones_espaciales;
-                //bmb.addBuilder(BuilderManager.getTextOutsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
-             bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
+
+                bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
             } else if (temas[i].equals("Colores")) {
                 texto = R.string.Colores;
-               // bmb.addBuilder(BuilderManager.getTextOutsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
-               bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
+                TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
+               // bmb.addBuilder(builder);
+                bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
             } else if (temas[i].equals("Numeros")) {
                 texto = R.string.Numeros;
-                //bmb.addBuilder(BuilderManager.getTextOutsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
-                bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
+                TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
+               // bmb.addBuilder(builder);
+                bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
             } else if (temas[i].equals("figuras_geometricas")) {
                 texto = R.string.figuras_geometricas;
-                //bmb.addBuilder(BuilderManager.getTextOutsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
-                bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
+                TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
+                //bmb.addBuilder(builder);
+                bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
             } else {
                 texto = R.string.abecedario;
-                //bmb.addBuilder(BuilderManager.getTextOutsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
-                   bmb.addBuilder(BuilderManager.getHamButtonBuilder(texto, aplicarIcono(lista[i])));
+                TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
+                //bmb.addBuilder(builder);
+                bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
             }
         return true;
     }
@@ -209,7 +229,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             int numero = r.sortear(4);
             ContentValues values = new ContentValues();
             values.put("id_persona", id_usuario);
-            values.put("id_subcategoria",numero+1);
+            values.put("id_subcategoria", numero + 1);
             values.put("estado", false);
             values.put("cantidad_preguntas", 3);
             values.put("cantidad_errores", 0);

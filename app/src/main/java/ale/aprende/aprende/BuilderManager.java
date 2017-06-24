@@ -40,14 +40,7 @@ public class BuilderManager {
                 .normalImageRes(getImageResource());
     }
 
-    static SimpleCircleButton.Builder getSquareSimpleCircleButtonBuilder(int nombre, int icono) {
-        int imagen = 0;
-        if (icono != 1) {
-            imagen = R.drawable.ic_https_black_48dp;
-        } else if (nombre == R.string.relaciones_espaciales) {
-            imagen = R.drawable.horse;
-        }
-        Rect n = new Rect(10, 1, 1, 1);
+    static SimpleCircleButton.Builder getSquareSimpleCircleButtonBuilder() {
         return new SimpleCircleButton.Builder()
                 .isRound(false)
                 .shadowCornerRadius(Util.dp2px(20))
@@ -55,10 +48,22 @@ public class BuilderManager {
                 .normalImageRes(getImageResource());
     }
 
-    static TextInsideCircleButton.Builder getTextInsideCircleButtonBuilder() {
-        return new TextInsideCircleButton.Builder()
-                .normalImageRes(getImageResource())
-                .normalTextRes(R.string.text_inside_circle_button_text_normal);
+    static TextInsideCircleButton.Builder getTextInsideCircleButtonBuilder(int nombre, int icono) {
+        int imagen = 0;
+        if (icono != 1) {
+            imagen = R.drawable.ic_https_white_48dp;
+            return new TextInsideCircleButton.Builder()
+                    .normalImageRes(imagen)
+                    .normalTextRes(nombre)
+                    .imageRect(new Rect(10, 20, 110, 90));
+        } else if (nombre == R.string.relaciones_espaciales) {
+            imagen = R.drawable.horse;
+            return new TextInsideCircleButton.Builder()
+                    .normalImageRes(imagen)
+                    .normalTextRes(nombre)
+                    .imageRect(new Rect(10, 0, 110, 115));
+        }
+        return null;
     }
 
     static TextInsideCircleButton.Builder getSquareTextInsideCircleButtonBuilder() {
@@ -80,7 +85,7 @@ public class BuilderManager {
     static TextOutsideCircleButton.Builder getTextOutsideCircleButtonBuilder(int nombre, int icono) {
         int imagen = 0;
         if (icono != 1) {
-            imagen = R.drawable.ic_https_black_48dp;
+            imagen = R.drawable.ic_https_white_18dp;
         } else if (nombre == R.string.relaciones_espaciales) {
             imagen = R.drawable.horse;
         }
@@ -114,7 +119,7 @@ public class BuilderManager {
     static HamButton.Builder getHamButtonBuilder(int nombre, int icono) {
         int imagen = 0;
         if (icono != 1) {
-            imagen = R.drawable.ic_https_black_48dp;
+            imagen = R.drawable.ic_https_white_18dp;
         } else if (nombre == R.string.relaciones_espaciales) {
             imagen = R.drawable.horse;
         }
