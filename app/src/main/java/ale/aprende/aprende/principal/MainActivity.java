@@ -91,10 +91,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Intent intento = new Intent(MainActivity.this, Registrar.class);
                     startActivity(intento);
                 } else {
-                    //Intent intento = new Intent(MainActivity.this, Ingresar.class);
-                    //startActivity(intento);
-                    Intent intent = new Intent(MainActivity.this, MenuJuego.class);
-                    startActivity(intent);
+                    Intent intento = new Intent(MainActivity.this, Ingresar.class);
+                    startActivity(intento);
                 }
             }
 

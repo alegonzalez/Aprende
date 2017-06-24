@@ -21,30 +21,13 @@
         android:drawableLeft="@drawable/ic_account_circle_black"
         android:drawableTint="@color/boton"
         android:text="Registrar"
+        android:layout_margin="3dp"
         android:textColor="@color/boton"
-        android:onClick="registrar" />
+        android:onClick="registrar"
+        android:fontFamily="sans-serif"
+        android:textAllCaps="false"
+        android:textSize="18sp" />
 
-    <ImageView
-        android:id="@+id/imgPerfil"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/btnCargar"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        />
-
-
-
-
-    <TextView
-        android:id="@+id/txtSelecciónGenero"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Seleccione el género"
-        android:layout_marginBottom="80dp"
-        android:layout_above="@+id/btnRegistrar"
-        android:layout_alignLeft="@+id/btnRegistrar"
-        android:layout_alignStart="@+id/btnRegistrar" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -85,6 +68,7 @@
 
 
     <Button
+        style="@style/Widget.AppCompat.Button.Colored"
         android:id="@+id/btnCargar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -95,6 +79,30 @@
         android:textColor="@color/boton"
         tools:ignore="HardcodedText,RtlHardcoded"
         android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:textSize="18sp"
+        android:textAllCaps="false" />
+
+    <TextView
+        android:id="@+id/txtSelecciónGenero"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Seleccione el género"
+        android:layout_alignTop="@+id/imgMasculino"
+        android:layout_toLeftOf="@+id/imgMasculino"
+        android:layout_toStartOf="@+id/imgMasculino"
+        android:layout_marginTop="33dp" />
+
+    <ImageView
+        android:id="@+id/imgPerfil"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignRight="@+id/btnCargar"
+        android:layout_alignEnd="@+id/btnCargar"
+        android:layout_alignLeft="@+id/btnCargar"
+        android:layout_alignStart="@+id/btnCargar"
+        android:padding="1dp"
+        android:background="@drawable/perfil"
+        android:layout_above="@+id/btnCargar" />
 
 </RelativeLayout>

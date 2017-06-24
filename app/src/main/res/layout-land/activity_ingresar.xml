@@ -10,60 +10,63 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="ale.aprende.aprende.Ingresar.Ingresar">
 
-    <Button
-        android:id="@+id/button_capture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:drawableLeft="@drawable/ic_loop_black_48dp"
-        android:onClick="frontal"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginLeft="12dp"
-        android:layout_marginStart="12dp" />
 
     <Button
-        android:id="@+id/btnReconocimiento"
-        android:layout_width="wrap_content"
+        android:id="@+id/button_capture"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableRight="@drawable/ic_send_black_48dp"
-        android:onClick="reconocimiento"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_gravity="center"
+        android:drawableTop="@drawable/ic_autorenew_white_36dp"
+        android:onClick="frontal"
+        android:background="@color/accent"
+        android:paddingBottom="5dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="20dp"
+        android:layout_centerVertical="true"
+        android:layout_alignLeft="@+id/btnCambiarPerfil"
+        android:layout_alignStart="@+id/btnCambiarPerfil" />
 
     <Button
         android:id="@+id/btnDetectar"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableRight="@drawable/ic_camera_enhance_black_48dp"
+        android:drawableTop="@drawable/ic_forward_white_36dp"
         android:onClick="deteccionRostro"
+        android:background="@color/accent"
+        android:paddingBottom="5dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="20dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignLeft="@+id/button_capture"
+        android:layout_alignStart="@+id/button_capture" />
 
     <Button
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/btnCambiarPerfil"
-        android:drawableRight="@drawable/ic_system_update_alt_black_48dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignLeft="@+id/btnDetectar"
-        android:layout_alignStart="@+id/btnDetectar"
-        android:layout_marginLeft="12dp"
-        android:layout_marginStart="12dp"
+        android:drawableTop="@drawable/ic_system_update_alt_white_36dp"
         android:onClick="cambiarFotoPerfil"
-        />
+        android:background="@color/accent"
+        android:paddingBottom="5dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="20dp"
+        android:layout_marginLeft="433dp"
+        android:layout_marginStart="433dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
     <FrameLayout
         android:id="@+id/camera_preview"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_weight="1"
-        android:layout_marginBottom="15dp"
-        android:layout_above="@+id/button_capture"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_toLeftOf="@+id/btnCambiarPerfil"
-        android:layout_toStartOf="@+id/btnCambiarPerfil" />
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/button_capture"
+        android:layout_toStartOf="@+id/button_capture"
+        android:layout_marginRight="21dp"
+        android:layout_marginEnd="21dp" />
 </RelativeLayout>
