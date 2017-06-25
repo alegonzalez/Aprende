@@ -85,6 +85,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 respuesta.release();
                 pausa = 2;
                 amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                hacerAudio();
             }
         });
     }
@@ -127,7 +128,6 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             cantidad_errores += 1;
             ponerErroresEstadisticas(cantidad_errores, 0, db);
             actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
-            cantidad_errores = 0;
             Toast.makeText(this, "Vamos intentalo nuevamente", Toast.LENGTH_SHORT).show();
         }
         cursor.close();
@@ -154,8 +154,8 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         }
     }
 
+    //valida la respuesta del niño
     public void verificar(int cantidad_preguntas, int cantidad_errores, SQLiteDatabase db, Cursor cursor) {
-
         Cursor pregunta = db.rawQuery("select id_pregunta from Persona_Pregunta where id_persona = " + id_usuario, null);
         noRepetir(pregunta, db);
         if (nombreSubcategoria.equals("derecha") || nombreSubcategoria.equals("izquierda")) {
@@ -167,17 +167,14 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 if (cantidad_errores == 3) {
                     cantidad_preguntas = 3;
                     ponerErroresEstadisticas(0, 3, db);
-                    cantidad_errores = 0;
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2) {
                     cantidad_preguntas = 2;
                     ponerErroresEstadisticas(0, 2, db);
-                    cantidad_errores = 0;
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 1) {
                     cantidad_preguntas = 1;
                     ponerErroresEstadisticas(0, 1, db);
-                    cantidad_errores = 0;
                     abrirRelacionesEspaciales();
                 } else {
                     //Tema superado
@@ -193,9 +190,10 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                         abrirRelacionesEspaciales();
                         Toast.makeText(this, "Felicidades pequeño sigue asi", Toast.LENGTH_SHORT).show();
                     } else {
+
+                        Toast.makeText(this, "Colores", Toast.LENGTH_SHORT).show();
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
-                    //  insertarNuevaSubCategoria(rs, db);
                     Toast.makeText(this, "Felicidades tema superado", Toast.LENGTH_SHORT).show();
                     abrirRelacionesEspaciales();
                 }
@@ -261,6 +259,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                         abrirRelacionesEspaciales();
                         Toast.makeText(this, "Felicidades pequeño sigue asi", Toast.LENGTH_SHORT).show();
                     } else {
+                        Toast.makeText(this, "Colores", Toast.LENGTH_SHORT).show();
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
                 }
@@ -269,7 +268,6 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 abrirRelacionesEspaciales();
             }
         }
-        //actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
     }
 
 
@@ -878,18 +876,8 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
     @Override
     public void onError(int error) {
-        Toast.makeText(this, "" + error, Toast.LENGTH_SHORT).show();
+        speech.destroy();
         hacerAudio();
-        /*
-        if (speech != null) {
-            //speech.destroy();
-            speech.stopListening();
-            speech.cancel();
-
-        } else {
-            Toast.makeText(this, "ESTANULLL", Toast.LENGTH_SHORT).show();
-        }
-        */
     }
 
     @Override
@@ -1356,15 +1344,17 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
     @Override
     protected void onResume() {
-        if (pausa == 2) {
+        if (pausa == 1) {
             amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            speech = hacerAudio();
         }
-        speech = hacerAudio();
+
         super.onResume();
     }
 
     @Override
     protected void onPause() {
+        pausa = 1;
         speech.destroy();
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         super.onPause();

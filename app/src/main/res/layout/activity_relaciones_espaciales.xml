@@ -27,6 +27,7 @@
         <ImageButton
             android:id="@+id/imgBtnPrimeraOpcion"
             android:layout_width="100dp"
+            android:scaleType="fitXY"
             android:layout_height="100dp"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
@@ -37,13 +38,15 @@
             android:id="@+id/imgBtnSegundaOpcion"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:onClick="opcion2"/>
+            android:onClick="opcion2"
+            android:scaleType="fitXY"/>
 
         <ImageButton
             android:id="@+id/imgBtnTerceraOpcion"
             android:layout_width="100dp"
             android:layout_height="100dp"
-            android:onClick="opcion3"/>
+            android:onClick="opcion3"
+            android:scaleType="fitXY"/>
     </LinearLayout>
 
 

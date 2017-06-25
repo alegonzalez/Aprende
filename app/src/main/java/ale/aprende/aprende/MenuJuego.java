@@ -133,7 +133,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                 //Do something after 100ms
                 verificarNoTocaPantalla();
             }
-        }, 20000);
+        }, 30000);
 
     }
 
@@ -435,7 +435,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     //Este metodo verifica que si la pantalla no es tocada en cierto limite de tiempo
     public void verificarNoTocaPantalla() {
         if (!eventoTocar) {
-            Toast.makeText(this, "Vamos niño tu puedes", Toast.LENGTH_SHORT).show();
             eventoTocar = false;
             handler.postDelayed(new Runnable() {
                 @Override
@@ -443,7 +442,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                     //Do something after 100ms
                     verificarNoTocaPantalla();
                 }
-            }, 20000);
+            }, 30000);
         }else{
             handler.postDelayed(new Runnable() {
                 @Override
@@ -451,7 +450,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                     //Do something after 100ms
                     verificarNoTocaPantalla();
                 }
-            }, 20000);
+            }, 30000);
             eventoTocar = false;
         }
     }
