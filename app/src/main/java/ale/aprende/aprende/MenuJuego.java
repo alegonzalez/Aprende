@@ -44,18 +44,18 @@ import java.util.ArrayList;
 
 import ale.aprende.aprende.bd.DBHandler;
 
-public class MenuJuego extends AppCompatActivity implements View.OnClickListener, RecognitionListener {
+public class MenuJuego extends AppCompatActivity implements View.OnClickListener, RecognitionListener, View.OnTouchListener {
     //Declaración de variables
     private ArrayList<android.util.Pair> piecesAndButtons = new ArrayList<>();
     private BoomMenuButton bmb;
     private int id_usuario;
     private Boolean[] lista;
+    private Boolean eventoTocar = false;
     AudioManager amanager;
     public SpeechRecognizer speech;
     private Intent recognizerIntent;
-    final static long REFRESH_TIME = 15000;
     final Handler handler = new Handler();
-    private RelativeLayout rl;
+    RelativeLayout r;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,28 +66,13 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         id_usuario = obtenerIdUsuario();
         bmb = (BoomMenuButton) findViewById(R.id.bmb);
         bmb.setButtonEnum(ButtonEnum.TextInsideCircle);
-        // bmb.setPiecePlaceEnum(PiecePlaceEnum.DOT_1);
-        // bmb.setButtonPlaceEnum(ButtonPlaceEnum.SC_1);
-        //bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder());
-        //bmb.setBottomHamButtonTopMargin(Util.dp2px(20));
         bmb.setAutoBoom(true);
         ListView listView = (ListView) findViewById(R.id.list_view);
-
+        r = (RelativeLayout) findViewById(R.id.rlMenuJuego);
+        r.setOnTouchListener(this);
         assert listView != null;
         listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,
                 BuilderManager.getCircleButtonData(piecesAndButtons)));
-/*
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                bmb.setPiecePlaceEnum((PiecePlaceEnum) piecesAndButtons.get(position).first);
-                bmb.setButtonPlaceEnum((ButtonPlaceEnum) piecesAndButtons.get(position).second);
-                bmb.clearBuilders();
-                for (int i = 0; i < bmb.getPiecePlaceEnum().pieceNumber(); i++)
-                    bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder());
-            }
-        });
-*/
         cargarBotones(listView);
         animacionBoton(bmb);
         listenClickEventOf(R.id.bmb);
@@ -96,12 +81,10 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             @Override
             public void onClicked(int index, BoomButton boomButton) {
                 if (index == 0 && lista[index] == true) {
-                    //amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
                     Intent intento = new Intent(MenuJuego.this, Relaciones_espaciales.class);
                     abrirActividad(intento);
                     finish();
                 } else if (index == 1 && lista[index] == true) {
-                    //amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
                     Intent intento = new Intent(MenuJuego.this, Colores.class);
                     abrirActividad(intento);
                 } else if (index == 2 && lista[index] == true) {
@@ -141,7 +124,17 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             }
         });
 
+
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        //Ejecicion del método en cierto tiempo
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //Do something after 100ms
+                verificarNoTocaPantalla();
+            }
+        }, 20000);
+
     }
 
     private void listenClickEventOf(int bmb) {
@@ -177,12 +170,12 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             } else if (temas[i].equals("Colores")) {
                 texto = R.string.Colores;
                 TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
-               // bmb.addBuilder(builder);
+                // bmb.addBuilder(builder);
                 bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
             } else if (temas[i].equals("Numeros")) {
                 texto = R.string.Numeros;
                 TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
-               // bmb.addBuilder(builder);
+                // bmb.addBuilder(builder);
                 bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
             } else if (temas[i].equals("figuras_geometricas")) {
                 texto = R.string.figuras_geometricas;
@@ -438,11 +431,39 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         return message;
     }
 
-    Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            Toast.makeText(MenuJuego.this, "JAJAJAJA", Toast.LENGTH_SHORT).show();
-            handler.postDelayed(this, REFRESH_TIME);
+
+    //Este metodo verifica que si la pantalla no es tocada en cierto limite de tiempo
+    public void verificarNoTocaPantalla() {
+        if (!eventoTocar) {
+            Toast.makeText(this, "Vamos niño tu puedes", Toast.LENGTH_SHORT).show();
+            eventoTocar = false;
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    verificarNoTocaPantalla();
+                }
+            }, 20000);
+        }else{
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    verificarNoTocaPantalla();
+                }
+            }, 20000);
+            eventoTocar = false;
         }
-    };
+    }
+
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        int eventaction = event.getAction();
+        if (eventaction == MotionEvent.ACTION_DOWN) {
+            eventoTocar = true;
+        }
+        return true;
+
+    }
 }
