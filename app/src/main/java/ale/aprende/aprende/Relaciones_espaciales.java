@@ -43,8 +43,9 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     ImageButton opcion1, opcion2, opcion3;
     MediaPlayer pregunta = new MediaPlayer();
     AudioManager amanager;
-    String id_subcategoria, audiogeneral, nombreSubcategoria = "";
+    String id_subcategoria, audiogeneral, nombreSubcategoria, genero = "";
     MediaPlayer respuesta = new MediaPlayer();
+    MediaPlayer audio = new MediaPlayer();
     private String id_pregunta;
     int pausa = 0;
     public SpeechRecognizer speech;
@@ -60,6 +61,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         opcion3 = (ImageButton) findViewById(R.id.imgBtnTerceraOpcion);
         ocultarBotones();
         id_usuario = getIntent().getExtras().getInt("id_usuario");
+        genero = getIntent().getExtras().getString("genero");
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         List<String> subcategoria = obtenerProgreso();
         verificarTipoSubcategoria(subcategoria);
@@ -84,25 +86,53 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 respuesta.stop();
                 respuesta.release();
                 pausa = 2;
-                amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                //   amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
                 hacerAudio();
             }
         });
+        audio.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                audio.stop();
+                audio.reset();
+                amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+//                audio = new MediaPlayer();
+            }
+        });
+    }
+
+    //Este metodo se encarga de reproducir cuando hay un error o aprueba un tema
+    public void audioMostrar(String direccion) {
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        audio.stop();
+        audio.reset();
+        try {
+            AssetFileDescriptor afd = getAssets().openFd(direccion);
+            audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            audio.prepare();
+            audio.setVolume(1, 1);
+            audio.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     //Evento click del boton 1
     public void opcion1(View view) {
         verificarRespuesta((String) opcion1.getTag());
+        opcion1.setEnabled(false);
     }
 
     //Evento click del boton 2
     public void opcion2(View view) {
         verificarRespuesta((String) opcion2.getTag());
+        opcion2.setEnabled(false);
     }
 
     //Evento click del boton 3
     public void opcion3(View view) {
         verificarRespuesta((String) opcion3.getTag());
+        opcion3.setEnabled(false);
     }
 
     //Este metodo verifica si la respuesta es correcta
@@ -125,10 +155,11 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
         } else {
             //Reproducir audio para motivar al niño
+            String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
+            audioMostrar(tipo_genero);
             cantidad_errores += 1;
             ponerErroresEstadisticas(cantidad_errores, 0, db);
             actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
-            Toast.makeText(this, "Vamos intentalo nuevamente", Toast.LENGTH_SHORT).show();
         }
         cursor.close();
         db.close();
@@ -156,6 +187,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
     //valida la respuesta del niño
     public void verificar(int cantidad_preguntas, int cantidad_errores, SQLiteDatabase db, Cursor cursor) {
+        audio.reset();
         Cursor pregunta = db.rawQuery("select id_pregunta from Persona_Pregunta where id_persona = " + id_usuario, null);
         noRepetir(pregunta, db);
         if (nombreSubcategoria.equals("derecha") || nombreSubcategoria.equals("izquierda")) {
@@ -164,20 +196,24 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             subcategoria.add(nombreSubcategoria.substring(0, 1).toUpperCase() + nombreSubcategoria.substring(1));
             cantidad_preguntas -= 1;
             if (cantidad_preguntas == 0) {
-                if (cantidad_errores == 3) {
+                if (cantidad_errores >= 3) {
                     cantidad_preguntas = 3;
+                    actualizarProgreso(cantidad_preguntas, 0, db);
                     ponerErroresEstadisticas(0, 3, db);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2) {
                     cantidad_preguntas = 2;
+                    actualizarProgreso(cantidad_preguntas, 0, db);
                     ponerErroresEstadisticas(0, 2, db);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 1) {
                     cantidad_preguntas = 1;
+                    actualizarProgreso(cantidad_preguntas, 0, db);
                     ponerErroresEstadisticas(0, 1, db);
                     abrirRelacionesEspaciales();
                 } else {
                     //Tema superado
+                    actualizarProgreso(cantidad_preguntas, 0, db);
                     actualizarEstadoProgreso(db);
                     ponerErroresEstadisticas(0, 0, db);
                     int rs = obtenerSiguienteSubctegoria(db);
@@ -187,8 +223,10 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                         if (est.getCount() <= 0) {
                             insertarEstadistica();
                         }
+                        String tipo_genero = (genero.equals("M")) ? "general/tema_superado_m.mp3" : "general/tema_superado_f.mp3";
+                        audioMostrar(tipo_genero);
+                        esperar();
                         abrirRelacionesEspaciales();
-                        Toast.makeText(this, "Felicidades pequeño sigue asi", Toast.LENGTH_SHORT).show();
                     } else {
 
                         Toast.makeText(this, "Colores", Toast.LENGTH_SHORT).show();
@@ -230,23 +268,24 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             subcategoria.add(id_subcategoria);
             subcategoria.add(nombreSubcategoria.substring(0, 1).toUpperCase() + nombreSubcategoria.substring(1));
             if (cantidad_preguntas <= 0) {
-                if (cantidad_errores == 6 || cantidad_errores == 5) {
+                if (cantidad_errores >= 6 || cantidad_errores == 5) {
                     cantidad_preguntas = 3;
-                    ponerErroresEstadisticas(0, cantidad_preguntas, db);
+                    ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
                     actualizarProgreso(cantidad_preguntas, 0, db);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 4 || cantidad_errores == 3) {
                     cantidad_preguntas = 2;
-                    ponerErroresEstadisticas(0, cantidad_preguntas, db);
+                    ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
                     actualizarProgreso(cantidad_preguntas, 0, db);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2 || cantidad_errores == 1) {
                     cantidad_preguntas = 1;
-                    ponerErroresEstadisticas(0, cantidad_preguntas, db);
+                    ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
                     actualizarProgreso(cantidad_preguntas, 0, db);
                     abrirRelacionesEspaciales();
                 } else {
                     //Excelente paso  la subcategoria
+                    actualizarProgreso(cantidad_preguntas, 0, db);
                     actualizarEstadoProgreso(db);
                     int resultado = obtenerSiguienteSubctegoria(db);
                     //    ponerErroresEstadisticas(0, 1, db);
@@ -256,6 +295,9 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                         if (est.getCount() <= 0) {
                             insertarEstadistica();
                         }
+                        String tipo_genero = (genero.equals("M")) ? "general/tema_superado_m.mp3" : "general/tema_superado_f.mp3";
+                        audioMostrar(tipo_genero);
+                        esperar();
                         abrirRelacionesEspaciales();
                         Toast.makeText(this, "Felicidades pequeño sigue asi", Toast.LENGTH_SHORT).show();
                     } else {
@@ -342,6 +384,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     private void abrirRelacionesEspaciales() {
         Intent intento = new Intent(Relaciones_espaciales.this, Relaciones_espaciales.class);
         intento.putExtra("id_usuario", id_usuario);
+        intento.putExtra("genero", genero);
         startActivity(intento);
         finish();
     }
@@ -427,9 +470,17 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     cursor.moveToNext();
                 }
                 cursor.close();
-                insertarEstadistica();
             }
         }
+
+        DBHandler mdb = new DBHandler(getApplicationContext());
+        SQLiteDatabase db = mdb.getWritableDatabase();
+        Cursor est = verificarDatosTablaEstadistica(db);
+        if (est.getCount() <= 0) {
+            insertarEstadistica();
+        }
+        db.close();
+        est.close();
         int cantidad = verificarCantidadArreglo(nombreImagen);
         nombreImagen = eliminarValoresArreglo(nombreImagen, cantidad);
         audio = eliminarValoresArreglo(audio, cantidad);
@@ -818,6 +869,8 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     public void onBackPressed() {
         super.onBackPressed();
         Intent intent = new Intent(Relaciones_espaciales.this, MenuJuego.class);
+        intent.putExtra("id_usuario", id_usuario);
+        intent.putExtra("genero", genero);
         startActivity(intent);
         respuesta.release();
         pregunta.release();
@@ -887,6 +940,8 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         for (String result : matches)
             if (result.equals("Atras") || result.equals("atras") || result.equals("anterior") || result.equals("Anterior")) {
                 Intent menu = new Intent(Relaciones_espaciales.this, MenuJuego.class);
+                menu.putExtra("id_usuario", id_usuario);
+                menu.putExtra("genero", genero);
                 startActivity(menu);
             } else {
                 verificarPreguntaYrespuesta(result);
@@ -901,15 +956,18 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             cantidad_preguntas = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_preguntas")));
             cantidad_errores = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_errores")));
         }
+        Toast.makeText(this, "Entro", Toast.LENGTH_SHORT).show();
         ponerErroresEstadisticas(1, 0, db);
         actualizarProgreso(cantidad_preguntas, cantidad_errores + 1, db);
-        Toast.makeText(this, "Vamos intentalo nuevamente", Toast.LENGTH_SHORT).show();
+        String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
+        audioMostrar(tipo_genero);
     }
 
     //Verifica las respuestas de las preguntas segun la subcategoria
     public void verificarPreguntaYrespuesta(String texto) {
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
+
         Cursor cursor = db.rawQuery("select cantidad_preguntas,cantidad_errores " + " from Progreso " +
                 " where id_subcategoria = " + id_subcategoria + " and " + " id_persona= " + id_usuario, null);
         int cantidad_preguntas = 0;
@@ -1355,16 +1413,19 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     @Override
     protected void onPause() {
         pausa = 1;
-        speech.destroy();
+        if (speech != null) {
+            speech.destroy();
+        }
+
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         if (speech != null) {
             speech.destroy();
         }
-        super.onDestroy();
     }
 }

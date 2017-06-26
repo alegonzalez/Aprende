@@ -2,6 +2,7 @@ package ale.aprende.aprende.principal;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -51,6 +52,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         boolean result = true;
+       /*
+        DBHandler mdb = new DBHandler(getApplicationContext());
+        SQLiteDatabase db = mdb.getWritableDatabase();
+        String strSQL = "DELETE FROM Progreso  where id_persona = 1 and " + " id_subcategoria= " + 8 + " and estado= 0";
+        db.execSQL(strSQL);
+
+      ContentValues values = new ContentValues();
+        values.put("id_persona", 1);
+        values.put("id_subcategoria", 8);
+        values.put("cantidad_preguntas", 3);
+        values.put("estado", false);
+        values.put("cantidad_errores", 0);
+        db.insert("Progreso", null, values);
+        */
         if (Build.VERSION.SDK_INT >= 23) {
             verificarPermiso();
         }
@@ -91,8 +106,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Intent intento = new Intent(MainActivity.this, Registrar.class);
                     startActivity(intento);
                 } else {
-                    //Intent intento = new Intent(MainActivity.this, Ingresar.class);
-                   // startActivity(intento);
+/*
+                    Intent intento = new Intent(MainActivity.this, Ingresar.class);
+                     startActivity(intento);
+                     */
                     Intent intento = new Intent(MainActivity.this, MenuJuego.class);
                     startActivity(intento);
                 }

@@ -3,10 +3,12 @@ package ale.aprende.aprende;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Movie;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -39,6 +41,7 @@ import com.nightonke.boommenu.Piece.PiecePlaceEnum;
 import com.nightonke.boommenu.Util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 
@@ -56,6 +59,9 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     private Intent recognizerIntent;
     final Handler handler = new Handler();
     RelativeLayout r;
+    private String genero = "M";
+    MediaPlayer audio = new MediaPlayer();
+    private int pasada = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,9 +70,11 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         id_usuario = obtenerIdUsuario();
+//        genero = getIntent().getExtras().getString("genero");
         bmb = (BoomMenuButton) findViewById(R.id.bmb);
         bmb.setButtonEnum(ButtonEnum.TextInsideCircle);
         bmb.setAutoBoom(true);
+        amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         ListView listView = (ListView) findViewById(R.id.list_view);
         r = (RelativeLayout) findViewById(R.id.rlMenuJuego);
         r.setOnTouchListener(this);
@@ -125,7 +133,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         });
 
 
-        amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         //Ejecicion del método en cierto tiempo
         handler.postDelayed(new Runnable() {
             @Override
@@ -134,7 +141,13 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                 verificarNoTocaPantalla();
             }
         }, 30000);
-
+        audio.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                //amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                audio.release();
+            }
+        });
     }
 
     private void listenClickEventOf(int bmb) {
@@ -219,12 +232,12 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         Cursor cursor = db.rawQuery("select * from Progreso where id_persona= " + id_usuario, null);
         if (!(cursor.moveToFirst()) || cursor.getCount() == 0) {
             Relaciones_espaciales r = new Relaciones_espaciales();
-            int numero = r.sortear(4);
+            int numero = r.sortear(6);
             ContentValues values = new ContentValues();
             values.put("id_persona", id_usuario);
-            values.put("id_subcategoria", numero + 1);
-            values.put("estado", false);
+            values.put("id_subcategoria", 7);//numero + 1);
             values.put("cantidad_preguntas", 3);
+            values.put("estado", false);
             values.put("cantidad_errores", 0);
             db.insert("Progreso", null, values);
             estado[0] = true;
@@ -232,6 +245,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             estado[2] = false;
             estado[3] = false;
             estado[4] = false;
+            audioBienvenida();
         } else {
             while (!cursor.isAfterLast()) {
                 int estado_tema = (cursor.getInt(cursor.getColumnIndex("estado")));
@@ -284,14 +298,21 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     //Este metodo se utiliza para abrir as actividades
     public void abrirActividad(Intent intento) {
         intento.putExtra("id_usuario", id_usuario);
+        intento.putExtra("genero", genero);
         startActivity(intento);
     }
 
 
     @Override
     public void onResume() {
-        speech = hacerAudio();
-        amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+        if (pasada == 1) {
+            speech = hacerAudio();
+            pasada = 0;
+        } else {
+            speech = hacerAudio();
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+        }
+
         super.onResume();
     }
 
@@ -315,6 +336,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     public void abrirRelacionesEspaciales() {
         Intent intent = new Intent(MenuJuego.this, Relaciones_espaciales.class);
         intent.putExtra("id_usuario", id_usuario);
+        intent.putExtra("genero", genero);
         startActivity(intent);
         finish();
     }
@@ -443,7 +465,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                     verificarNoTocaPantalla();
                 }
             }, 30000);
-        }else{
+        } else {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
@@ -464,5 +486,27 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         }
         return true;
 
+    }
+
+    //Este metodo se encarga de reproducir si es una niña o niño
+    public void audioBienvenida() {
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        String nombre_imagen = "";
+        if (genero.trim().equals("M")) {
+            nombre_imagen = "general/bienvenido_m.mp3";
+        } else {
+            nombre_imagen = "general/bienvenida_f.mp3";
+        }
+        try {
+            AssetFileDescriptor afd = getAssets().openFd(nombre_imagen);
+            audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            //afd.close();
+            audio.prepare();
+            audio.setVolume(1, 1);
+            audio.start();
+            pasada = 1;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

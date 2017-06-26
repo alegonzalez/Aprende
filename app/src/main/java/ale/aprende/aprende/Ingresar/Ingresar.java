@@ -70,6 +70,7 @@ public class Ingresar extends AppCompatActivity {
     protected FaceListAdapter mFaceListAdapter0;
     protected FaceListAdapter mFaceListAdapter1;
     private Button btnDetectar;
+    private String genero = "";
     public static final int MEDIA_TYPE_IMAGE = 1;
     FrameLayout preview;
 
@@ -198,6 +199,7 @@ public class Ingresar extends AppCompatActivity {
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast()) {
                 String nombre_imagen = cursor.getString(cursor.getColumnIndex("imagen"));
+                genero = cursor.getString(cursor.getColumnIndex("genero"));
                 String id = cursor.getString(cursor.getColumnIndex("id"));
                 resultado = nombre_imagen.split("\\.");
                 File file = new File(new File("/sdcard/Aprende/"), resultado[0] + "_" + id + "." + resultado[1]);
@@ -409,6 +411,7 @@ public class Ingresar extends AppCompatActivity {
             //+ ". La confianza es de  " + formatter.format(result.confidence);
             if (verificationResult.trim() == "La misma persona") {
                 Intent intento = new Intent(Ingresar.this, MenuJuego.class);
+                intento.putExtra("genero", genero);
                 startActivity(intento);
                 finish();
             } else {
