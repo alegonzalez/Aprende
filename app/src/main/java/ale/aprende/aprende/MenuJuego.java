@@ -6,39 +6,34 @@ import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Movie;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.method.MovementMethod;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
+import com.beardedhen.androidbootstrap.BootstrapButton;
+import com.beardedhen.androidbootstrap.TypefaceProvider;
 import com.nightonke.boommenu.BoomButtons.BoomButton;
 import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
 import com.nightonke.boommenu.BoomButtons.TextInsideCircleButton;
-import com.nightonke.boommenu.BoomButtons.TextOutsideCircleButton;
 import com.nightonke.boommenu.BoomMenuButton;
 import com.nightonke.boommenu.ButtonEnum;
 import com.nightonke.boommenu.OnBoomListener;
 import com.nightonke.boommenu.Piece.PiecePlaceEnum;
-import com.nightonke.boommenu.Util;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,77 +57,24 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     private String genero = "M";
     MediaPlayer audio = new MediaPlayer();
     private int pasada = 0;
+    private BootstrapButton btn_relaciones_espaciales, btn_colores, btn_numeros, btn_figuras_geometricas, btn_abecedario;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu_juego);
+        TypefaceProvider.registerDefaultIconSets();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         id_usuario = obtenerIdUsuario();
-//        genero = getIntent().getExtras().getString("genero");
-        bmb = (BoomMenuButton) findViewById(R.id.bmb);
-        bmb.setButtonEnum(ButtonEnum.TextInsideCircle);
-        bmb.setAutoBoom(true);
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        ListView listView = (ListView) findViewById(R.id.list_view);
-        r = (RelativeLayout) findViewById(R.id.rlMenuJuego);
-        r.setOnTouchListener(this);
-        assert listView != null;
-        listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,
-                BuilderManager.getCircleButtonData(piecesAndButtons)));
-        cargarBotones(listView);
-        animacionBoton(bmb);
-        listenClickEventOf(R.id.bmb);
-        //Evento click en el botón
-        bmb.setOnBoomListener(new OnBoomListener() {
-            @Override
-            public void onClicked(int index, BoomButton boomButton) {
-                if (index == 0 && lista[index] == true) {
-                    Intent intento = new Intent(MenuJuego.this, Relaciones_espaciales.class);
-                    abrirActividad(intento);
-                    finish();
-                } else if (index == 1 && lista[index] == true) {
-                    Intent intento = new Intent(MenuJuego.this, Colores.class);
-                    abrirActividad(intento);
-                } else if (index == 2 && lista[index] == true) {
-                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-                    Intent intento = new Intent(MenuJuego.this, Numeros.class);
-                    abrirActividad(intento);
-                } else if (index == 3 && lista[index] == true) {
-                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-                    Intent intento = new Intent(MenuJuego.this, Figuras_geometricas.class);
-                    abrirActividad(intento);
-                } else if (index == 4 && lista[index] == true) {
-                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-                    Intent intento = new Intent(MenuJuego.this, Abecedario.class);
-                    abrirActividad(intento);
-                }
-            }
-
-            @Override
-            public void onBackgroundClick() {
-            }
-
-            @Override
-            public void onBoomWillHide() {
-            }
-
-            @Override
-            public void onBoomDidHide() {
-
-            }
-
-            @Override
-            public void onBoomWillShow() {
-            }
-
-            @Override
-            public void onBoomDidShow() {
-            }
-        });
-
-
+        btn_relaciones_espaciales = (BootstrapButton) findViewById(R.id.btn_relaciones_espaciales);
+        btn_colores = (BootstrapButton) findViewById(R.id.btn_colores);
+        btn_numeros = (BootstrapButton) findViewById(R.id.btn_numeros);
+        btn_figuras_geometricas = (BootstrapButton) findViewById(R.id.btn_figuras_geometricas);
+        btn_abecedario = (BootstrapButton) findViewById(R.id.btn_abecedario);
+        //genero = getIntent().getExtras().getString("genero");
+        cargarBotones();
         //Ejecicion del método en cierto tiempo
         handler.postDelayed(new Runnable() {
             @Override
@@ -144,16 +86,36 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         audio.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                //amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
                 audio.release();
             }
         });
     }
 
-    private void listenClickEventOf(int bmb) {
-        findViewById(bmb).setOnClickListener(this);
+    //Método onclick para el boton de relaciones espaciales
+    public void relacionesEspaciales(View view) {
+        abrirRelacionesEspaciales();
     }
 
+    //Método onclick para el boton de colores
+    public void colores(View view) {
+        abrirColores();
+    }
+
+    //Método onclick para el boton de numeros
+    public void numeros(View view) {
+        abrirNumeros();
+    }
+
+    //Método onclick para el boton de figuras geometricas
+    public void figuras_geometricas(View view) {
+        abrirFigurasGeometricas();
+    }
+
+    //Método onclick para el boton de abecedario
+    public void abecedario(View view) {
+        abrirAbecedario();
+    }
 
     //Obtiene el id del usuario que se encuentra desde la imagen
     public int obtenerIdUsuario() {
@@ -164,56 +126,28 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     }
 
     //Verificar el tipo de pantalla para la colocación de botones
-    public boolean cargarBotones(ListView ls) {
+    public boolean cargarBotones() {
         lista = verificarTemasBloqueados();
-        String[] temas = {"relaciones_espaciales", "Colores", "Numeros", "figuras_geometricas", "abecedario"};
-        int texto = 0;
-        int position = 57;
-        ls.setVisibility(View.GONE);
-        bmb.setPiecePlaceEnum((PiecePlaceEnum) piecesAndButtons.get(position).first);
-        bmb.setButtonPlaceEnum((ButtonPlaceEnum) piecesAndButtons.get(position).second);
-        bmb.clearBuilders();
-        for (int i = 0; i < bmb.getPiecePlaceEnum().pieceNumber(); i++)
-            if (temas[i].equals("relaciones_espaciales")) {
-                TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
-                //        bmb.addBuilder(builder);
-                texto = R.string.relaciones_espaciales;
-
-                bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
-            } else if (temas[i].equals("Colores")) {
-                texto = R.string.Colores;
-                TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
-                // bmb.addBuilder(builder);
-                bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
-            } else if (temas[i].equals("Numeros")) {
-                texto = R.string.Numeros;
-                TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
-                // bmb.addBuilder(builder);
-                bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
-            } else if (temas[i].equals("figuras_geometricas")) {
-                texto = R.string.figuras_geometricas;
-                TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
-                //bmb.addBuilder(builder);
-                bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
-            } else {
-                texto = R.string.abecedario;
-                TextInsideCircleButton.Builder builder = new TextInsideCircleButton.Builder();
-                //bmb.addBuilder(builder);
-                bmb.addBuilder(BuilderManager.getTextInsideCircleButtonBuilder(texto, aplicarIcono(lista[i])));
+        if (lista != null) {
+            for (int i = 0; i < lista.length; i++) {
+                if (lista[i] == true && i == 0) {
+                    btn_relaciones_espaciales.setCompoundDrawablesWithIntrinsicBounds(R.drawable.horse, 0, 0, 0);
+                } else if (lista[i] == true && i == 1) {
+                    btn_colores.setCompoundDrawablesWithIntrinsicBounds(R.drawable.dolphin, 0, 0, 0);
+                } else if (lista[i] == true && i == 2) {
+                    btn_numeros.setCompoundDrawablesWithIntrinsicBounds(R.drawable.elephant, 0, 0, 0);
+                } else if (lista[i] == true && i == 3) {
+                    btn_figuras_geometricas.setCompoundDrawablesWithIntrinsicBounds(R.drawable.cat, 0, 0, 0);
+                } else if (lista[i] == true && i == 3) {
+                    btn_abecedario.setCompoundDrawablesWithIntrinsicBounds(R.drawable.pig, 0, 0, 0);
+                }
             }
+        } else
+            return false;
+
         return true;
     }
 
-    //Este metodo retorna 1 si puede ingresar al tema y cero si esta bloqueado
-    private int aplicarIcono(boolean estado) {
-        return (estado == true) ? 1 : 0;
-    }
-
-    //Animación del boton, que aparece en parpadeo
-    private void animacionBoton(BoomMenuButton bmb) {
-        Animation animacion = elaborarAnimacion(bmb);
-        bmb.startAnimation(animacion);
-    }
 
     public Animation elaborarAnimacion(BoomMenuButton boton) {
         Animation animation = new AlphaAnimation(0.0f, 1.0f);
@@ -235,7 +169,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             int numero = r.sortear(6);
             ContentValues values = new ContentValues();
             values.put("id_persona", id_usuario);
-            values.put("id_subcategoria", 7);//numero + 1);
+            values.put("id_subcategoria", numero + 1);
             values.put("cantidad_preguntas", 3);
             values.put("estado", false);
             values.put("cantidad_errores", 0);
@@ -295,13 +229,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         return estado;
     }
 
-    //Este metodo se utiliza para abrir as actividades
-    public void abrirActividad(Intent intento) {
-        intento.putExtra("id_usuario", id_usuario);
-        intento.putExtra("genero", genero);
-        startActivity(intento);
-    }
-
 
     @Override
     public void onResume() {
@@ -325,20 +252,66 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         if (speech != null) {
             speech.stopListening();
             speech.destroy();
         }
-        super.onDestroy();
+
     }
 
     //Abrir la actividad de relaciones espaciales
     public void abrirRelacionesEspaciales() {
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         Intent intent = new Intent(MenuJuego.this, Relaciones_espaciales.class);
         intent.putExtra("id_usuario", id_usuario);
         intent.putExtra("genero", genero);
         startActivity(intent);
         finish();
+    }
+
+    //Abrir la actividad de colores
+    public void abrirColores() {
+        if (lista[1] == true) {
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            Intent intento = new Intent(MenuJuego.this, Colores.class);
+            intento.putExtra("id_usuario", id_usuario);
+            intento.putExtra("genero", genero);
+            startActivity(intento);
+        }
+    }
+
+    //Abrir la actividad de numeros
+    public void abrirNumeros() {
+        if (lista[2] == true) {
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            Intent intento = new Intent(MenuJuego.this, Numeros.class);
+            intento.putExtra("id_usuario", id_usuario);
+            intento.putExtra("genero", genero);
+            startActivity(intento);
+        }
+    }
+
+    //Abrir la actividad de figuras geometricas
+    public void abrirFigurasGeometricas() {
+        if (lista[3] == true) {
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            Intent intento = new Intent(MenuJuego.this, Figuras_geometricas.class);
+            intento.putExtra("id_usuario", id_usuario);
+            intento.putExtra("genero", genero);
+            startActivity(intento);
+        }
+    }
+
+    //Abrir la actividad de abecedario
+    public void abrirAbecedario() {
+        if (lista[4] == true) {
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            Intent intento = new Intent(MenuJuego.this, Abecedario.class);
+            intento.putExtra("id_usuario", id_usuario);
+            intento.putExtra("genero", genero);
+            startActivity(intento);
+        }
     }
 
     @Override
@@ -398,10 +371,10 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         String texto = "";
         for (String result : matches)
-            if (result.equals("Relaciones espaciales") || result.equals("relaciones espaciales")) {
+            if (result.equals("Relaciones espaciales") || result.equals("relaciones espaciales") || result.equals("Caballo") || result.equals("caballo")) {
                 abrirRelacionesEspaciales();
-            } else if (result.equals("Caballo") || result.equals("caballo") || result.equals("caballos") || result.equals("Caballos")) {
-                abrirRelacionesEspaciales();
+            } else if (result.equals("Colores") || result.equals("colores") || result.equals("delfín") || result.equals("Delfín")) {
+                abrirColores();
             }
         hacerAudio();
     }
