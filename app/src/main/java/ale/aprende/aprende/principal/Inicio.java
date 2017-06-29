@@ -42,12 +42,17 @@ public class Inicio extends AppCompatActivity {
                         DBHandler db1 = new DBHandler(getApplicationContext());
                         SQLiteDatabase db = db1.getWritableDatabase();
                         if (db != null) {
+                            Pregunta p = new Pregunta();
                             Categoria categoria = new Categoria(db);
                             categoria.llenarTablaCategoria();
-                            Pregunta p = new Pregunta();
-                            p.llenarTablaPregunta(getApplicationContext());
-                            Respuesta r = new Respuesta();
-                            r.llenarTablaRespuesta(getApplicationContext());
+                            int icount = p.verificarTablaPregunta(db);
+                            if(icount<=0){
+                                p.llenarTablaPregunta(getApplicationContext());
+                                p.llenarPreguntasColores(getApplicationContext());
+                                Respuesta r = new Respuesta();
+                                r.llenarTablaRespuesta(getApplicationContext());
+                                r.llenarTablaRespuestaColores(getApplicationContext());
+                            }
                         }
                         db.close();
                     }

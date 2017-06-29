@@ -29,37 +29,58 @@ public class Pregunta {
         int id_subcategoria = 0;
         String[] audio = new String[]{"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"};
         String[] nombreImagen = new String[]{"abajo", "adelante", "arriba", "atras", "centro", "derecha", "izquierda"};
-        if (icount <= 0) {
-            for (int i = 0; i < nombreImagen.length; i++) {
-                id_subcategoria++;
-                List<String> listaArchivos = obtenerCantidadArchivos(nombreImagen[i], m);
-                int cantidad = listaArchivos.size() / 2;
-                for (int j = 0; j < cantidad; j++) {
-                    ContentValues values = new ContentValues();
-                    values.put("audio", audio[j]);
-                    values.put("nombre_imagen", audio[j] + "_" + nombreImagen[i]);
-                    values.put("id_subcategoria", id_subcategoria);
-                    db.insert("Pregunta", null, values);
-                }
+
+        for (int i = 0; i < nombreImagen.length; i++) {
+            id_subcategoria++;
+            List<String> listaArchivos = obtenerCantidadArchivos("relaciones_espaciales/" + nombreImagen[i], m);
+            int cantidad = listaArchivos.size() / 2;
+            for (int j = 0; j < cantidad; j++) {
+                ContentValues values = new ContentValues();
+                values.put("audio", audio[j]);
+                values.put("nombre_imagen", audio[j] + "_" + nombreImagen[i]);
+                values.put("id_subcategoria", id_subcategoria);
+                db.insert("Pregunta", null, values);
             }
         }
         db.close();
     }
+
+    //Este metodo se encarga insertar en base de datos las preguntas relacionadas a los colores
+    public void llenarPreguntasColores(Context m) {
+        DBHandler mdb = new DBHandler(m);
+        SQLiteDatabase db = mdb.getWritableDatabase();
+        String[] audio = new String[]{"p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"};
+        String[] nombre = new String[]{"azul", "amarillo", "rojo", "anaranjado", "verde"};
+        int id = 8;
+        for (int i = 0; i < nombre.length; i++) {
+            List<String> listaArchivos = obtenerCantidadArchivos("colores/" + nombre[i], m);
+            for (int j = 0; j < listaArchivos.size(); j++) {
+                ContentValues values = new ContentValues();
+                values.put("audio", audio[j]);
+                values.put("nombre_imagen", audio[j] + "_" + nombre[i]);
+                values.put("id_subcategoria", id);
+                db.insert("Pregunta", null, values);
+            }
+        id++;
+        }
+    }
+
 
     //Este metodo obtiene la cantidad de archivos que se encuentran en un folder en especifico
     private List obtenerCantidadArchivos(String tema, Context c) {
         AssetManager assetManager = c.getAssets();
         String[] archivos = new String[0];
         try {
-            archivos = assetManager.list("relaciones_espaciales/" + tema);
+            archivos = assetManager.list(tema);
         } catch (IOException e) {
             e.printStackTrace();
         }
         List<String> listaArchivos = new LinkedList<String>(Arrays.asList(archivos));
         return listaArchivos;
     }
+
     //Verifica si en la tabla pregunta hay datos
-    private int verificarTablaPregunta(SQLiteDatabase db) {
+    public int verificarTablaPregunta(SQLiteDatabase db) {
         String count = "SELECT count(*) FROM Pregunta";
         Cursor mcursor = db.rawQuery(count, null);
         mcursor.moveToFirst();

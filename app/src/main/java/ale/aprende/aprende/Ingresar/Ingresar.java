@@ -352,7 +352,7 @@ public class Ingresar extends AppCompatActivity {
             // Obtener una instancia del cliente de servicio de cara para detectar las caras en la imagen.
             FaceServiceClient faceServiceClient = SampleApp.getFaceServiceClient();
             try {
-                publishProgress("Verificando");
+               // publishProgress("Verificando");
                 // Inicio de la verificación
                 return faceServiceClient.verify(
                         mRostroId0,      /* The first face ID to verify */
@@ -415,7 +415,7 @@ public class Ingresar extends AppCompatActivity {
                 startActivity(intento);
                 finish();
             } else {
-                verificationResult += ". La confianza es de  " + formatter.format(result.confidence);
+                //verificationResult += ". La confianza es de  " + formatter.format(result.confidence);
                 setInfo(verificationResult);
             }
 

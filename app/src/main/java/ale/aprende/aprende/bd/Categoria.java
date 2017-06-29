@@ -140,7 +140,7 @@ public class Categoria {
     private List<String> llenarListaCategoria() {
         List<String> lista = new ArrayList<String>();
         lista.add("Relaciones espaciales");
-        lista.add("Colores");
+        lista.add("colores");
         lista.add("Numeros");
         lista.add("Figuras geometricas");
         lista.add("Abecedario");

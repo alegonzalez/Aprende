@@ -5,26 +5,100 @@
     android:layout_height="match_parent"
     android:background="@color/boton"
     android:orientation="vertical"
-    android:id="@+id/rlMenuJuego">
+    android:id="@+id/rlMenuJuego"
+    android:padding="15dp">
 
-    <com.nightonke.boommenu.BoomMenuButton
-        android:id="@+id/bmb"
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btn_relaciones_espaciales"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        app:bmb_buttonEnum="textInsideCircle"
-        app:bmb_buttonPlaceEnum="buttonPlace_sc_5_2"
-        app:bmb_draggable="true"
-        app:bmb_piecePlaceEnum="piecePlace_dot_5_3" />
-
-    <ListView
-        android:id="@+id/list_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignEnd="@+id/bmb"
+        android:layout_height="100dp"
+        android:drawableLeft="@drawable/ic_https_white_48dp"
+        android:text="Relaciones espaciales"
+        app:bootstrapBrand="info"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:layout_marginTop="15dp"
         android:layout_alignParentTop="true"
-        android:layout_alignRight="@+id/bmb" />
+        android:layout_centerHorizontal="true"
+        android:onClick="relacionesEspaciales"
+        />
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btn_figuras_geometricas"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:drawableLeft="@drawable/ic_https_white_48dp"
+        android:text="Figuras geométricas"
+        app:bootstrapBrand="primary"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:layout_below="@+id/btn_numeros"
+        android:layout_marginTop="17dp"
+        android:layout_alignRight="@+id/btn_colores"
+        android:layout_alignEnd="@+id/btn_colores"
+        android:layout_alignLeft="@+id/btn_numeros"
+        android:layout_alignStart="@+id/btn_numeros"
+        android:onClick="figuras_geometricas"/>
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btn_numeros"
+        android:layout_width="wrap_content"
+        android:layout_height="100dp"
+        android:drawableLeft="@drawable/ic_https_white_48dp"
+        android:text="Numeros"
+        app:bootstrapBrand="success"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:layout_below="@+id/btn_colores"
+        android:layout_alignLeft="@+id/btn_colores"
+        android:layout_alignStart="@+id/btn_colores"
+        android:layout_marginTop="10dp"
+        android:layout_alignRight="@+id/btn_colores"
+        android:layout_alignEnd="@+id/btn_colores"
+        android:onClick="numeros"/>
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btn_colores"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_marginTop="11dp"
+        android:drawableLeft="@drawable/ic_https_white_48dp"
+        android:text="Colores"
+        android:onClick="colores"
+        app:bootstrapBrand="danger"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:layout_below="@+id/btn_relaciones_espaciales"
+        android:layout_alignLeft="@+id/btn_relaciones_espaciales"
+        android:layout_alignStart="@+id/btn_relaciones_espaciales"
+        android:layout_alignRight="@+id/btn_relaciones_espaciales"
+        android:layout_alignEnd="@+id/btn_relaciones_espaciales" />
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btn_abecedario"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:drawableLeft="@drawable/ic_https_white_48dp"
+        android:text="Abecedario"
+        app:bootstrapBrand="warning"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:layout_marginTop="16dp"
+        android:layout_below="@+id/btn_figuras_geometricas"
+        android:layout_alignLeft="@+id/btn_figuras_geometricas"
+        android:layout_alignStart="@+id/btn_figuras_geometricas"
+        android:layout_alignRight="@+id/btn_figuras_geometricas"
+        android:layout_alignEnd="@+id/btn_figuras_geometricas"
+        android:onClick="abecedario"/>
 
 </RelativeLayout>

@@ -20,6 +20,7 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 
+import com.beardedhen.androidbootstrap.TypefaceProvider;
 import com.nightonke.boommenu.BoomButtons.BoomButton;
 import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
 import com.nightonke.boommenu.BoomMenuButton;
@@ -31,6 +32,7 @@ import com.nightonke.boommenu.Util;
 import java.util.ArrayList;
 
 import ale.aprende.aprende.BuilderManager;
+import ale.aprende.aprende.Relaciones_espaciales;
 import ale.aprende.aprende.bd.Categoria;
 import ale.aprende.aprende.Ingresar.Ingresar;
 import ale.aprende.aprende.MenuJuego;
@@ -52,20 +54,49 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         boolean result = true;
-       /*
+        TypefaceProvider.registerDefaultIconSets();
+/*
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
-        String strSQL = "DELETE FROM Progreso  where id_persona = 1 and " + " id_subcategoria= " + 8 + " and estado= 0";
-        db.execSQL(strSQL);
 
-      ContentValues values = new ContentValues();
+        for (int i = 1; i <= 7; i++) {
+            ContentValues values = new ContentValues();
+            values.put("id_persona", 1);
+            values.put("id_subcategoria", i);
+            values.put("cantidad_preguntas", 3);
+            if (i == 7)
+                values.put("estado", false);
+            else
+                values.put("estado", true);
+
+            values.put("cantidad_errores", 0);
+            db.insert("Progreso", null, values);
+        }
+
+
+        Relaciones_espaciales r = new Relaciones_espaciales();
+        int numero = r.sortear(4);
+        numero++;
+        if (numero == 1) {
+            numero = 8;
+        } else if (numero == 2) {
+            numero = 9;
+        } else if (numero == 3) {
+            numero = 10;
+        } else if (numero == 4) {
+            numero = 11;
+        } else if (numero == 5) {
+            numero = 12;
+        }
+        ContentValues values = new ContentValues();
         values.put("id_persona", 1);
-        values.put("id_subcategoria", 8);
+        values.put("id_subcategoria", numero);
         values.put("cantidad_preguntas", 3);
         values.put("estado", false);
         values.put("cantidad_errores", 0);
         db.insert("Progreso", null, values);
         */
+
         if (Build.VERSION.SDK_INT >= 23) {
             verificarPermiso();
         }
@@ -108,10 +139,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 } else {
 /*
                     Intent intento = new Intent(MainActivity.this, Ingresar.class);
-                     startActivity(intento);
-                     */
+                    startActivity(intento);
+*/
+
                     Intent intento = new Intent(MainActivity.this, MenuJuego.class);
                     startActivity(intento);
+
                 }
             }
 
@@ -172,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "Permiso concedido", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(this, "Permiso concedido", Toast.LENGTH_SHORT).show();
         } else {
             explicarUsoPermiso();
             solicitarPermisoAlmacenamiento("Pedimos los permisos");
@@ -235,4 +268,5 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
 
     }
+
 }

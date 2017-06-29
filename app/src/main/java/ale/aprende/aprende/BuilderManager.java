@@ -55,7 +55,7 @@ public class BuilderManager {
             return new TextInsideCircleButton.Builder()
                     .normalImageRes(imagen)
                     .normalTextRes(nombre)
-                    .imageRect(new Rect(10, 20, 110, 90));
+                    .imageRect(new Rect(0, 20, 110, 90));
         } else if (nombre == R.string.relaciones_espaciales) {
             imagen = R.drawable.horse;
             return new TextInsideCircleButton.Builder()
@@ -65,7 +65,15 @@ public class BuilderManager {
         }
         return null;
     }
+    static TextInsideCircleButton.Builder getTextInsideCircleButtonBuilder() {
 
+            return new TextInsideCircleButton.Builder()
+                    .normalImageRes(getImageResource())
+                    .normalTextRes(R.string.registrar)
+                    .imageRect(new Rect(10, 0, 110, 115));
+
+
+    }
     static TextInsideCircleButton.Builder getSquareTextInsideCircleButtonBuilder() {
         return new TextInsideCircleButton.Builder()
                 .isRound(false)

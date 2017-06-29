@@ -10,4 +10,48 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="ale.aprende.aprende.Colores">
 
+    <ImageView
+        android:id="@+id/imgPregunta"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_centerHorizontal="true" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/imgPregunta"
+        android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/imgPregunta"
+        android:orientation="horizontal"
+        >
+
+        <Button
+            android:id="@+id/BtnPrimeraOpcion"
+            android:layout_width="100dp"
+            android:scaleType="fitXY"
+            android:layout_height="100dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:onClick="opcion1"
+            android:layout_margin="3dp"/>
+
+
+        <Button
+            android:id="@+id/BtnSegundaOpcion"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:onClick="opcion2"
+            android:scaleType="fitXY"
+            android:layout_margin="3dp"/>
+
+        <Button
+            android:id="@+id/BtnTerceraOpcion"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:onClick="opcion3"
+            android:scaleType="fitXY"
+            android:layout_margin="3dp"/>
+    </LinearLayout>
+
+
 </RelativeLayout>

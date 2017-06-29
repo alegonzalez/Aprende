@@ -1,7 +1,6 @@
 package ale.aprende.aprende;
 
 import android.animation.ObjectAnimator;
-import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -50,6 +49,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     int pausa = 0;
     public SpeechRecognizer speech;
     private Intent recognizerIntent;
+    private String estadoEstadistica = "1";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +63,9 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         id_usuario = getIntent().getExtras().getInt("id_usuario");
         genero = getIntent().getExtras().getString("genero");
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        List<String> subcategoria = obtenerProgreso();
-        verificarTipoSubcategoria(subcategoria);
+        DBHandler mdb = new DBHandler(getApplicationContext());
+        List<String> subcategoria = obtenerProgreso(mdb);
+        verificarTipoSubcategoria(subcategoria, mdb, getApplicationContext(), img, amanager, id_usuario, genero);
         pregunta.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
 
@@ -86,14 +87,14 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 respuesta.stop();
                 respuesta.release();
                 pausa = 2;
-                //   amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
                 hacerAudio();
             }
         });
         audio.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
-                audio.stop();
+                // audio.stop();
                 audio.reset();
                 amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
 //                audio = new MediaPlayer();
@@ -102,12 +103,11 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Este metodo se encarga de reproducir cuando hay un error o aprueba un tema
-    public void audioMostrar(String direccion) {
+    public void audioMostrar(String direccion, MediaPlayer audio, AudioManager amanager,Context contexto) {
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-        audio.stop();
         audio.reset();
         try {
-            AssetFileDescriptor afd = getAssets().openFd(direccion);
+            AssetFileDescriptor afd = contexto.getAssets().openFd(direccion);
             audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
             audio.prepare();
             audio.setVolume(1, 1);
@@ -156,17 +156,19 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         } else {
             //Reproducir audio para motivar al niño
             String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
-            audioMostrar(tipo_genero);
+            audioMostrar(tipo_genero, audio, amanager,this);
             cantidad_errores += 1;
-            ponerErroresEstadisticas(cantidad_errores, 0, db);
-            actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
+            if (estadoEstadistica.equals("0")) {
+                ponerErroresEstadisticas(cantidad_errores, 0, db);
+            }
+            actualizarProgreso(cantidad_preguntas, cantidad_errores, db, id_subcategoria, id_usuario);
         }
         cursor.close();
         db.close();
     }
 
     //verifica que no se inserte una pregunta que ya este en la tabla
-    public void noRepetir(Cursor cursor, SQLiteDatabase db) {
+    public void noRepetir(Cursor cursor, SQLiteDatabase db, int id_usuario, String id_pregunta) {
         int pasada = 0;
         if (cursor.moveToFirst()) {
             while (!cursor.isAfterLast()) {
@@ -189,7 +191,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     public void verificar(int cantidad_preguntas, int cantidad_errores, SQLiteDatabase db, Cursor cursor) {
         audio.reset();
         Cursor pregunta = db.rawQuery("select id_pregunta from Persona_Pregunta where id_persona = " + id_usuario, null);
-        noRepetir(pregunta, db);
+        noRepetir(pregunta, db, id_usuario, id_pregunta);
         if (nombreSubcategoria.equals("derecha") || nombreSubcategoria.equals("izquierda")) {
             List<String> subcategoria = new ArrayList<>();
             subcategoria.add(id_subcategoria);
@@ -198,47 +200,55 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             if (cantidad_preguntas == 0) {
                 if (cantidad_errores >= 3) {
                     cantidad_preguntas = 3;
-                    actualizarProgreso(cantidad_preguntas, 0, db);
-                    ponerErroresEstadisticas(0, 3, db);
+                    actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
+                    if (estadoEstadistica.equals("0")) {
+                        ponerErroresEstadisticas(0, 3, db);
+                    }
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2) {
                     cantidad_preguntas = 2;
-                    actualizarProgreso(cantidad_preguntas, 0, db);
-                    ponerErroresEstadisticas(0, 2, db);
+                    actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
+                    if (estadoEstadistica.equals("0")) {
+                        ponerErroresEstadisticas(0, 2, db);
+                    }
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 1) {
                     cantidad_preguntas = 1;
-                    actualizarProgreso(cantidad_preguntas, 0, db);
-                    ponerErroresEstadisticas(0, 1, db);
+                    actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
+                    if (estadoEstadistica.equals("0")) {
+                        ponerErroresEstadisticas(0, 1, db);
+                    }
                     abrirRelacionesEspaciales();
                 } else {
                     //Tema superado
-                    actualizarProgreso(cantidad_preguntas, 0, db);
-                    actualizarEstadoProgreso(db);
-                    ponerErroresEstadisticas(0, 0, db);
+                    actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
+                    actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
+                    if (estadoEstadistica.equals("0")) {
+                        ponerErroresEstadisticas(0, 0, db);
+                    }
+                    actualizarEstadisticaTema(db);
                     int rs = obtenerSiguienteSubctegoria(db);
                     if (rs != 0) {
-                        insertarNuevaSubCategoria(rs, db);
-                        Cursor est = verificarDatosTablaEstadistica(db);
+                        insertarNuevaSubCategoria(rs, db, id_usuario);
+                        Cursor est = verificarDatosTablaEstadistica(db, id_subcategoria, id_usuario);
                         if (est.getCount() <= 0) {
-                            insertarEstadistica();
+                            DBHandler mdb = new DBHandler(getApplicationContext());
+                            insertarEstadistica(mdb, id_subcategoria, id_usuario);
                         }
                         String tipo_genero = (genero.equals("M")) ? "general/tema_superado_m.mp3" : "general/tema_superado_f.mp3";
-                        audioMostrar(tipo_genero);
+                        audioMostrar(tipo_genero, audio, amanager,this);
                         esperar();
                         abrirRelacionesEspaciales();
                     } else {
-
-                        Toast.makeText(this, "Colores", Toast.LENGTH_SHORT).show();
+                        insertarColores(db);
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
-                    Toast.makeText(this, "Felicidades tema superado", Toast.LENGTH_SHORT).show();
                     abrirRelacionesEspaciales();
                 }
                 // actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
-                actualizarProgreso(cantidad_preguntas, 0, db);
+                actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
             } else {
-                actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
+                actualizarProgreso(cantidad_preguntas, cantidad_errores, db, id_subcategoria, id_usuario);
                 abrirRelacionesEspaciales();
             }
         } else {
@@ -247,14 +257,21 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         }
     }
 
+    //Este metodo actualiza el estado en la tabla de estadisticas
+    public void actualizarEstadisticaTema(SQLiteDatabase db) {
+        String strSQL = "UPDATE Estadistica SET estado = 1 WHERE id_persona = "
+                + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
+        db.execSQL(strSQL);
+    }
+
     //Verifica si ya se inserto en la tabla de estadistica, si no para insertar
-    private Cursor verificarDatosTablaEstadistica(SQLiteDatabase db) {
-        Cursor estadistica = db.rawQuery("select id_subcategoria from Estadistica where id_subcategoria = " + id_subcategoria + " and id_persona= " + id_usuario, null);
+    public Cursor verificarDatosTablaEstadistica(SQLiteDatabase db, String id_subCategoria, int id_usuario) {
+        Cursor estadistica = db.rawQuery("select id_subcategoria from Estadistica where id_subcategoria = " + id_subCategoria + " and id_persona= " + id_usuario, null);
         return estadistica;
     }
 
     //Actualiza el progreso de las preguntas y cantidad de errores
-    private void actualizarProgreso(int cantidad_preguntas, int cantidad_errores, SQLiteDatabase db) {
+    public void actualizarProgreso(int cantidad_preguntas, int cantidad_errores, SQLiteDatabase db, String id_subcategoria, int id_usuario) {
         String strSQL = "UPDATE Progreso SET cantidad_preguntas = " + cantidad_preguntas + ",cantidad_errores = " + cantidad_errores + " WHERE id_persona = "
                 + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + " and estado= 0";
         db.execSQL(strSQL);
@@ -270,48 +287,83 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             if (cantidad_preguntas <= 0) {
                 if (cantidad_errores >= 6 || cantidad_errores == 5) {
                     cantidad_preguntas = 3;
-                    ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
-                    actualizarProgreso(cantidad_preguntas, 0, db);
+                    if (estadoEstadistica.equals("0")) {
+                        ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
+                    }
+                    actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 4 || cantidad_errores == 3) {
                     cantidad_preguntas = 2;
-                    ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
-                    actualizarProgreso(cantidad_preguntas, 0, db);
+                    if (estadoEstadistica.equals("0")) {
+                        ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
+                    }
+                    actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2 || cantidad_errores == 1) {
                     cantidad_preguntas = 1;
-                    ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
-                    actualizarProgreso(cantidad_preguntas, 0, db);
+                    if (estadoEstadistica.equals("0")) {
+                        ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
+                    }
+                    actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirRelacionesEspaciales();
                 } else {
                     //Excelente paso  la subcategoria
-                    actualizarProgreso(cantidad_preguntas, 0, db);
-                    actualizarEstadoProgreso(db);
+                    actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
+                    actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
+                    actualizarEstadisticaTema(db);
                     int resultado = obtenerSiguienteSubctegoria(db);
-                    //    ponerErroresEstadisticas(0, 1, db);
                     if (resultado != 0) {
-                        insertarNuevaSubCategoria(resultado, db);
-                        Cursor est = verificarDatosTablaEstadistica(db);
+                        insertarNuevaSubCategoria(resultado, db, id_usuario);
+                        Cursor est = verificarDatosTablaEstadistica(db, id_subcategoria, id_usuario);
                         if (est.getCount() <= 0) {
-                            insertarEstadistica();
+                            DBHandler mdb = new DBHandler(getApplicationContext());
+                            insertarEstadistica(mdb, id_subcategoria, id_usuario);
                         }
                         String tipo_genero = (genero.equals("M")) ? "general/tema_superado_m.mp3" : "general/tema_superado_f.mp3";
-                        audioMostrar(tipo_genero);
+                        audioMostrar(tipo_genero, audio, amanager,this);
                         esperar();
                         abrirRelacionesEspaciales();
-                        Toast.makeText(this, "Felicidades pequeño sigue asi", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(this, "Colores", Toast.LENGTH_SHORT).show();
+                        insertarColores(db);
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
                 }
             } else {
-                actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
+                actualizarProgreso(cantidad_preguntas, cantidad_errores, db, id_subcategoria, id_usuario);
                 abrirRelacionesEspaciales();
             }
         }
     }
 
+    //Insert los colores por primera vez
+    private void insertarColores(SQLiteDatabase db) {
+        int numero = sortear(4);
+        numero++;
+        if (numero == 1) {
+            numero = 8;
+        } else if (numero == 2) {
+            numero = 9;
+        } else if (numero == 3) {
+            numero = 10;
+        } else if (numero == 4) {
+            numero = 11;
+        } else if (numero == 5) {
+            numero = 12;
+        }
+        ContentValues values = new ContentValues();
+        values.put("id_persona", id_usuario);
+        values.put("id_subcategoria", numero);
+        values.put("cantidad_preguntas", 3);
+        values.put("estado", false);
+        values.put("cantidad_errores", 0);
+        db.insert("Progreso", null, values);
+        Intent color = new Intent(Relaciones_espaciales.this, Colores.class);
+        color.putExtra("id_usuario", id_usuario);
+        color.putExtra("genero", genero);
+        color.putExtra("id_subcategoria", numero);
+        startActivity(color);
+        finish();
+    }
 
     //Actualizar en la tabla de estadistica la cantidad de errores y preguntas que le pertenece a una subcategoria
     public void ponerErroresEstadisticas(int cantidad_errores, int cantidad_preguntas, SQLiteDatabase db) {
@@ -327,7 +379,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Inserta en la tabla de progreso la nueva subcategoria
-    public void insertarNuevaSubCategoria(int id_subcategoria, SQLiteDatabase db) {
+    public void insertarNuevaSubCategoria(int id_subcategoria, SQLiteDatabase db, int id_usuario) {
         ContentValues values = new ContentValues();
         values.put("id_persona", id_usuario);
         values.put("id_subcategoria", id_subcategoria);
@@ -360,7 +412,6 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         cantidad = verificarCantidadArreglo(listaDisponible);
         subcategoriasProgreso.close();
         if (cantidad == 0) {
-            Toast.makeText(this, "Abrir otro tema", Toast.LENGTH_SHORT).show();
             return 0;
         } else {
             return realizarSigueteSubcategoria(listaDisponible);
@@ -374,7 +425,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Este método actualiza el estado del progreso
-    public void actualizarEstadoProgreso(SQLiteDatabase db) {
+    public void actualizarEstadoProgreso(SQLiteDatabase db, String id_subcategoria, int id_usuario) {
         String strSQL = "UPDATE Progreso SET estado = " + 1 + " WHERE id_persona = "
                 + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
         db.execSQL(strSQL);
@@ -389,16 +440,10 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         finish();
     }
 
-    //Actualiza la cantidad de preguntas en base de datos
-    public void actualizarCantidadPreguntas(SQLiteDatabase db, int cantidad_preguntas) {
-        String strSQL = "UPDATE Progreso SET cantidad_preguntas = " + cantidad_preguntas + " WHERE id_persona = " + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
-        db.execSQL(strSQL);
-    }
-
     // Obtiene el progreso acerca del tema de las preguntas que no se han realizado
-    public List obtenerProgreso() {
+    public List obtenerProgreso(DBHandler mdb) {
         List<String> subcategoria = new ArrayList<String>();
-        DBHandler mdb = new DBHandler(getApplicationContext());
+
         SQLiteDatabase db = mdb.getWritableDatabase();
         Cursor cursor = db.rawQuery("select p.id_subcategoria,p.cantidad_preguntas,sub.nombre " +
                 " from Progreso p, SubCategoria sub " +
@@ -413,8 +458,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Verifica las preguntas realizada segun la subcategoria
-    private Cursor obtenerPreguntasRealizadas(int id_subcategoria) {
-        DBHandler mdb = new DBHandler(getApplicationContext());
+    private Cursor obtenerPreguntasRealizadas(int id_subcategoria, DBHandler mdb) {
         SQLiteDatabase db = mdb.getWritableDatabase();
         Cursor cursor = db.rawQuery("select id,nombre_imagen,audio from  Pregunta " +
                 " where id_subcategoria= " + id_subcategoria, null);
@@ -475,9 +519,9 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
-        Cursor est = verificarDatosTablaEstadistica(db);
+        Cursor est = verificarDatosTablaEstadistica(db, id_subcategoria, id_usuario);
         if (est.getCount() <= 0) {
-            insertarEstadistica();
+            insertarEstadistica(mdb, id_subcategoria, id_usuario);
         }
         db.close();
         est.close();
@@ -489,7 +533,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         //si r es igual a cero se acabaron las preguntas
         if (r == 0) {
             //Se elimina las preguntas realizadas y se inserta en la tabla de estadisticas
-            eliminarPreguntasRealizada();
+            eliminarPreguntasRealizada(mdb, id_subcategoria, id_usuario);
             abrirRelacionesEspaciales();
         } else {
             int numero = sortear(r);
@@ -506,8 +550,8 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Elimina las preguntas realizadas al usuario en la tabla de persona_pregunta
-    public void eliminarPreguntasRealizada() {
-        DBHandler mdb = new DBHandler(getApplicationContext());
+    public void eliminarPreguntasRealizada(DBHandler mdb, String id_subcategoria, int id_usuario) {
+
         SQLiteDatabase db = mdb.getWritableDatabase();
         Cursor estadistica = db.rawQuery("select id" + " from Pregunta " +
                 " where id_subcategoria = " + id_subcategoria, null);
@@ -524,8 +568,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //insertar en la tabla de estadistica para llevar el registro por subcategoria
-    public void insertarEstadistica() {
-        DBHandler mdb = new DBHandler(getApplicationContext());
+    public String insertarEstadistica(DBHandler mdb, String id_subcategoria, int id_usuario) {
         SQLiteDatabase db = mdb.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put("id_persona", id_usuario);
@@ -533,8 +576,11 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         values.put("cantidad_errores", 0);
         values.put("cantidad_preguntas", 3);
         values.put("porcentaje", 0);
+        values.put("estado", "0");
         db.insert("Estadistica", null, values);
         db.close();
+        estadoEstadistica = "0";
+        return estadoEstadistica;
     }
 
     //verifica la cantidad de elementos que se encuentran en el arreglo
@@ -563,7 +609,6 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         }
         return resultado;
     }
-
 
     //Esta funcion se detiene por unos segundo para mientra reproduce el audio
     public void esperar() {
@@ -597,21 +642,23 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 esperar();
             }
         } else {
+            String[] n = obtenerNumeros(2);
             for (int i = 0; i < respuestaAudio.length; i++) {
-                String numeroRespuesta = respuestaAudio[i].substring(0, 3);
+
+                String numeroRespuesta = respuestaAudio[Integer.parseInt(n[i])].substring(0, 3);
                 if (!(numeroRespuesta.equals("r10"))) {
                     numeroRespuesta = numeroRespuesta.substring(0, 2);
                 }
-                if (((String) opcion1.getTag()).trim().equals(respuestaAudio[i].trim())) {
-                    reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numeroRespuesta + "/" + respuestaAudio[i], "r", (String) opcion1.getTag(), respuesta);
+                if (n[i].equals("0")) {
+                    reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numeroRespuesta + "/" + respuestaAudio[Integer.parseInt(n[i])], "r", (String) opcion1.getTag(), respuesta);
                     respuesta = new MediaPlayer();
                     esperar();
-                } else if (((String) opcion2.getTag()).trim().equals(respuestaAudio[i].trim())) {
-                    reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numeroRespuesta + "/" + respuestaAudio[i], "r", (String) opcion2.getTag(), respuesta);
+                } else if (n[i].equals("1")) {
+                    reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numeroRespuesta + "/" + respuestaAudio[Integer.parseInt(n[i])], "r", (String) opcion2.getTag(), respuesta);
                     respuesta = new MediaPlayer();
                     esperar();
                 } else {
-                    reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numeroRespuesta + "/" + respuestaAudio[i], "r", (String) opcion3.getTag(), respuesta);
+                    reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numeroRespuesta + "/" + respuestaAudio[Integer.parseInt(n[i])], "r", (String) opcion3.getTag(), respuesta);
                     respuesta = new MediaPlayer();
                     esperar();
                 }
@@ -684,7 +731,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
     //Realiza random sin repetir la combinación de números
     public String[] obtenerNumeros(int numero) {
-        String[] listaNumeros = new String[3];
+        String[] listaNumeros = new String[4];
         ArrayList<Integer> list = new ArrayList<Integer>(numero);
         for (int i = 0; i <= numero; i++) {
             list.add(i);
@@ -714,6 +761,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
     //Reproduce el audio de la pregunta de la imagen
     public void reproducirAudio(String audio, String tipo, String nombreImagenBoton, MediaPlayer respuesta) {
+
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         //amanager.setMode(AudioManager.STREAM_MUSIC);
         if (respuesta == null) {
@@ -762,7 +810,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
 
     //Este metodo estable en el image view la imagen
-    private Drawable establecerImagen(String nombreImagen) {
+    public Drawable establecerImagen(String nombreImagen) {
         Drawable d = null;
         try {
             InputStream ims = getAssets().open(nombreImagen);
@@ -807,54 +855,86 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Verificar el tipo de subcategoria
-    public void verificarTipoSubcategoria(List<String> subcategoria) {
-        DBHandler mdb = new DBHandler(getApplicationContext());
+    public List verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb, Context contexto, ImageView img, AudioManager amanager, int id_usuario, String genero) {
         SQLiteDatabase db = mdb.getWritableDatabase();
         id_subcategoria = subcategoria.get(0);
+
+        List datos = new ArrayList<>();
         if ((subcategoria.get(1)).trim().equals("Abajo")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)));
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db);
             realizarPreguntas(cursor, cursor1, "abajo");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Adelante")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)));
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db);
             realizarPreguntas(cursor, cursor1, "adelante");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Arriba")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)));
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db);
             realizarPreguntas(cursor, cursor1, "arriba");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Atras")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)));
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db);
             realizarPreguntas(cursor, cursor1, "atras");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Centro")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)));
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db);
             realizarPreguntas(cursor, cursor1, "centro");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Derecha")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)));
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db);
             realizarPreguntas(cursor, cursor1, "derecha");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Izquierda")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)));
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db);
             realizarPreguntas(cursor, cursor1, "izquierda");
             cursor.close();
             cursor1.close();
+        } else if ((subcategoria.get(1)).trim().equals("Azul")) {
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Colores c = new Colores();
+            datos = c.realizarPreguntas(cursor, cursor1, "azul", mdb, contexto, img, amanager, id_subcategoria, id_usuario);
+            datos.add(5, genero);
+        } else if ((subcategoria.get(1)).trim().equals("Amarillo")) {
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Colores c = new Colores();
+            datos = c.realizarPreguntas(cursor, cursor1, "amarillo", mdb, contexto, img, amanager, id_subcategoria, id_usuario);
+            datos.add(5, genero);
+        } else if ((subcategoria.get(1)).trim().equals("Rojo")) {
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Colores c = new Colores();
+            datos = c.realizarPreguntas(cursor, cursor1, "rojo", mdb, contexto, img, amanager, id_subcategoria, id_usuario);
+            datos.add(5, genero);
+        } else if ((subcategoria.get(1)).trim().equals("Anaranjado")) {
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Colores c = new Colores();
+            datos = c.realizarPreguntas(cursor, cursor1, "anaranjado", mdb, contexto, img, amanager, id_subcategoria, id_usuario);
+            datos.add(5, genero);
+        } else if ((subcategoria.get(1)).trim().equals("Verde")) {
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Colores c = new Colores();
+            datos = c.realizarPreguntas(cursor, cursor1, "verde", mdb, contexto, img, amanager, id_subcategoria, id_usuario);
+            datos.add(5, genero);
         }
         db.close();
+        return datos;
     }
 
     //Este metodo obtiene la información de la tabla persona_pregunta
@@ -956,18 +1036,18 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             cantidad_preguntas = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_preguntas")));
             cantidad_errores = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_errores")));
         }
-        Toast.makeText(this, "Entro", Toast.LENGTH_SHORT).show();
-        ponerErroresEstadisticas(1, 0, db);
-        actualizarProgreso(cantidad_preguntas, cantidad_errores + 1, db);
+        if (estadoEstadistica.equals("0")) {
+            ponerErroresEstadisticas(1, 0, db);
+        }
+        actualizarProgreso(cantidad_preguntas, cantidad_errores + 1, db, id_subcategoria, id_usuario);
         String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
-        audioMostrar(tipo_genero);
+        audioMostrar(tipo_genero, audio, amanager,this);
     }
 
     //Verifica las respuestas de las preguntas segun la subcategoria
     public void verificarPreguntaYrespuesta(String texto) {
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
-
         Cursor cursor = db.rawQuery("select cantidad_preguntas,cantidad_errores " + " from Progreso " +
                 " where id_subcategoria = " + id_subcategoria + " and " + " id_persona= " + id_usuario, null);
         int cantidad_preguntas = 0;

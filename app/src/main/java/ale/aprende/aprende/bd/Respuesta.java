@@ -60,6 +60,10 @@ public class Respuesta {
         }
 
     }
+    //Asigna las respuestas de los colores
+    public void llenarTablaRespuestaColores(Context c) {
+
+    }
 
     //Verifica el tipo de subcategoria  para asignar respuesta
     private List verificarSubcategoria(String direccion, String id_subcategoria, String nombre_imagen, Context m) {

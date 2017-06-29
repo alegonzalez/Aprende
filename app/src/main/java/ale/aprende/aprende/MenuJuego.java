@@ -54,6 +54,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     private Intent recognizerIntent;
     final Handler handler = new Handler();
     RelativeLayout r;
+    private String id_subcategoria = "";
     private String genero = "M";
     MediaPlayer audio = new MediaPlayer();
     private int pasada = 0;
@@ -163,13 +164,15 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         Boolean[] estado = new Boolean[5];
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
-        Cursor cursor = db.rawQuery("select * from Progreso where id_persona= " + id_usuario, null);
+        Cursor cursor = db.rawQuery("select * from Progreso where id_persona= " + id_usuario + " and estado = 0", null);
         if (!(cursor.moveToFirst()) || cursor.getCount() == 0) {
             Relaciones_espaciales r = new Relaciones_espaciales();
             int numero = r.sortear(6);
             ContentValues values = new ContentValues();
+            numero = numero + 1;
+            id_subcategoria = ""+numero;
             values.put("id_persona", id_usuario);
-            values.put("id_subcategoria", numero + 1);
+            values.put("id_subcategoria", numero);
             values.put("cantidad_preguntas", 3);
             values.put("estado", false);
             values.put("cantidad_errores", 0);
@@ -181,47 +184,41 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             estado[4] = false;
             audioBienvenida();
         } else {
-            while (!cursor.isAfterLast()) {
-                int estado_tema = (cursor.getInt(cursor.getColumnIndex("estado")));
-                if (estado_tema == 0) {
-                    String id_subcategoria = cursor.getString(cursor.getColumnIndex("id_subcategoria"));
-                    Cursor categoria = db.rawQuery("select * from SubCategoria  where id= '" + id_subcategoria.trim() + "'", null);
-                    if (categoria != null && categoria.moveToFirst()) {
-                        if ((categoria.getInt(categoria.getColumnIndex("id_categoria"))) == 1) {
-                            estado[0] = true;
-                            estado[1] = false;
-                            estado[2] = false;
-                            estado[3] = false;
-                            estado[4] = false;
-                        } else if (categoria.getInt(categoria.getColumnIndex("id_categoria")) == 2) {
-                            estado[0] = true;
-                            estado[1] = true;
-                            estado[2] = false;
-                            estado[3] = false;
-                            estado[4] = false;
-                        } else if (categoria.getInt(categoria.getColumnIndex("id_categoria")) == 3) {
-                            estado[0] = true;
-                            estado[1] = true;
-                            estado[2] = true;
-                            estado[3] = false;
-                            estado[4] = false;
-                        } else if (categoria.getInt(categoria.getColumnIndex("id_categoria")) == 4) {
-                            estado[0] = true;
-                            estado[1] = true;
-                            estado[2] = true;
-                            estado[3] = true;
-                            estado[4] = false;
-                        } else if (categoria.getInt(categoria.getColumnIndex("id_categoria")) == 5) {
-                            estado[0] = false;
-                            estado[1] = false;
-                            estado[2] = false;
-                            estado[3] = false;
-                            estado[4] = true;
-                        }
-                    }
-                    categoria.close();
+            String id_subcategoria = cursor.getString(cursor.getColumnIndex("id_subcategoria"));
+            this.id_subcategoria = id_subcategoria;
+            Cursor categoria = db.rawQuery("select * from SubCategoria  where id= '" + id_subcategoria.trim() + "'", null);
+            if (categoria != null && categoria.moveToFirst()) {
+                if ((categoria.getInt(categoria.getColumnIndex("id_categoria"))) == 1) {
+                    estado[0] = true;
+                    estado[1] = false;
+                    estado[2] = false;
+                    estado[3] = false;
+                    estado[4] = false;
+                } else if (categoria.getInt(categoria.getColumnIndex("id_categoria")) == 2) {
+                    estado[0] = true;
+                    estado[1] = true;
+                    estado[2] = false;
+                    estado[3] = false;
+                    estado[4] = false;
+                } else if (categoria.getInt(categoria.getColumnIndex("id_categoria")) == 3) {
+                    estado[0] = true;
+                    estado[1] = true;
+                    estado[2] = true;
+                    estado[3] = false;
+                    estado[4] = false;
+                } else if (categoria.getInt(categoria.getColumnIndex("id_categoria")) == 4) {
+                    estado[0] = true;
+                    estado[1] = true;
+                    estado[2] = true;
+                    estado[3] = true;
+                    estado[4] = false;
+                } else if (categoria.getInt(categoria.getColumnIndex("id_categoria")) == 5) {
+                    estado[0] = false;
+                    estado[1] = false;
+                    estado[2] = false;
+                    estado[3] = false;
+                    estado[4] = true;
                 }
-                cursor.moveToNext();
             }
         }
         cursor.close();
@@ -277,6 +274,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             Intent intento = new Intent(MenuJuego.this, Colores.class);
             intento.putExtra("id_usuario", id_usuario);
             intento.putExtra("genero", genero);
+            intento.putExtra("id_subcategoria", id_subcategoria);
             startActivity(intento);
         }
     }
@@ -288,6 +286,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             Intent intento = new Intent(MenuJuego.this, Numeros.class);
             intento.putExtra("id_usuario", id_usuario);
             intento.putExtra("genero", genero);
+            intento.putExtra("id_subcategoria", id_subcategoria);
             startActivity(intento);
         }
     }
@@ -299,6 +298,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             Intent intento = new Intent(MenuJuego.this, Figuras_geometricas.class);
             intento.putExtra("id_usuario", id_usuario);
             intento.putExtra("genero", genero);
+            intento.putExtra("id_subcategoria", id_subcategoria);
             startActivity(intento);
         }
     }
@@ -310,6 +310,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             Intent intento = new Intent(MenuJuego.this, Abecedario.class);
             intento.putExtra("id_usuario", id_usuario);
             intento.putExtra("genero", genero);
+            intento.putExtra("id_subcategoria", id_subcategoria);
             startActivity(intento);
         }
     }
