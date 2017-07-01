@@ -10,8 +10,7 @@
 
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <uses-feature android:name="android.hardware.camera.front" />
-    <uses-feature
-        android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera" />
 
     <application
         android:name=".helper.SampleApp"
@@ -52,7 +51,9 @@
             android:label="@string/title_activity_menu_juego"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".Relaciones_espaciales"></activity>
-        <activity android:name=".Colores" />
+        <activity
+            android:name=".Colores"
+            android:configChanges="orientation|screenSize" />
         <activity android:name=".Numeros" />
         <activity
             android:name=".Figuras_geometricas"

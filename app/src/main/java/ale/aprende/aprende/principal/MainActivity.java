@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.multidex.MultiDex;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         boolean result = true;
         TypefaceProvider.registerDefaultIconSets();
+
 /*
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();

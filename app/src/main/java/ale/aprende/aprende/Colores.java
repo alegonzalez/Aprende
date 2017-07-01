@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -12,6 +13,7 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Handler;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -34,7 +36,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
     //declaración de variables
     private int id_usuario = 0;
     private String genero, id_subcategoria, id_pregunta, audiogeneral, nombreSubcategoria = "";
-    MediaPlayer respuesta = new MediaPlayer();
+    final MediaPlayer respuesta = new MediaPlayer();
     MediaPlayer audio = new MediaPlayer();
     MediaPlayer pregunta = new MediaPlayer();
     ImageView img;
@@ -45,6 +47,8 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
     private String estadoEstadistica = "1";
     public SpeechRecognizer speech;
     private Intent recognizerIntent;
+    final Handler handler = new Handler();
+    Runnable met;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,13 +67,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         ocultarBotones();
         DBHandler mdb = new DBHandler(getApplicationContext());
         List<String> subcategoria = r.obtenerProgreso(mdb);
-        datos = r.verificarTipoSubcategoria(subcategoria, mdb, getApplicationContext(), img, amanager, id_usuario, genero);
-        pregunta = (MediaPlayer) datos.get(0);
-        nombreSubcategoria = (String) datos.get(1);
-        audiogeneral = (String) datos.get(2);
-        this.id_pregunta = (String) datos.get(3);
-        estadoEstadistica = (String) datos.get(4);
-        genero = (String) datos.get(5);
+        verificarTipoSubcategoria(subcategoria, mdb, getApplicationContext());
         //Este metodo se ejecuta cuando termina de reproducir el audio de la pregunta
         pregunta.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
@@ -80,9 +78,10 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                 //obtiene los audios de las respuestas de la pregunta
                 String[] respuestaAudio = obtenerAudiosRespuesta("colores/audios_respuesta_colores/", audiogeneral, nombreSubcategoria);
                 //Reproduce cada unos de los audios de las respuestas
-                establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, respuesta);
+                establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, -1);
             }
         });
+
         respuesta.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
             @Override
@@ -94,27 +93,31 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                 hacerAudio();
             }
         });
+        audio.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                audio.reset();
+                // amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            }
+        });
     }
 
     //Evento click de la primera opcion
     public void opcion1(View view) {
         List datos = obtenerDatos();
         verificarRespuesta(datos, opcion1);
-        Toast.makeText(this, nombreSubcategoria, Toast.LENGTH_SHORT).show();
     }
 
     //Evento click de la primera opcion
     public void opcion2(View view) {
         List datos = obtenerDatos();
         verificarRespuesta(datos, opcion2);
-        Toast.makeText(this, nombreSubcategoria, Toast.LENGTH_SHORT).show();
     }
 
     //Evento click de la primera opcion
     public void opcion3(View view) {
         List datos = obtenerDatos();
         verificarRespuesta(datos, opcion3);
-        Toast.makeText(this, nombreSubcategoria, Toast.LENGTH_SHORT).show();
     }
 
     //Este verifica si la respuesta esta incorrecta o correcta
@@ -141,7 +144,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
         if (estadoEstadistica.equals("0")) {
-            r.ponerErroresEstadisticas(1, 0, db);
+            r.ponerErroresEstadisticas(1, 0, db,id_subcategoria,id_usuario);
         }
         r.actualizarProgreso(Integer.parseInt(cantidad_preguntas), Integer.parseInt(cantidad_errores) + 1, db, id_subcategoria, id_usuario);
         String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
@@ -150,6 +153,8 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
 
     // segun el porcentaje que traiga se verifa para continuar con la cantidad de preguntas a realizar
     public void verificarErrores(Cursor cursor, SQLiteDatabase db, int cantidad_preguntas, int cantidad_errores) {
+        audio.reset();
+        handler.removeCallbacksAndMessages(null);
         Cursor pregunta = db.rawQuery("select id_pregunta from Persona_Pregunta where id_persona = " + id_usuario, null);
         r.noRepetir(pregunta, db, id_usuario, id_pregunta);
         if (cursor.moveToFirst()) {
@@ -161,21 +166,21 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                 if (cantidad_errores >= 6 || cantidad_errores == 5) {
                     cantidad_preguntas = 3;
                     if (estadoEstadistica.equals("0")) {
-                        r.ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
+                        r.ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
                     }
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirColores();
                 } else if (cantidad_errores == 4 || cantidad_errores == 3) {
                     cantidad_preguntas = 2;
                     if (estadoEstadistica.equals("0")) {
-                        r.ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
+                        r.ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
                     }
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirColores();
                 } else if (cantidad_errores == 2 || cantidad_errores == 1) {
                     cantidad_preguntas = 1;
                     if (estadoEstadistica.equals("0")) {
-                        r.ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
+                        r.ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
                     }
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirColores();
@@ -183,7 +188,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                     //Excelente paso  la subcategoria
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
-                    r.actualizarEstadisticaTema(db);
+                    r.actualizarEstadisticaTema(db,id_subcategoria,id_usuario);
                     int resultado = obtenerSiguienteSubctegoria(db);
                     if (resultado != 0) {
                         r.insertarNuevaSubCategoria(resultado, db, id_usuario);
@@ -191,13 +196,22 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                         if (est.getCount() <= 0) {
                             DBHandler mdb = new DBHandler(getApplicationContext());
                             r.insertarEstadistica(mdb, id_subcategoria, id_usuario);
+                        } else {
+                            est.moveToFirst();
+                            estadoEstadistica = est.getString(est.getColumnIndex("estado"));
                         }
                         String tipo_genero = (genero.equals("M")) ? "general/tema_superado_m.mp3" : "general/tema_superado_f.mp3";
                         r.audioMostrar(tipo_genero, audio, amanager, this);
-                        r.esperar();
-                        abrirColores();
+                        met = new Runnable() {
+                            public void run() {
+                                abrirColores();
+                            }
+                        };
+                        handler.postDelayed(met, 5000);
+
                     } else {
-                        //r.insertarNumeros(db);
+                        Toast.makeText(this, "Insertar números", Toast.LENGTH_SHORT).show();
+                        return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
                 }
@@ -225,16 +239,12 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
     }
 
     //Realiza las preguntas segun tema
-    public List realizarPreguntas(Cursor cursor, Cursor cursor1, String nombre_subcategoria, DBHandler mdb, Context contexto, ImageView img, AudioManager amanager, String id_subcategoria, int id_usuaripo) {
-        this.img = img;
-        this.amanager = amanager;
-        this.id_usuario = id_usuaripo;
-        this.id_subcategoria = id_subcategoria;
+    public void realizarPreguntas(Cursor cursor, Cursor cursor1, String nombre_subcategoria, DBHandler mdb, Context contexto) {
         String[] nombreImagen = new String[11];
         String[] audio = new String[11];
         String[] id_p = new String[11];
         int contador = 0;
-        int pasada = 0;
+        MediaPlayer pregunta = new MediaPlayer();
         if (cursor1.getCount() > 0) {
             if (cursor.moveToFirst()) {
                 for (int j = 0; j < cursor.getCount(); j++) {
@@ -283,7 +293,10 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         SQLiteDatabase db = mdb.getWritableDatabase();
         Cursor est = r.verificarDatosTablaEstadistica(db, this.id_subcategoria, id_usuario);
         if (est.getCount() <= 0) {
-            estadoEstadistica = r.insertarEstadistica(mdb, id_subcategoria, id_usuario);
+            r.insertarEstadistica(mdb, id_subcategoria, id_usuario);
+        } else {
+            est.moveToFirst();
+            estadoEstadistica = est.getString(est.getColumnIndex("estado"));
         }
         db.close();
         est.close();
@@ -304,18 +317,11 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
             Drawable resultado = establecerImagen(obtenerArchivoPregunta(nombreImagen[numero], audio[numero], nombre_subcategoria, "colores/", contexto), contexto);
             img.setImageDrawable(resultado);
 
-            MediaPlayer pregunta = reproducirAudio(obtenerArchivoPregunta(nombreImagen[numero], audio[numero], nombre_subcategoria, "colores/audios_preguntas_colores/", contexto),
-                    "", null, this.amanager, contexto);
+            pregunta = reproducirAudio(obtenerArchivoPregunta(nombreImagen[numero], audio[numero], nombre_subcategoria, "colores/audios_preguntas_colores/", contexto),
+                    "", null, this.amanager);
             audiogeneral = audio[numero];
             nombreSubcategoria = nombre_subcategoria;
         }
-        List datos = new ArrayList<>();
-        datos.add(0, pregunta);
-        datos.add(1, nombre_subcategoria);
-        datos.add(2, audiogeneral);
-        datos.add(3, this.id_pregunta);
-        datos.add(4, estadoEstadistica);
-        return datos;
     }
 
     //Este método se encarga de obtener la siguiente subcategoria
@@ -407,13 +413,13 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
     }
 
     //Reproduce el audio de la pregunta de la imagen
-    public MediaPlayer reproducirAudio(String audio, String tipo, MediaPlayer respuesta, AudioManager amanager, Context contexto) {
+    public MediaPlayer reproducirAudio(String audio, String tipo, MediaPlayer respuesta, AudioManager amanager) {
         this.amanager = amanager;
         this.amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         if (respuesta == null) {
-            pregunta = new MediaPlayer();
+//            pregunta = new MediaPlayer();
             try {
-                AssetFileDescriptor afd = contexto.getAssets().openFd(audio.trim());
+                AssetFileDescriptor afd = this.getAssets().openFd(audio.trim());
                 pregunta.setDataSource(
                         afd.getFileDescriptor(),
                         afd.getStartOffset(),
@@ -431,7 +437,8 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         } else {
 
             try {
-                AssetFileDescriptor recurso = getApplicationContext().getAssets().openFd(audio.trim());
+                respuesta = new MediaPlayer();
+                AssetFileDescriptor recurso = this.getAssets().openFd(audio.trim());
                 respuesta.setDataSource(
                         recurso.getFileDescriptor(),
                         recurso.getStartOffset(),
@@ -447,7 +454,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
             }
             return respuesta;
         }
-        return null;
+        return pregunta;
     }
 
     //Este metodo se encarga de reproducir los audios de las respuestas
@@ -470,17 +477,64 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
     }
 
     //Reproducción de audios de respuesta
-    public void establecerAudiosRespuesta(String[] respuestaAudio, String nombreSubcategoria, MediaPlayer respuesta) {
+    public void establecerAudiosRespuesta(final String[] respuestaAudio, final String nombreSubcategoria, final int contador) {
         String[] n = r.obtenerNumeros(2);
-        List nombre = verificarElColor();
+        final List nombre = verificarElColor();
         int p = nombre.size();
-        for (int i = 0; i < nombre.size(); i++) {
-            String hola = "colores/audios_respuesta_colores/" + nombre.get(i) + ".mp3";
-            reproducirAudio("colores/audios_respuesta_colores/" + nombre.get(i) + ".mp3", "r", respuesta, amanager, this);
-            respuesta = new MediaPlayer();
-            r.esperar();
+        int i = contador;
+        i++;
+        //for (int i = 0; i < nombre.size(); i++) {
+
+//            respuesta = new MediaPlayer();
+        final int c = i;
+        /*
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //Do something after 100ms
+                reproducirAudio("colores/audios_respuesta_colores/" + nombre.get(c) + ".mp3", "r", respuesta, amanager);
+                if (c != 2) {
+                    establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, c);
+                }
+
+            }
+        }, 3000);
+        */
+        //        //r.esperar();
+        //  }
+        //handler.postDelayed(met, 3000);
+        met = new Runnable() {
+            public void run() {
+
+                reproducirAudio("colores/audios_respuesta_colores/" + nombre.get(c) + ".mp3", "r", respuesta, amanager);
+                if (c != 2) {
+                    establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, c);
+                        handler.postDelayed(met, 3000);
+                }
+            }
+        };
+        if (c == 0) {
+            handler.postDelayed(met, 3000);
         }
     }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            Toast.makeText(this, "HOAOAOAOA", Toast.LENGTH_SHORT).show();
+            handler.removeCallbacks(met);
+            //respuesta.release();
+            abrirColores();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            handler.removeCallbacks(met);
+            //respuesta.release();
+            abrirColores();
+        }
+    }
+
 
     //Verifica que color es el que tiene el botón
     private List verificarElColor() {
@@ -574,6 +628,35 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         }
     }
 
+    //Verificar el tipo de subcategoria
+    public void verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb, Context contexto) {
+        SQLiteDatabase db = mdb.getWritableDatabase();
+        id_subcategoria = subcategoria.get(0);
+        List datos = new ArrayList<>();
+        if ((subcategoria.get(1)).trim().equals("Azul")) {
+            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
+            realizarPreguntas(cursor, cursor1, "azul", mdb, contexto);
+        } else if ((subcategoria.get(1)).trim().equals("Amarillo")) {
+            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
+            realizarPreguntas(cursor, cursor1, "amarillo", mdb, contexto);
+        } else if ((subcategoria.get(1)).trim().equals("Rojo")) {
+            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
+            realizarPreguntas(cursor, cursor1, "rojo", mdb, contexto);
+        } else if ((subcategoria.get(1)).trim().equals("Anaranjado")) {
+            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
+            realizarPreguntas(cursor, cursor1, "anaranjado", mdb, contexto);
+        } else if ((subcategoria.get(1)).trim().equals("Verde")) {
+            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
+            realizarPreguntas(cursor, cursor1, "verde", mdb, contexto);
+        }
+        db.close();
+    }
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -651,8 +734,8 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         speech = SpeechRecognizer.createSpeechRecognizer(this);
         speech.setRecognitionListener(this);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "es");
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 10000);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES");
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 30000);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
         speech.startListening(recognizerIntent);
@@ -661,7 +744,58 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
 
     //Este metodo se encarga de verificar por recinocimeinto de voz la respuesta
     private void verificarReconocimientoVoz(String texto) {
-
+        DBHandler mdb = new DBHandler(getApplicationContext());
+        SQLiteDatabase db = mdb.getWritableDatabase();
+        Cursor cursor = db.rawQuery("select cantidad_preguntas,cantidad_errores " + " from Progreso " +
+                " where id_subcategoria = " + id_subcategoria + " and " + " id_persona= " + id_usuario, null);
+        int cantidad_preguntas = 0;
+        int cantidad_errores = 0;
+        if (cursor.moveToFirst()) {
+            cantidad_preguntas = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_preguntas")));
+            cantidad_errores = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_errores")));
+        }
+        List datos = obtenerDatos();
+        if (Integer.parseInt(id_pregunta) >= 69 && Integer.parseInt(id_pregunta) <= 77 && id_subcategoria.equals("8")) {
+            if (texto.equals("Azul") || texto.equals("azul")) {
+                verificarErrores((Cursor) datos.get(3), (SQLiteDatabase) datos.get(2), Integer.parseInt(datos.get(0).toString()), Integer.parseInt(datos.get(1).toString()));
+            } else if (texto.equals("Rojo") || texto.equals("rojo") || texto.equals("Amarillo") || texto.equals("amarillo") ||
+                    texto.equals("Anaranjado") || texto.equals("anaranjado") || texto.equals("Verde") || texto.equals("verde")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto("" + cantidad_preguntas, "" + cantidad_errores);
+            }
+        } else if (Integer.parseInt(id_pregunta) >= 78 && Integer.parseInt(id_pregunta) <= 87 && id_subcategoria.equals("9")) {
+            if (texto.equals("Amarillo") || texto.equals("amarillo")) {
+                verificarErrores((Cursor) datos.get(3), (SQLiteDatabase) datos.get(2), Integer.parseInt(datos.get(0).toString()), Integer.parseInt(datos.get(1).toString()));
+            } else if (texto.equals("Rojo") || texto.equals("rojo") || texto.equals("Azul") || texto.equals("azul") ||
+                    texto.equals("Anaranjado") || texto.equals("anaranjado") || texto.equals("Verde") || texto.equals("verde")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto("" + cantidad_preguntas, "" + cantidad_errores);
+            }
+        } else if (Integer.parseInt(id_pregunta) >= 88 && Integer.parseInt(id_pregunta) <= 96 && id_subcategoria.equals("10")) {
+            if (texto.equals("Rojo") || texto.equals("rojo")) {
+                verificarErrores((Cursor) datos.get(3), (SQLiteDatabase) datos.get(2), Integer.parseInt(datos.get(0).toString()), Integer.parseInt(datos.get(1).toString()));
+            } else if (texto.equals("Azul") || texto.equals("azul") || texto.equals("Amarillo") || texto.equals("amarillo") ||
+                    texto.equals("Anaranjado") || texto.equals("anaranjado") || texto.equals("Verde") || texto.equals("verde")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto("" + cantidad_preguntas, "" + cantidad_errores);
+            }
+        } else if (Integer.parseInt(id_pregunta) >= 97 && Integer.parseInt(id_pregunta) <= 106 && id_subcategoria.equals("11")) {
+            if (texto.equals("Anaranjado") || texto.equals("anaranjado")) {
+                verificarErrores((Cursor) datos.get(3), (SQLiteDatabase) datos.get(2), Integer.parseInt(datos.get(0).toString()), Integer.parseInt(datos.get(1).toString()));
+            } else if (texto.equals("Rojo") || texto.equals("rojo") || texto.equals("Amarillo") || texto.equals("amarillo") ||
+                    texto.equals("Azul") || texto.equals("azul") || texto.equals("Verde") || texto.equals("verde")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto("" + cantidad_preguntas, "" + cantidad_errores);
+            }
+        } else if (Integer.parseInt(id_pregunta) >= 107 && Integer.parseInt(id_pregunta) <= 115 && id_subcategoria.equals("12")) {
+            if (texto.equals("Verde") || texto.equals("verde")) {
+                verificarErrores((Cursor) datos.get(3), (SQLiteDatabase) datos.get(2), Integer.parseInt(datos.get(0).toString()), Integer.parseInt(datos.get(1).toString()));
+            } else if (texto.equals("Rojo") || texto.equals("rojo") || texto.equals("Amarillo") || texto.equals("amarillo") ||
+                    texto.equals("Anaranjado") || texto.equals("anaranjado") || texto.equals("Azul") || texto.equals("azul")) {
+                //Incorrecto vamos intentalo nuevamente
+                incorrecto("" + cantidad_preguntas, "" + cantidad_errores);
+            }
+        }
     }
 
     @Override
@@ -692,6 +826,5 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
             speech.destroy();
         }
     }
-
 }
 

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -13,6 +14,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Messenger;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
@@ -50,6 +54,8 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     public SpeechRecognizer speech;
     private Intent recognizerIntent;
     private String estadoEstadistica = "1";
+    final Handler handler = new Handler();
+    Runnable met;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,7 +71,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         DBHandler mdb = new DBHandler(getApplicationContext());
         List<String> subcategoria = obtenerProgreso(mdb);
-        verificarTipoSubcategoria(subcategoria, mdb, getApplicationContext(), img, amanager, id_usuario, genero);
+        verificarTipoSubcategoria(subcategoria, mdb);
         pregunta.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
 
 
@@ -103,7 +109,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Este metodo se encarga de reproducir cuando hay un error o aprueba un tema
-    public void audioMostrar(String direccion, MediaPlayer audio, AudioManager amanager,Context contexto) {
+    public void audioMostrar(String direccion, MediaPlayer audio, AudioManager amanager, Context contexto) {
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         audio.reset();
         try {
@@ -154,12 +160,13 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             verificar(cantidad_preguntas, cantidad_errores, db, cursor);
 
         } else {
+            handler.removeCallbacksAndMessages(null);
             //Reproducir audio para motivar al niño
             String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
-            audioMostrar(tipo_genero, audio, amanager,this);
+            audioMostrar(tipo_genero, audio, amanager, this);
             cantidad_errores += 1;
             if (estadoEstadistica.equals("0")) {
-                ponerErroresEstadisticas(cantidad_errores, 0, db);
+                ponerErroresEstadisticas(1, 0, db,id_subcategoria,id_usuario);
             }
             actualizarProgreso(cantidad_preguntas, cantidad_errores, db, id_subcategoria, id_usuario);
         }
@@ -190,6 +197,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     //valida la respuesta del niño
     public void verificar(int cantidad_preguntas, int cantidad_errores, SQLiteDatabase db, Cursor cursor) {
         audio.reset();
+        handler.removeCallbacksAndMessages(null);
         Cursor pregunta = db.rawQuery("select id_pregunta from Persona_Pregunta where id_persona = " + id_usuario, null);
         noRepetir(pregunta, db, id_usuario, id_pregunta);
         if (nombreSubcategoria.equals("derecha") || nombreSubcategoria.equals("izquierda")) {
@@ -202,21 +210,21 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     cantidad_preguntas = 3;
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, 3, db);
+                        ponerErroresEstadisticas(0, 3, db,id_subcategoria,id_usuario);
                     }
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2) {
                     cantidad_preguntas = 2;
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, 2, db);
+                        ponerErroresEstadisticas(0, 2, db,id_subcategoria,id_usuario);
                     }
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 1) {
                     cantidad_preguntas = 1;
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, 1, db);
+                        ponerErroresEstadisticas(0, 1, db,id_subcategoria,id_usuario);
                     }
                     abrirRelacionesEspaciales();
                 } else {
@@ -224,9 +232,9 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, 0, db);
+                        ponerErroresEstadisticas(0, 0, db,id_subcategoria,id_usuario);
                     }
-                    actualizarEstadisticaTema(db);
+                    actualizarEstadisticaTema(db,id_subcategoria,id_usuario);
                     int rs = obtenerSiguienteSubctegoria(db);
                     if (rs != 0) {
                         insertarNuevaSubCategoria(rs, db, id_usuario);
@@ -234,16 +242,24 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                         if (est.getCount() <= 0) {
                             DBHandler mdb = new DBHandler(getApplicationContext());
                             insertarEstadistica(mdb, id_subcategoria, id_usuario);
+                        } else {
+                            est.moveToFirst();
+                            estadoEstadistica = est.getString(est.getColumnIndex("estado"));
                         }
                         String tipo_genero = (genero.equals("M")) ? "general/tema_superado_m.mp3" : "general/tema_superado_f.mp3";
-                        audioMostrar(tipo_genero, audio, amanager,this);
-                        esperar();
-                        abrirRelacionesEspaciales();
+                        audioMostrar(tipo_genero, audio, amanager, this);
+                        met = new Runnable() {
+                            public void run() {
+                                abrirRelacionesEspaciales();
+                            }
+                        };
+                        handler.postDelayed(met, 5000);
                     } else {
                         insertarColores(db);
+                        return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
-                    abrirRelacionesEspaciales();
+                    //abrirRelacionesEspaciales();
                 }
                 // actualizarProgreso(cantidad_preguntas, cantidad_errores, db);
                 actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
@@ -258,7 +274,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Este metodo actualiza el estado en la tabla de estadisticas
-    public void actualizarEstadisticaTema(SQLiteDatabase db) {
+    public void actualizarEstadisticaTema(SQLiteDatabase db,String id_subcategoria,int id_usuario) {
         String strSQL = "UPDATE Estadistica SET estado = 1 WHERE id_persona = "
                 + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
         db.execSQL(strSQL);
@@ -266,7 +282,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
     //Verifica si ya se inserto en la tabla de estadistica, si no para insertar
     public Cursor verificarDatosTablaEstadistica(SQLiteDatabase db, String id_subCategoria, int id_usuario) {
-        Cursor estadistica = db.rawQuery("select id_subcategoria from Estadistica where id_subcategoria = " + id_subCategoria + " and id_persona= " + id_usuario, null);
+        Cursor estadistica = db.rawQuery("select id_subcategoria,estado from Estadistica where id_subcategoria = " + id_subCategoria + " and id_persona= " + id_usuario, null);
         return estadistica;
     }
 
@@ -288,21 +304,21 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 if (cantidad_errores >= 6 || cantidad_errores == 5) {
                     cantidad_preguntas = 3;
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
+                        ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
                     }
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 4 || cantidad_errores == 3) {
                     cantidad_preguntas = 2;
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
+                        ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
                     }
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2 || cantidad_errores == 1) {
                     cantidad_preguntas = 1;
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(cantidad_errores, cantidad_preguntas, db);
+                        ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
                     }
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirRelacionesEspaciales();
@@ -310,7 +326,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     //Excelente paso  la subcategoria
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
-                    actualizarEstadisticaTema(db);
+                    actualizarEstadisticaTema(db,id_subcategoria,id_usuario);
                     int resultado = obtenerSiguienteSubctegoria(db);
                     if (resultado != 0) {
                         insertarNuevaSubCategoria(resultado, db, id_usuario);
@@ -318,13 +334,21 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                         if (est.getCount() <= 0) {
                             DBHandler mdb = new DBHandler(getApplicationContext());
                             insertarEstadistica(mdb, id_subcategoria, id_usuario);
+                        } else {
+                            est.moveToFirst();
+                            estadoEstadistica = est.getString(est.getColumnIndex("estado"));
                         }
                         String tipo_genero = (genero.equals("M")) ? "general/tema_superado_m.mp3" : "general/tema_superado_f.mp3";
-                        audioMostrar(tipo_genero, audio, amanager,this);
-                        esperar();
-                        abrirRelacionesEspaciales();
+                        audioMostrar(tipo_genero, audio, amanager, this);
+                        met = new Runnable() {
+                            public void run() {
+                                abrirRelacionesEspaciales();
+                            }
+                        };
+                        handler.postDelayed(met, 5000);
                     } else {
                         insertarColores(db);
+                        return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
                 }
@@ -357,6 +381,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         values.put("estado", false);
         values.put("cantidad_errores", 0);
         db.insert("Progreso", null, values);
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         Intent color = new Intent(Relaciones_espaciales.this, Colores.class);
         color.putExtra("id_usuario", id_usuario);
         color.putExtra("genero", genero);
@@ -366,7 +391,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Actualizar en la tabla de estadistica la cantidad de errores y preguntas que le pertenece a una subcategoria
-    public void ponerErroresEstadisticas(int cantidad_errores, int cantidad_preguntas, SQLiteDatabase db) {
+    public void ponerErroresEstadisticas(int cantidad_errores, int cantidad_preguntas, SQLiteDatabase db,String id_subcategoria,int id_usuario) {
         Cursor estadistica = db.rawQuery("select cantidad_errores,cantidad_preguntas " + " from Estadistica " +
                 " where id_subcategoria = " + id_subcategoria + " and " + " id_persona= " + id_usuario, null);
         if (estadistica.getCount() > 0 && estadistica.moveToFirst()) {
@@ -458,7 +483,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Verifica las preguntas realizada segun la subcategoria
-    private Cursor obtenerPreguntasRealizadas(int id_subcategoria, DBHandler mdb) {
+    public Cursor obtenerPreguntasRealizadas(int id_subcategoria, DBHandler mdb) {
         SQLiteDatabase db = mdb.getWritableDatabase();
         Cursor cursor = db.rawQuery("select id,nombre_imagen,audio from  Pregunta " +
                 " where id_subcategoria= " + id_subcategoria, null);
@@ -520,8 +545,12 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
         Cursor est = verificarDatosTablaEstadistica(db, id_subcategoria, id_usuario);
+
         if (est.getCount() <= 0) {
             insertarEstadistica(mdb, id_subcategoria, id_usuario);
+        } else {
+            est.moveToFirst();
+            estadoEstadistica = est.getString(est.getColumnIndex("estado"));
         }
         db.close();
         est.close();
@@ -610,57 +639,68 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         return resultado;
     }
 
-    //Esta funcion se detiene por unos segundo para mientra reproduce el audio
-    public void esperar() {
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
     //Reproducción de audios de respuesta
-    public void establecerAudiosRespuesta(String[] respuestaAudio, String nombreSubcategoria, MediaPlayer respuesta) {
+    public void establecerAudiosRespuesta(String[] respuestaAudio, final String nombreSubcategoria, MediaPlayer respuesta) {
+        final String nombreSub = nombreSubcategoria;
+        final MediaPlayer resp = respuesta;
+        final String[] respAudio = respuestaAudio;
         if (nombreSubcategoria.trim().equals("derecha") || nombreSubcategoria.trim().equals("izquierda")) {
             String[] resultado = ((String) opcion1.getTag()).split("_");
             String[] nombre = ((String) opcion1.getTag()).split("\\.");
+
             if (!nombre[0].equals("derecha") || !nombre[0].equals("izquierda")) {
                 nombre = nombre[0].split("_");
                 nombre[0] = nombre[1];
             }
             if (respuestaAudio[0].equals(nombre[0] + ".mp3")) {
-                reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + nombre[0] + ".mp3", "r", (String) opcion1.getTag(), respuesta);
-                respuesta = new MediaPlayer();
-                esperar();
-                reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + "izquierda" + ".mp3", "r", (String) opcion3.getTag(), respuesta);
-                esperar();
+                final String nombreN = nombre[0];
+                reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + nombreN + ".mp3", "r", (String) opcion1.getTag(), resp);
+                met = new Runnable() {
+                    public void run() {
+                        reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + "izquierda" + ".mp3", "r", (String) opcion3.getTag(), resp);
+                    }
+                };
+                handler.postDelayed(met, 3000);
             } else {
-                reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + nombre[0] + ".mp3", "r", (String) opcion3.getTag(), respuesta);
-                respuesta = new MediaPlayer();
-                esperar();
-                reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + "derecha" + ".mp3", "r", (String) opcion1.getTag(), respuesta);
-                esperar();
+                final String nombree = nombre[0];
+                reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + nombree + ".mp3", "r", (String) opcion3.getTag(), resp);
+                met = new Runnable() {
+                    public void run() {
+                        reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + "derecha" + ".mp3", "r", (String) opcion1.getTag(), resp);
+                    }
+                };
+                handler.postDelayed(met, 3000);
             }
         } else {
-            String[] n = obtenerNumeros(2);
+            final String[] n = obtenerNumeros(2);
             for (int i = 0; i < respuestaAudio.length; i++) {
-
+                final int posicion = i;
                 String numeroRespuesta = respuestaAudio[Integer.parseInt(n[i])].substring(0, 3);
                 if (!(numeroRespuesta.equals("r10"))) {
                     numeroRespuesta = numeroRespuesta.substring(0, 2);
                 }
+                final String numRes = numeroRespuesta;
                 if (n[i].equals("0")) {
-                    reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numeroRespuesta + "/" + respuestaAudio[Integer.parseInt(n[i])], "r", (String) opcion1.getTag(), respuesta);
-                    respuesta = new MediaPlayer();
-                    esperar();
+                    met = new Runnable() {
+                        public void run() {
+                            reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numRes + "/" + respAudio[Integer.parseInt(n[posicion])], "r", (String) opcion1.getTag(), resp);
+                        }
+                    };
+                    handler.postDelayed(met, 3000);
                 } else if (n[i].equals("1")) {
-                    reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numeroRespuesta + "/" + respuestaAudio[Integer.parseInt(n[i])], "r", (String) opcion2.getTag(), respuesta);
-                    respuesta = new MediaPlayer();
-                    esperar();
+                    met = new Runnable() {
+                        public void run() {
+                            reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numRes + "/" + respAudio[Integer.parseInt(n[posicion])], "r", (String) opcion2.getTag(), resp);
+                        }
+                    };
+                    handler.postDelayed(met, 6000);
                 } else {
-                    reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numeroRespuesta + "/" + respuestaAudio[Integer.parseInt(n[i])], "r", (String) opcion3.getTag(), respuesta);
-                    respuesta = new MediaPlayer();
-                    esperar();
+                    met = new Runnable() {
+                        public void run() {
+                            reproducirAudio("relaciones_espaciales/audios_respuesta_relaciones_espaciales/" + nombreSubcategoria + "/" + numRes + "/" + respAudio[Integer.parseInt(n[posicion])], "r", (String) opcion3.getTag(), resp);
+                        }
+                    };
+                    handler.postDelayed(met, 9000);
                 }
             }
         }
@@ -784,6 +824,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         } else {
 
             try {
+                respuesta = new MediaPlayer();
                 AssetFileDescriptor recurso = getApplicationContext().getAssets().openFd(audio.trim());
                 respuesta.setDataSource(
                         recurso.getFileDescriptor(),
@@ -855,90 +896,60 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Verificar el tipo de subcategoria
-    public List verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb, Context contexto, ImageView img, AudioManager amanager, int id_usuario, String genero) {
+    public List verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb) {
         SQLiteDatabase db = mdb.getWritableDatabase();
         id_subcategoria = subcategoria.get(0);
 
         List datos = new ArrayList<>();
         if ((subcategoria.get(1)).trim().equals("Abajo")) {
             Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "abajo");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Adelante")) {
             Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "adelante");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Arriba")) {
             Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "arriba");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Atras")) {
             Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "atras");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Centro")) {
             Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "centro");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Derecha")) {
             Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "derecha");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Izquierda")) {
             Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
+            Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "izquierda");
             cursor.close();
             cursor1.close();
-        } else if ((subcategoria.get(1)).trim().equals("Azul")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
-            Colores c = new Colores();
-            datos = c.realizarPreguntas(cursor, cursor1, "azul", mdb, contexto, img, amanager, id_subcategoria, id_usuario);
-            datos.add(5, genero);
-        } else if ((subcategoria.get(1)).trim().equals("Amarillo")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
-            Colores c = new Colores();
-            datos = c.realizarPreguntas(cursor, cursor1, "amarillo", mdb, contexto, img, amanager, id_subcategoria, id_usuario);
-            datos.add(5, genero);
-        } else if ((subcategoria.get(1)).trim().equals("Rojo")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
-            Colores c = new Colores();
-            datos = c.realizarPreguntas(cursor, cursor1, "rojo", mdb, contexto, img, amanager, id_subcategoria, id_usuario);
-            datos.add(5, genero);
-        } else if ((subcategoria.get(1)).trim().equals("Anaranjado")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
-            Colores c = new Colores();
-            datos = c.realizarPreguntas(cursor, cursor1, "anaranjado", mdb, contexto, img, amanager, id_subcategoria, id_usuario);
-            datos.add(5, genero);
-        } else if ((subcategoria.get(1)).trim().equals("Verde")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
-            Cursor cursor1 = obtenerTablaPersona_pregunta(db);
-            Colores c = new Colores();
-            datos = c.realizarPreguntas(cursor, cursor1, "verde", mdb, contexto, img, amanager, id_subcategoria, id_usuario);
-            datos.add(5, genero);
         }
         db.close();
         return datos;
     }
 
     //Este metodo obtiene la información de la tabla persona_pregunta
-    public Cursor obtenerTablaPersona_pregunta(SQLiteDatabase db) {
+    public Cursor obtenerTablaPersona_pregunta(SQLiteDatabase db, int id_usuario) {
         Cursor cursor1 = db.rawQuery("select * from  Persona_Pregunta  " +
                 " where id_persona = " + id_usuario, null);
         return cursor1;
@@ -1030,6 +1041,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     public void incorrecto(SQLiteDatabase db, Cursor cursor) {
+        handler.removeCallbacksAndMessages(null);
         int cantidad_preguntas = 0;
         int cantidad_errores = 0;
         if (cursor.moveToFirst()) {
@@ -1037,11 +1049,11 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             cantidad_errores = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_errores")));
         }
         if (estadoEstadistica.equals("0")) {
-            ponerErroresEstadisticas(1, 0, db);
+            ponerErroresEstadisticas(1, 0, db,id_subcategoria,id_usuario);
         }
         actualizarProgreso(cantidad_preguntas, cantidad_errores + 1, db, id_subcategoria, id_usuario);
         String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
-        audioMostrar(tipo_genero, audio, amanager,this);
+        audioMostrar(tipo_genero, audio, amanager, this);
     }
 
     //Verifica las respuestas de las preguntas segun la subcategoria
@@ -1064,57 +1076,63 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("2") && id_subcategoria.equals("1")) {
-            if (texto.equals("Radio") || texto.equals("radio") || texto.equals("Micrófono") || texto.equals("micrófono")) {
+            if (texto.equals("Radio") || texto.equals("radio") || texto.equals("Micrófono") || texto.equals("micrófono")
+                    || texto.equals("Microfono") || texto.equals("microfono")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
             } else if (texto.equals("Sombrero") || texto.equals("sombrero")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("3") && id_subcategoria.equals("1")) {
-            if (texto.equals("Medalla") || texto.equals("medalla") || texto.equals("Cronómetro") || texto.equals("cronómetro")) {
+            if (texto.equals("Medalla") || texto.equals("medalla") || texto.equals("Cronómetro") || texto.equals("cronómetro")
+                    || texto.equals("Cronometro") || texto.equals("cronometro")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
-            } else if (texto.equals("Balón") || texto.equals("balón")) {
+            } else if (texto.equals("Balón") || texto.equals("balón") || texto.equals("Balon") || texto.equals("balon")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("4") && id_subcategoria.equals("1")) {
-            if (texto.equals("Estrella") || texto.equals("estrella") || texto.equals("Corazón") || texto.equals("corazón")) {
+            if (texto.equals("Estrella") || texto.equals("estrella") || texto.equals("Corazón") || texto.equals("corazón")
+                    || texto.equals("Corazon") || texto.equals("corazon")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
-            } else if (texto.equals("círculo") || texto.equals("Círculo")) {
+            } else if (texto.equals("círculo") || texto.equals("Círculo") || texto.equals("circulo") || texto.equals("Circulo")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("5") && id_subcategoria.equals("1")) {
             if (texto.equals("Cuadro") || texto.equals("cuadro") || texto.equals("Cuadrado") || texto.equals("cuadrado")
-                    || texto.equals("Círculo") || texto.equals("círculo")) {
+                    || texto.equals("Círculo") || texto.equals("círculo") || texto.equals("Circulo") || texto.equals("circulo")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
-            } else if (texto.equals("triángulo") || texto.equals("Triángulo")) {
+            } else if (texto.equals("triángulo") || texto.equals("Triángulo") || texto.equals("triangulo") || texto.equals("Triangulo")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("6") && id_subcategoria.equals("1")) {
-            if (texto.equals("Bolso") || texto.equals("bolso") || texto.equals("Micrófono") || texto.equals("micrófono")) {
+            if (texto.equals("Bolso") || texto.equals("bolso") || texto.equals("Micrófono") || texto.equals("micrófono")
+                    || texto.equals("Microfono") || texto.equals("microfono")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
             } else if (texto.equals("Botella") || texto.equals("botella")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("7") && id_subcategoria.equals("1")) {
-            if (texto.equals("Conejo") || texto.equals("conejo") || texto.equals("Pájaro") || texto.equals("pájaro")) {
+            if (texto.equals("Conejo") || texto.equals("conejo") || texto.equals("Pájaro") || texto.equals("pájaro")
+                    || texto.equals("Pajaro") || texto.equals("pajaro")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
             } else if (texto.equals("Tortuga") || texto.equals("tortuga")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("8") && id_subcategoria.equals("1")) {
-            if (texto.equals("Estrella") || texto.equals("estrella") || texto.equals("Triángulo") || texto.equals("triángulo")) {
+            if (texto.equals("Estrella") || texto.equals("estrella") || texto.equals("Triángulo") || texto.equals("triángulo")
+                    || texto.equals("Triangulo") || texto.equals("triangulo")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
             } else if (texto.equals("Cuadro") || texto.equals("Cuadrado") || texto.equals("cuadrado") || texto.equals("cuadro")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("9") && id_subcategoria.equals("1")) {
-            if (texto.equals("Pájaro") || texto.equals("pájaro")
+            if (texto.equals("Pájaro") || texto.equals("pájaro") || texto.equals("Pajaro") || texto.equals("pajaro")
                     || texto.equals("Gato") || texto.equals("gato")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
@@ -1125,14 +1143,14 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             if (texto.equals("Perro") || texto.equals("perro") || texto.equals("Conejo") || texto.equals("conejo")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
-            } else if (texto.equals("Pájaro") || texto.equals("pájaro")) {
+            } else if (texto.equals("Pájaro") || texto.equals("pájaro") || texto.equals("Pajaro") || texto.equals("pajaro")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("11") && id_subcategoria.equals("2")) {
             if (texto.equals("Mono") || texto.equals("mono") || texto.equals("Perro") || texto.equals("perro")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
-            } else if (texto.equals("Pájaro") || texto.equals("pájaro")) {
+            } else if (texto.equals("Pájaro") || texto.equals("pájaro") || texto.equals("Pajaro") || texto.equals("pajaro")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("12") && id_subcategoria.equals("2")) {
@@ -1160,14 +1178,14 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             if (texto.equals("Lupa") || texto.equals("lupa") || texto.equals("Llave") || texto.equals("llave")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
-            } else if (texto.equals("micrófono") || texto.equals("Micrófono")) {
+            } else if (texto.equals("micrófono") || texto.equals("Micrófono") || texto.equals("microfono") || texto.equals("Microfono")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("16") && id_subcategoria.equals("2")) {
             if (texto.equals("Perro") || texto.equals("perro") || texto.equals("Conejo") || texto.equals("conejo")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
-            } else if (texto.equals("Pájaro") || texto.equals("pájaro")) {
+            } else if (texto.equals("Pájaro") || texto.equals("pájaro") || texto.equals("Pajaro") || texto.equals("pajaro")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("17") && id_subcategoria.equals("2")) {
@@ -1178,7 +1196,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("18") && id_subcategoria.equals("2")) {
-            if (texto.equals("Gato") || texto.equals("gato") || texto.equals("Pájaro") || texto.equals("pajaro")) {
+            if (texto.equals("Gato") || texto.equals("gato") || texto.equals("Pájaro") || texto.equals("pájaro") || texto.equals("Pajaro") || texto.equals("pajaro")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
             } else if (texto.equals("Conejo") || texto.equals("conejo")) {
@@ -1195,11 +1213,11 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             if (texto.equals("Cangrejo") || texto.equals("cangrejo") || texto.equals("Perro") || texto.equals("perro")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
-            } else if (texto.equals("Pájaro") || texto.equals("pájaro")) {
+            } else if (texto.equals("Pájaro") || texto.equals("pájaro") || texto.equals("Pajaro") || texto.equals("pajaro")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("21") && id_subcategoria.equals("3")) {
-            if (texto.equals("Lápiz") || texto.equals("lápiz")
+            if (texto.equals("Lápiz") || texto.equals("lápiz") || texto.equals("Lapiz") || texto.equals("lapiz")
                     || texto.equals("Lapicero") || texto.equals("lapicero")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
@@ -1235,7 +1253,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("26") && id_subcategoria.equals("3")) {
-            if (texto.equals("Balón") || texto.equals("balón")) {
+            if (texto.equals("Balón") || texto.equals("balón") || texto.equals("Balon") || texto.equals("balon")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
             } else if (texto.equals("Guitarra") || texto.equals("guitarra")) {
@@ -1249,7 +1267,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("28") && id_subcategoria.equals("3")) {
-            if (texto.equals("Balón") || texto.equals("balón") || texto.equals("Medalla") || texto.equals("medalla")) {
+            if (texto.equals("Balón") || texto.equals("balón") || texto.equals("Balon") || texto.equals("balon") || texto.equals("Medalla") || texto.equals("medalla")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
             } else if (texto.equals("Llave") || texto.equals("llave")) {
@@ -1284,7 +1302,8 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("33") && id_subcategoria.equals("4")) {
-            if (texto.equals("Perro") || texto.equals("perro") || texto.equals("pájaro") || texto.equals("Pájaro")) {
+            if (texto.equals("Perro") || texto.equals("perro") || texto.equals("pájaro") || texto.equals("Pájaro")
+                    || texto.equals("pajaro") || texto.equals("Pajaro")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
             } else if (texto.equals("Mono") || texto.equals("mono")) {
@@ -1301,7 +1320,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             if (texto.equals("Perro") || texto.equals("perro") || texto.equals("Mono") || texto.equals("mono")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
-            } else if (texto.equals("pájaro") || texto.equals("Pájaro")) {
+            } else if (texto.equals("pájaro") || texto.equals("Pájaro") || texto.equals("pajaro") || texto.equals("Pajaro")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("36") && id_subcategoria.equals("4")) {
@@ -1319,7 +1338,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("38") && id_subcategoria.equals("4")) {
-            if (texto.equals("Árbol") || texto.equals("árbol") || texto.equals("Llave") || texto.equals("llave")) {
+            if (texto.equals("Árbol") || texto.equals("árbol") || texto.equals("Arbol") || texto.equals("arbol") || texto.equals("Llave") || texto.equals("llave")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
             } else if (texto.equals("Casa") || texto.equals("casa")) {
@@ -1350,7 +1369,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             if (texto.equals("Gusano") || texto.equals("gusano") || texto.equals("Mono") || texto.equals("mono")) {
                 //Incorrecto vamos intentalo nuevamente
                 incorrecto(db, cursor);
-            } else if (texto.equals("Pájaro") || texto.equals("pájaro")) {
+            } else if (texto.equals("Pájaro") || texto.equals("pájaro") || texto.equals("Pajaro") || texto.equals("pajaro")) {
                 verificar(cantidad_preguntas, cantidad_errores, db, cursor);
             }
         } else if (id_pregunta.equals("43") && id_subcategoria.equals("5")) {
@@ -1472,22 +1491,22 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         speech = SpeechRecognizer.createSpeechRecognizer(this);
         speech.setRecognitionListener(this);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "es");
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 10000);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES");
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 30000);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
         speech.startListening(recognizerIntent);
         return speech;
     }
 
     @Override
     protected void onResume() {
+        super.onResume();
         if (pausa == 1) {
+            speech.destroy();
             amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
             speech = hacerAudio();
         }
-
-        super.onResume();
     }
 
     @Override

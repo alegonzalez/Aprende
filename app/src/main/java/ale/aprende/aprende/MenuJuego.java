@@ -259,7 +259,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
 
     //Abrir la actividad de relaciones espaciales
     public void abrirRelacionesEspaciales() {
-        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         Intent intent = new Intent(MenuJuego.this, Relaciones_espaciales.class);
         intent.putExtra("id_usuario", id_usuario);
         intent.putExtra("genero", genero);
@@ -325,9 +324,10 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         speech = SpeechRecognizer.createSpeechRecognizer(this);
         speech.setRecognitionListener(this);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "es");
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES");
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 30000);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
         speech.startListening(recognizerIntent);
         return speech;
     }

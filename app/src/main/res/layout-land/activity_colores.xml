@@ -27,26 +27,29 @@
         android:layout_alignParentTop="true"
         android:orientation="horizontal">
 
-        <ImageButton
-            android:id="@+id/imgBtnPrimeraOpcion"
+        <Button
+            android:id="@+id/BtnPrimeraOpcion"
             android:layout_width="125dp"
             android:layout_height="125dp"
             android:scaleType="fitXY"
+            android:onClick="opcion1"
             />
 
-        <ImageButton
-            android:id="@+id/imgBtnSegundaOpcion"
+        <Button
+            android:id="@+id/BtnSegundaOpcion"
             android:layout_width="125dp"
             android:layout_height="125dp"
             android:layout_marginLeft="15dp"
-            android:scaleType="fitXY"/>
+            android:scaleType="fitXY"
+            android:onClick="opcion2"/>
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/imgBtnTerceraOpcion"
+    <Button
+        android:id="@+id/BtnTerceraOpcion"
         android:layout_width="125dp"
         android:layout_height="125dp"
         android:layout_marginTop="130dp"
         android:layout_marginLeft="70dp"
-        android:scaleType="fitXY"/>
+        android:scaleType="fitXY"
+        android:onClick="opcion3"/>
 </RelativeLayout>
