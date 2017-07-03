@@ -106,18 +106,21 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
     public void opcion1(View view) {
         List datos = obtenerDatos();
         verificarRespuesta(datos, opcion1);
+        opcion1.setEnabled(false);
     }
 
     //Evento click de la primera opcion
     public void opcion2(View view) {
         List datos = obtenerDatos();
         verificarRespuesta(datos, opcion2);
+        opcion2.setEnabled(false);
     }
 
     //Evento click de la primera opcion
     public void opcion3(View view) {
         List datos = obtenerDatos();
         verificarRespuesta(datos, opcion3);
+        opcion3.setEnabled(false);
     }
 
     //Este verifica si la respuesta esta incorrecta o correcta
@@ -144,7 +147,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
         if (estadoEstadistica.equals("0")) {
-            r.ponerErroresEstadisticas(1, 0, db,id_subcategoria,id_usuario);
+            r.ponerErroresEstadisticas(1, 0, db, id_subcategoria, id_usuario);
         }
         r.actualizarProgreso(Integer.parseInt(cantidad_preguntas), Integer.parseInt(cantidad_errores) + 1, db, id_subcategoria, id_usuario);
         String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
@@ -166,21 +169,21 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                 if (cantidad_errores >= 6 || cantidad_errores == 5) {
                     cantidad_preguntas = 3;
                     if (estadoEstadistica.equals("0")) {
-                        r.ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
+                        r.ponerErroresEstadisticas(0, cantidad_preguntas, db, id_subcategoria, id_usuario);
                     }
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirColores();
                 } else if (cantidad_errores == 4 || cantidad_errores == 3) {
                     cantidad_preguntas = 2;
                     if (estadoEstadistica.equals("0")) {
-                        r.ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
+                        r.ponerErroresEstadisticas(0, cantidad_preguntas, db, id_subcategoria, id_usuario);
                     }
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirColores();
                 } else if (cantidad_errores == 2 || cantidad_errores == 1) {
                     cantidad_preguntas = 1;
                     if (estadoEstadistica.equals("0")) {
-                        r.ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
+                        r.ponerErroresEstadisticas(0, cantidad_preguntas, db, id_subcategoria, id_usuario);
                     }
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirColores();
@@ -188,11 +191,12 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                     //Excelente paso  la subcategoria
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
-                    r.actualizarEstadisticaTema(db,id_subcategoria,id_usuario);
+                    r.actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
                     int resultado = obtenerSiguienteSubctegoria(db);
                     if (resultado != 0) {
                         r.insertarNuevaSubCategoria(resultado, db, id_usuario);
                         Cursor est = r.verificarDatosTablaEstadistica(db, id_subcategoria, id_usuario);
+                        id_subcategoria = "" + resultado;
                         if (est.getCount() <= 0) {
                             DBHandler mdb = new DBHandler(getApplicationContext());
                             r.insertarEstadistica(mdb, id_subcategoria, id_usuario);
@@ -294,6 +298,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         Cursor est = r.verificarDatosTablaEstadistica(db, this.id_subcategoria, id_usuario);
         if (est.getCount() <= 0) {
             r.insertarEstadistica(mdb, id_subcategoria, id_usuario);
+            estadoEstadistica = "0";
         } else {
             est.moveToFirst();
             estadoEstadistica = est.getString(est.getColumnIndex("estado"));
@@ -509,7 +514,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                 reproducirAudio("colores/audios_respuesta_colores/" + nombre.get(c) + ".mp3", "r", respuesta, amanager);
                 if (c != 2) {
                     establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, c);
-                        handler.postDelayed(met, 3000);
+                    handler.postDelayed(met, 3000);
                 }
             }
         };
