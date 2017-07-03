@@ -232,8 +232,9 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         if (pasada == 1) {
             speech = hacerAudio();
             pasada = 0;
-        } else {
-            speech = hacerAudio();
+        }
+        else {
+            hacerAudio();
             amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
         }
 

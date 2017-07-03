@@ -56,6 +56,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     private String estadoEstadistica = "1";
     final Handler handler = new Handler();
     Runnable met;
+    Boolean finalPregunta = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,11 +80,9 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             public void onCompletion(MediaPlayer mp) {
                 pregunta.stop();
                 pregunta.release();
-                establecerRespuesta(audiogeneral, nombreSubcategoria);
-                //obtiene los audios de las respuestas de la pregunta
-                String[] respuestaAudio = obtenerAudiosRespuesta("relaciones_espaciales/audios_respuesta_relaciones_espaciales/", audiogeneral, nombreSubcategoria);
-                //Reproduce cada unos de los audios de las respuestas
-                establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, respuesta);
+                ejecutarReproduccionAudio();
+                finalPregunta = true;
+
             }
         });
         respuesta.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -106,6 +105,14 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 //                audio = new MediaPlayer();
             }
         });
+    }
+    //Ejecuta las respuestas
+    public void ejecutarReproduccionAudio() {
+        establecerRespuesta(audiogeneral, nombreSubcategoria);
+        //obtiene los audios de las respuestas de la pregunta
+        String[] respuestaAudio = obtenerAudiosRespuesta("relaciones_espaciales/audios_respuesta_relaciones_espaciales/", audiogeneral, nombreSubcategoria);
+        //Reproduce cada unos de los audios de las respuestas
+        establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, respuesta);
     }
 
     //Este metodo se encarga de reproducir cuando hay un error o aprueba un tema
@@ -166,7 +173,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             audioMostrar(tipo_genero, audio, amanager, this);
             cantidad_errores += 1;
             if (estadoEstadistica.equals("0")) {
-                ponerErroresEstadisticas(1, 0, db,id_subcategoria,id_usuario);
+                ponerErroresEstadisticas(1, 0, db, id_subcategoria, id_usuario);
             }
             actualizarProgreso(cantidad_preguntas, cantidad_errores, db, id_subcategoria, id_usuario);
         }
@@ -210,21 +217,21 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     cantidad_preguntas = 3;
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, 3, db,id_subcategoria,id_usuario);
+                        ponerErroresEstadisticas(0, 3, db, id_subcategoria, id_usuario);
                     }
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2) {
                     cantidad_preguntas = 2;
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, 2, db,id_subcategoria,id_usuario);
+                        ponerErroresEstadisticas(0, 2, db, id_subcategoria, id_usuario);
                     }
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 1) {
                     cantidad_preguntas = 1;
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, 1, db,id_subcategoria,id_usuario);
+                        ponerErroresEstadisticas(0, 1, db, id_subcategoria, id_usuario);
                     }
                     abrirRelacionesEspaciales();
                 } else {
@@ -232,9 +239,9 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, 0, db,id_subcategoria,id_usuario);
+                        ponerErroresEstadisticas(0, 0, db, id_subcategoria, id_usuario);
                     }
-                    actualizarEstadisticaTema(db,id_subcategoria,id_usuario);
+                    actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
                     int rs = obtenerSiguienteSubctegoria(db);
                     if (rs != 0) {
                         insertarNuevaSubCategoria(rs, db, id_usuario);
@@ -274,7 +281,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Este metodo actualiza el estado en la tabla de estadisticas
-    public void actualizarEstadisticaTema(SQLiteDatabase db,String id_subcategoria,int id_usuario) {
+    public void actualizarEstadisticaTema(SQLiteDatabase db, String id_subcategoria, int id_usuario) {
         String strSQL = "UPDATE Estadistica SET estado = 1 WHERE id_persona = "
                 + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
         db.execSQL(strSQL);
@@ -304,21 +311,21 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 if (cantidad_errores >= 6 || cantidad_errores == 5) {
                     cantidad_preguntas = 3;
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
+                        ponerErroresEstadisticas(0, cantidad_preguntas, db, id_subcategoria, id_usuario);
                     }
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 4 || cantidad_errores == 3) {
                     cantidad_preguntas = 2;
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
+                        ponerErroresEstadisticas(0, cantidad_preguntas, db, id_subcategoria, id_usuario);
                     }
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirRelacionesEspaciales();
                 } else if (cantidad_errores == 2 || cantidad_errores == 1) {
                     cantidad_preguntas = 1;
                     if (estadoEstadistica.equals("0")) {
-                        ponerErroresEstadisticas(0, cantidad_preguntas, db,id_subcategoria,id_usuario);
+                        ponerErroresEstadisticas(0, cantidad_preguntas, db, id_subcategoria, id_usuario);
                     }
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     abrirRelacionesEspaciales();
@@ -326,7 +333,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     //Excelente paso  la subcategoria
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
-                    actualizarEstadisticaTema(db,id_subcategoria,id_usuario);
+                    actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
                     int resultado = obtenerSiguienteSubctegoria(db);
                     if (resultado != 0) {
                         insertarNuevaSubCategoria(resultado, db, id_usuario);
@@ -391,7 +398,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Actualizar en la tabla de estadistica la cantidad de errores y preguntas que le pertenece a una subcategoria
-    public void ponerErroresEstadisticas(int cantidad_errores, int cantidad_preguntas, SQLiteDatabase db,String id_subcategoria,int id_usuario) {
+    public void ponerErroresEstadisticas(int cantidad_errores, int cantidad_preguntas, SQLiteDatabase db, String id_subcategoria, int id_usuario) {
         Cursor estadistica = db.rawQuery("select cantidad_errores,cantidad_preguntas " + " from Estadistica " +
                 " where id_subcategoria = " + id_subcategoria + " and " + " id_persona= " + id_usuario, null);
         if (estadistica.getCount() > 0 && estadistica.moveToFirst()) {
@@ -671,6 +678,14 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 };
                 handler.postDelayed(met, 3000);
             }
+            met = new Runnable() {
+                public void run() {
+                    hacerAudio();
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                    finalPregunta = false;
+                }
+            };
+            handler.postDelayed(met, 5000);
         } else {
             final String[] n = obtenerNumeros(2);
             for (int i = 0; i < respuestaAudio.length; i++) {
@@ -703,6 +718,14 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     handler.postDelayed(met, 9000);
                 }
             }
+            met = new Runnable() {
+                public void run() {
+                    hacerAudio();
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                    finalPregunta = false;
+                }
+            };
+            handler.postDelayed(met, 10000);
         }
     }
 
@@ -1025,6 +1048,10 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     @Override
+    public void unregisterForContextMenu(View view) {
+    }
+
+    @Override
     public void onResults(Bundle results) {
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         String texto = "";
@@ -1049,7 +1076,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             cantidad_errores = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_errores")));
         }
         if (estadoEstadistica.equals("0")) {
-            ponerErroresEstadisticas(1, 0, db,id_subcategoria,id_usuario);
+            ponerErroresEstadisticas(1, 0, db, id_subcategoria, id_usuario);
         }
         actualizarProgreso(cantidad_preguntas, cantidad_errores + 1, db, id_subcategoria, id_usuario);
         String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
@@ -1502,10 +1529,10 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     @Override
     protected void onResume() {
         super.onResume();
-        if (pausa == 1) {
-            speech.destroy();
-            amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-            speech = hacerAudio();
+        if (finalPregunta == true) {
+            ejecutarReproduccionAudio();
+        } else if (pausa == 1) {
+            pregunta.start();
         }
     }
 
@@ -1515,7 +1542,14 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         if (speech != null) {
             speech.destroy();
         }
+        try {
+            if (pregunta.isPlaying()) {
+                pregunta.pause();
+            }
+        } catch (Exception e) {
+        }
 
+        handler.removeCallbacksAndMessages(null);
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         super.onPause();
     }

@@ -49,6 +49,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
     private Intent recognizerIntent;
     final Handler handler = new Handler();
     Runnable met;
+    Boolean finalPregunta = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,11 +75,8 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
             public void onCompletion(MediaPlayer mp) {
                 pregunta.stop();
                 pregunta.release();
-                establecerRespuesta(audiogeneral, nombreSubcategoria);
-                //obtiene los audios de las respuestas de la pregunta
-                String[] respuestaAudio = obtenerAudiosRespuesta("colores/audios_respuesta_colores/", audiogeneral, nombreSubcategoria);
-                //Reproduce cada unos de los audios de las respuestas
-                establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, -1);
+                ejecutarReproduccionAudio();
+                finalPregunta = true;
             }
         });
 
@@ -488,26 +486,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         int p = nombre.size();
         int i = contador;
         i++;
-        //for (int i = 0; i < nombre.size(); i++) {
-
-//            respuesta = new MediaPlayer();
         final int c = i;
-        /*
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                //Do something after 100ms
-                reproducirAudio("colores/audios_respuesta_colores/" + nombre.get(c) + ".mp3", "r", respuesta, amanager);
-                if (c != 2) {
-                    establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, c);
-                }
-
-            }
-        }, 3000);
-        */
-        //        //r.esperar();
-        //  }
-        //handler.postDelayed(met, 3000);
         met = new Runnable() {
             public void run() {
 
@@ -515,12 +494,22 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                 if (c != 2) {
                     establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, c);
                     handler.postDelayed(met, 3000);
+                } else {
+                    met = new Runnable() {
+                        public void run() {
+                            hacerAudio();
+                      //      amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                            finalPregunta = false;
+                        }
+                    };
+                    handler.postDelayed(met, 2500);
                 }
             }
         };
         if (c == 0) {
             handler.postDelayed(met, 3000);
         }
+
     }
 
     @Override
@@ -803,14 +792,23 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         }
     }
 
+    //Ejecuta las respuestas
+    public void ejecutarReproduccionAudio() {
+        establecerRespuesta(audiogeneral, nombreSubcategoria);
+        //obtiene los audios de las respuestas de la pregunta
+        String[] respuestaAudio = obtenerAudiosRespuesta("colores/audios_respuesta_colores/", audiogeneral, nombreSubcategoria);
+        //Reproduce cada unos de los audios de las respuestas
+        establecerAudiosRespuesta(respuestaAudio, nombreSubcategoria, -1);
+    }
+
     @Override
     protected void onResume() {
-        if (pausa == 1) {
-            amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-            speech = hacerAudio();
-        }
-
         super.onResume();
+        if (finalPregunta == true) {
+            ejecutarReproduccionAudio();
+        } else if (pausa == 1) {
+            pregunta.start();
+        }
     }
 
     @Override
@@ -819,7 +817,14 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         if (speech != null) {
             speech.destroy();
         }
+        try {
+            if (pregunta.isPlaying()) {
+                pregunta.pause();
+            }
+        } catch (Exception e) {
+        }
 
+        handler.removeCallbacksAndMessages(null);
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         super.onPause();
     }
