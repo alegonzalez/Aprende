@@ -60,9 +60,30 @@ public class Respuesta {
         }
 
     }
+
     //Asigna las respuestas de los colores
     public void llenarTablaRespuestaColores(Context c) {
 
+    }
+
+    //Asigna las respuestas de los numeros
+    public void llenarTablaRespuestaNumeros(Context c) {
+        DBHandler mdb = new DBHandler(c);
+        SQLiteDatabase db = mdb.getWritableDatabase();
+        int id_pregunta = 116;
+        String[] nombres = {"amarillo", "azul", "naranja", "rojo", "verde"};
+        for (int i = 0; i <= 30; i++) {
+            for (int j = 0; j <= 4; j++) {
+                ContentValues values = new ContentValues();
+                values.put("id_pregunta", id_pregunta);
+                values.put("nombre_imagen", nombres[j]+"_"+i+".png");
+                values.put("estado", 1);
+                values.put("audio", "r"+i);
+                db.insert("Imagen_Respuesta", null, values);
+            }
+            id_pregunta++;
+        }
+        db.close();
     }
 
     //Verifica el tipo de subcategoria  para asignar respuesta

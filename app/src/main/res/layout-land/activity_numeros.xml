@@ -9,5 +9,46 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="ale.aprende.aprende.Numeros">
+    <ImageView
+        android:id="@+id/imgPregunta"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="104dp"
+        android:layout_marginStart="104dp" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/imgBtnPrimeraOpcion"
+            android:layout_width="125dp"
+            android:layout_height="125dp"
+            android:scaleType="fitXY"
+            android:onClick="opcion1"
+            />
+
+        <ImageButton
+            android:id="@+id/imgBtnSegundaOpcion"
+            android:layout_width="125dp"
+            android:layout_height="125dp"
+            android:layout_marginLeft="15dp"
+            android:scaleType="fitXY"
+            android:onClick="opcion2"/>
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/imgBtnTerceraOpcion"
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        android:layout_marginTop="130dp"
+        android:layout_marginLeft="70dp"
+        android:scaleType="fitXY"
+        android:onClick="opcion3"/>
 </RelativeLayout>

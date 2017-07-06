@@ -59,6 +59,7 @@ public class Categoria {
             lista.add("Verde");
             llenarTablaSubCategoria(lista,2);
             lista.removeAll(lista);
+            lista.add("0");
             lista.add("1");
             lista.add("2");
             lista.add("3");
