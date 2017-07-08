@@ -1,6 +1,7 @@
 package ale.aprende.aprende;
 
 import android.animation.ObjectAnimator;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
@@ -64,7 +65,6 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         opcion3 = (Button) findViewById(R.id.BtnTerceraOpcion);
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-        List datos = new ArrayList<>();
         ocultarBotones();
         DBHandler mdb = new DBHandler(getApplicationContext());
         List<String> subcategoria = r.obtenerProgreso(mdb);
@@ -95,28 +95,28 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 audio.reset();
-                // amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
             }
         });
     }
 
     //Evento click de la primera opcion
     public void opcion1(View view) {
-        List datos = obtenerDatos();
+        List datos = obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         verificarRespuesta(datos, opcion1);
         opcion1.setEnabled(false);
     }
 
     //Evento click de la primera opcion
     public void opcion2(View view) {
-        List datos = obtenerDatos();
+        List datos = obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         verificarRespuesta(datos, opcion2);
         opcion2.setEnabled(false);
     }
 
     //Evento click de la primera opcion
     public void opcion3(View view) {
-        List datos = obtenerDatos();
+        List datos = obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         verificarRespuesta(datos, opcion3);
         opcion3.setEnabled(false);
     }
@@ -188,11 +188,23 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                 } else {
                     //Excelente paso  la subcategoria
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
-                    r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
+                    r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario,estadoEstadistica);
                     r.actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
+                    if (estadoEstadistica.equals("1")) {
+                        String strSQL1 = "UPDATE Progreso SET repeticion = " + 1 + " WHERE id_persona = "
+                                + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
+                        db.execSQL(strSQL1);
+                    }
                     int resultado = obtenerSiguienteSubctegoria(db);
                     if (resultado != 0) {
-                        r.insertarNuevaSubCategoria(resultado, db, id_usuario);
+                        if (estadoEstadistica.equals("0")) {
+                            r.insertarNuevaSubCategoria(resultado, db, id_usuario);
+                        } else {
+                            String strSQL = "UPDATE Progreso SET repeticion = " + 2 + " WHERE id_persona = "
+                                    + id_usuario + " and " + " id_subcategoria= " + resultado;
+                            db.execSQL(strSQL);
+                        }
+
                         Cursor est = r.verificarDatosTablaEstadistica(db, id_subcategoria, id_usuario);
                         id_subcategoria = "" + resultado;
                         if (est.getCount() <= 0) {
@@ -212,7 +224,20 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                         handler.postDelayed(met, 5000);
 
                     } else {
-                        Toast.makeText(this, "Insertar números", Toast.LENGTH_SHORT).show();
+                        String strSQL1 = "UPDATE Progreso SET  cantidad_errores= 0, cantidad_preguntas=3, repeticion = 0 WHERE id_persona = "
+                                + id_usuario + " and " + " id_subcategoria >=8 and id_subcategoria <=12";
+                        db.execSQL(strSQL1);
+                        if(estadoEstadistica.equals("0")){
+                            insertarNumeros(db);
+                        }else{
+                            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                            Intent numeroActividad = new Intent(Colores.this, Numeros.class);
+                            numeroActividad.putExtra("id_usuario", id_usuario);
+                            numeroActividad.putExtra("genero", genero);
+                            numeroActividad.putExtra("id_subcategoria", 13);
+                            startActivity(numeroActividad);
+                            finish();
+                        }
                         return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
@@ -224,10 +249,29 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         }
     }
 
+    private void insertarNumeros(SQLiteDatabase db) {
+        ContentValues values = new ContentValues();
+        values.put("id_persona", id_usuario);
+        values.put("id_subcategoria", 13);
+        values.put("cantidad_preguntas", 3);
+        values.put("estado", false);
+        values.put("cantidad_errores", 0);
+        values.put("repeticion", 0);
+        db.insert("Progreso", null, values);
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        Intent numeroActividad = new Intent(Colores.this, Numeros.class);
+        numeroActividad.putExtra("id_usuario", id_usuario);
+        numeroActividad.putExtra("genero", genero);
+        numeroActividad.putExtra("id_subcategoria", 13);
+        startActivity(numeroActividad);
+        finish();
+
+    }
+
     //Obtiene la cantidad de preguntas y cantidad de errores
-    public List obtenerDatos() {
+    public List obtenerDatos(String id_subcategoria, int id_usuario, Context c) {
         List datos = new ArrayList();
-        DBHandler mdb = new DBHandler(getApplicationContext());
+        DBHandler mdb = new DBHandler(c);
         SQLiteDatabase db = mdb.getWritableDatabase();
         Cursor cursor = db.rawQuery("select cantidad_preguntas,cantidad_errores " + " from Progreso " +
                 " where id_subcategoria = " + id_subcategoria + " and " + " id_persona= " + id_usuario, null);
@@ -330,8 +374,14 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
     //Este método se encarga de obtener la siguiente subcategoria
     public int obtenerSiguienteSubctegoria(SQLiteDatabase db) {
         String[] listaDisponible = new String[]{"8", "9", "10", "11", "12"};
-        Cursor subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
-                " where id_subcategoria >= " + 8 + " and id_subcategoria <= 12 " + " and " + " id_persona= " + id_usuario, null);
+        Cursor subcategoriasProgreso = null;
+        if (estadoEstadistica.equals("1")) {
+            subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                    " where id_subcategoria > " + 7 + " and "+" id_subcategoria <= 12"+" and " + " id_persona= " + id_usuario + " and repeticion=1", null);
+        }else{
+            subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                    " where id_subcategoria >= " + 8 + " and id_subcategoria <= 12 " + " and " + " id_persona= " + id_usuario, null);
+        }
         if (subcategoriasProgreso.getCount() > 0) {
             if (subcategoriasProgreso.moveToFirst()) {
                 while (!subcategoriasProgreso.isAfterLast()) {
@@ -498,7 +548,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                     met = new Runnable() {
                         public void run() {
                             hacerAudio();
-                      //      amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                            //      amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
                             finalPregunta = false;
                         }
                     };
@@ -622,29 +672,88 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         }
     }
 
+    //Segun el id del random verifica cual id es para asociarlo con el del color
+    public int obtenerNumeroSubcategoria(int id_subcategoria) {
+        int id = 0;
+        if (id_subcategoria == 1) {
+            id = 8;
+        } else if (id_subcategoria == 2) {
+            id = 9;
+        } else if (id_subcategoria == 3) {
+            id = 10;
+        } else if (id_subcategoria == 4) {
+            id = 11;
+        } else if (id_subcategoria == 5) {
+            id = 12;
+        }
+        return id;
+    }
+
+
     //Verificar el tipo de subcategoria
     public void verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb, Context contexto) {
         SQLiteDatabase db = mdb.getWritableDatabase();
         id_subcategoria = subcategoria.get(0);
+
+        if (Integer.parseInt(id_subcategoria) >= 8 && Integer.parseInt(id_subcategoria) <= 12) {
+
+        } else {
+            Cursor rep = db.rawQuery("select id from  Progreso " +
+                    " where id_subcategoria >=8 and id_subcategoria <=12 and " + "id_persona = "
+                    + id_usuario + " and repeticion= 1", null);
+            Cursor repeticion = db.rawQuery("select id_subcategoria from  Progreso " +
+                    " where id_subcategoria >=8 and id_subcategoria <=12 and " + "id_persona = "
+                    + id_usuario + " and repeticion= 2", null);
+            if (repeticion.getCount() <= 0) {
+                if (rep.getCount() == 7) {
+                    String strSQL1 = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0, repeticion = 0 WHERE id_persona = "
+                            + id_usuario + " and " + " id_subcategoria >=8 and id_subcategoria <=12";
+                    db.execSQL(strSQL1);
+                }
+                int id = r.sortear(4);
+                id++;
+                id_subcategoria = "" + obtenerNumeroSubcategoria(id);
+                String strSQL = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0,repeticion=2 WHERE id_persona = "
+                        + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
+                db.execSQL(strSQL);
+            } else {
+                if (repeticion.moveToFirst()) {
+                    id_subcategoria = repeticion.getString(repeticion.getColumnIndex("id_subcategoria"));
+                }
+            }
+            if (id_subcategoria.equals("8")) {
+                subcategoria.add(1, "Azul");
+            } else if (id_subcategoria.equals("9")) {
+                subcategoria.add(1, "Amarillo");
+            } else if (id_subcategoria.equals("10")) {
+                subcategoria.add(1, "Rojo");
+            } else if (id_subcategoria.equals("11")) {
+                subcategoria.add(1, "Anaranjado");
+            } else if (id_subcategoria.equals("12")) {
+                subcategoria.add(1, "Verde");
+            }
+            rep.close();
+            repeticion.close();
+        }
         List datos = new ArrayList<>();
         if ((subcategoria.get(1)).trim().equals("Azul")) {
-            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "azul", mdb, contexto);
         } else if ((subcategoria.get(1)).trim().equals("Amarillo")) {
-            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "amarillo", mdb, contexto);
         } else if ((subcategoria.get(1)).trim().equals("Rojo")) {
-            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "rojo", mdb, contexto);
         } else if ((subcategoria.get(1)).trim().equals("Anaranjado")) {
-            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "anaranjado", mdb, contexto);
         } else if ((subcategoria.get(1)).trim().equals("Verde")) {
-            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "verde", mdb, contexto);
         }
@@ -724,6 +833,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
     }
 
     //Reconocimiento de vooz
+
     public SpeechRecognizer hacerAudio() {
         speech = SpeechRecognizer.createSpeechRecognizer(this);
         speech.setRecognitionListener(this);
@@ -748,7 +858,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
             cantidad_preguntas = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_preguntas")));
             cantidad_errores = Integer.parseInt(cursor.getString(cursor.getColumnIndex("cantidad_errores")));
         }
-        List datos = obtenerDatos();
+        List datos = obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         if (Integer.parseInt(id_pregunta) >= 69 && Integer.parseInt(id_pregunta) <= 77 && id_subcategoria.equals("8")) {
             if (texto.equals("Azul") || texto.equals("azul")) {
                 verificarErrores((Cursor) datos.get(3), (SQLiteDatabase) datos.get(2), Integer.parseInt(datos.get(0).toString()), Integer.parseInt(datos.get(1).toString()));

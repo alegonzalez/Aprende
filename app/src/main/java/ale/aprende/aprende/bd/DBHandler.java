@@ -44,7 +44,7 @@ public class DBHandler extends SQLiteOpenHelper {
     //Sql creación de la tabla estadistica
     private String estadistica = "CREATE TABLE Estadistica (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id_subcategoria INTEGER, cantidad_errores INTEGER,cantidad_preguntas INTEGER,porcentaje FLOAT, estado TEXT , id_persona INTEGER NOT NULL, " + " FOREIGN KEY (id_subcategoria) REFERENCES SubCategoria (id)" + " " + "" +
             "FOREIGN KEY (id_persona) REFERENCES Persona (id)" + ");";
-    private String progreso = "CREATE TABLE Progreso (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id_persona INTEGER NOT NULL, id_subcategoria INTEGER NOT NULL, cantidad_preguntas, estado BOOLEAN, cantidad_errores INTEGER," + " FOREIGN KEY (id_persona) REFERENCES Persona (id)" + " " + "" +
+    private String progreso = "CREATE TABLE Progreso (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, id_persona INTEGER NOT NULL, id_subcategoria INTEGER NOT NULL, cantidad_preguntas, estado BOOLEAN, cantidad_errores INTEGER,repeticion INTEGER," + " FOREIGN KEY (id_persona) REFERENCES Persona (id)" + " " + "" +
             "FOREIGN KEY (id_subcategoria) REFERENCES SubCategoria (id)" + ");";
     SQLiteDatabase db;
 

@@ -10,6 +10,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
@@ -106,6 +107,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             }
         });
     }
+
     //Ejecuta las respuestas
     public void ejecutarReproduccionAudio() {
         establecerRespuesta(audiogeneral, nombreSubcategoria);
@@ -237,14 +239,25 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 } else {
                     //Tema superado
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
-                    actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
+                    actualizarEstadoProgreso(db, id_subcategoria, id_usuario,estadoEstadistica);
                     if (estadoEstadistica.equals("0")) {
                         ponerErroresEstadisticas(0, 0, db, id_subcategoria, id_usuario);
                     }
                     actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
+                    if (estadoEstadistica.equals("1")) {
+                        String strSQL1 = "UPDATE Progreso SET repeticion = " + 1 + " WHERE id_persona = "
+                                + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
+                        db.execSQL(strSQL1);
+                    }
                     int rs = obtenerSiguienteSubctegoria(db);
                     if (rs != 0) {
-                        insertarNuevaSubCategoria(rs, db, id_usuario);
+                        if (estadoEstadistica.equals("0")) {
+                            insertarNuevaSubCategoria(rs, db, id_usuario);
+                        } else {
+                            String strSQL = "UPDATE Progreso SET repeticion = " + 2 + " WHERE id_persona = "
+                                    + id_usuario + " and " + " id_subcategoria= " + rs;
+                            db.execSQL(strSQL);
+                        }
                         Cursor est = verificarDatosTablaEstadistica(db, id_subcategoria, id_usuario);
                         if (est.getCount() <= 0) {
                             DBHandler mdb = new DBHandler(getApplicationContext());
@@ -262,7 +275,24 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                         };
                         handler.postDelayed(met, 5000);
                     } else {
-                        insertarColores(db);
+                        String strSQL1 = "UPDATE Progreso SET cantidad_errores= 0, cantidad_preguntas=3, repeticion = 0 WHERE id_persona = "
+                                + id_usuario + " and " + " id_subcategoria >=1 and id_subcategoria <=7";
+                        db.execSQL(strSQL1);
+                        if (estadoEstadistica.equals("1")) {
+                            Colores col = new Colores();
+                            int numero = sortear(4);
+                            numero++;
+                            numero = col.obtenerNumeroSubcategoria(numero);
+                            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                            Intent color = new Intent(Relaciones_espaciales.this, Colores.class);
+                            color.putExtra("id_usuario", id_usuario);
+                            color.putExtra("genero", genero);
+                            color.putExtra("id_subcategoria", numero);
+                            startActivity(color);
+                            finish();
+                        } else {
+                            insertarColores(db);
+                        }
                         return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
@@ -296,7 +326,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     //Actualiza el progreso de las preguntas y cantidad de errores
     public void actualizarProgreso(int cantidad_preguntas, int cantidad_errores, SQLiteDatabase db, String id_subcategoria, int id_usuario) {
         String strSQL = "UPDATE Progreso SET cantidad_preguntas = " + cantidad_preguntas + ",cantidad_errores = " + cantidad_errores + " WHERE id_persona = "
-                + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + " and estado= 0";
+                + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
         db.execSQL(strSQL);
     }
 
@@ -332,11 +362,22 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 } else {
                     //Excelente paso  la subcategoria
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
-                    actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
+                    actualizarEstadoProgreso(db, id_subcategoria, id_usuario,estadoEstadistica);
                     actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
+                    if (estadoEstadistica.equals("1")) {
+                        String strSQL1 = "UPDATE Progreso SET repeticion = " + 1 + " WHERE id_persona = "
+                                + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
+                        db.execSQL(strSQL1);
+                    }
                     int resultado = obtenerSiguienteSubctegoria(db);
                     if (resultado != 0) {
-                        insertarNuevaSubCategoria(resultado, db, id_usuario);
+                        if (estadoEstadistica.equals("0")) {
+                            insertarNuevaSubCategoria(resultado, db, id_usuario);
+                        } else {
+                            String strSQL = "UPDATE Progreso SET repeticion = " + 2 + " WHERE id_persona = "
+                                    + id_usuario + " and " + " id_subcategoria= " + resultado;
+                            db.execSQL(strSQL);
+                        }
                         Cursor est = verificarDatosTablaEstadistica(db, id_subcategoria, id_usuario);
                         if (est.getCount() <= 0) {
                             DBHandler mdb = new DBHandler(getApplicationContext());
@@ -354,7 +395,25 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                         };
                         handler.postDelayed(met, 5000);
                     } else {
-                        insertarColores(db);
+                        String strSQL1 = "UPDATE Progreso SET  cantidad_errores= 0, cantidad_preguntas=3, repeticion = 0 WHERE id_persona = "
+                                + id_usuario + " and " + " id_subcategoria >=1 and id_subcategoria <=7";
+                        db.execSQL(strSQL1);
+                        if (estadoEstadistica.equals("1")) {
+                            Colores col = new Colores();
+                            int numero = sortear(4);
+                            numero++;
+                            numero = col.obtenerNumeroSubcategoria(numero);
+                            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                            Intent color = new Intent(Relaciones_espaciales.this, Colores.class);
+                            color.putExtra("id_usuario", id_usuario);
+                            color.putExtra("genero", genero);
+                            color.putExtra("id_subcategoria", numero);
+                            startActivity(color);
+                            finish();
+                        } else {
+                            insertarColores(db);
+                        }
+
                         return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
@@ -365,7 +424,6 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             }
         }
     }
-
     //Insert los colores por primera vez
     private void insertarColores(SQLiteDatabase db) {
         int numero = sortear(4);
@@ -387,6 +445,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         values.put("cantidad_preguntas", 3);
         values.put("estado", false);
         values.put("cantidad_errores", 0);
+        values.put("repeticion", 0);
         db.insert("Progreso", null, values);
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         Intent color = new Intent(Relaciones_espaciales.this, Colores.class);
@@ -418,14 +477,22 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         values.put("estado", false);
         values.put("cantidad_preguntas", 3);
         values.put("cantidad_errores", 0);
+        values.put("repeticion", 0);
         db.insert("Progreso", null, values);
     }
 
     //Este método se encarga de obtener la siguiente subcategoria
     public int obtenerSiguienteSubctegoria(SQLiteDatabase db) {
         String[] listaDisponible = new String[]{"1", "2", "3", "4", "5", "6", "7"};
-        Cursor subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
-                " where id_subcategoria <= " + 7 + " and " + " id_persona= " + id_usuario, null);
+        Cursor subcategoriasProgreso = null;
+        if (estadoEstadistica.equals("1")) {
+            subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                    " where id_subcategoria <= " + 7 + " and " + " id_persona= " + id_usuario + " and repeticion=1", null);
+        } else {
+            subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                    " where id_subcategoria <= " + 7 + " and " + " id_persona= " + id_usuario, null);
+        }
+
         if (subcategoriasProgreso.getCount() > 0) {
             if (subcategoriasProgreso.moveToFirst()) {
                 while (!subcategoriasProgreso.isAfterLast()) {
@@ -457,10 +524,15 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Este método actualiza el estado del progreso
-    public void actualizarEstadoProgreso(SQLiteDatabase db, String id_subcategoria, int id_usuario) {
-        String strSQL = "UPDATE Progreso SET estado = " + 1 + " WHERE id_persona = "
-                + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
-        db.execSQL(strSQL);
+    public void actualizarEstadoProgreso(SQLiteDatabase db, String id_subcategoria, int id_usuario,String estadoEstadistica) {
+        if (estadoEstadistica.equals("1")) {
+            String strSQL = "UPDATE Progreso SET repeticion = " + 1 + ", estado= 1  WHERE id_persona = "
+                    + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
+        } else {
+            String strSQL = "UPDATE Progreso SET estado = " + 1 + " WHERE id_persona = "
+                    + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
+            db.execSQL(strSQL);
+        }
     }
 
     //Abre la actividad de relaciones espaciales
@@ -583,6 +655,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             audiogeneral = audio[numero];
             nombreSubcategoria = nombre_subcategoria;
         }
+
     }
 
     //Elimina las preguntas realizadas al usuario en la tabla de persona_pregunta
@@ -725,7 +798,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     finalPregunta = false;
                 }
             };
-            handler.postDelayed(met, 10000);
+            handler.postDelayed(met, 12000);
         }
     }
 
@@ -794,7 +867,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
     //Realiza random sin repetir la combinación de números
     public String[] obtenerNumeros(int numero) {
-        String[] listaNumeros = new String[4];
+        String[] listaNumeros = new String[11];
         ArrayList<Integer> list = new ArrayList<Integer>(numero);
         for (int i = 0; i <= numero; i++) {
             list.add(i);
@@ -922,46 +995,93 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     public List verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb) {
         SQLiteDatabase db = mdb.getWritableDatabase();
         id_subcategoria = subcategoria.get(0);
+        if (Integer.parseInt(id_subcategoria) >= 1 && Integer.parseInt(id_subcategoria) <= 7) {
 
+        } else {
+            Cursor rep = db.rawQuery("select id from  Progreso " +
+                    " where id_subcategoria >=1 and id_subcategoria <=7 and " + "id_persona = "
+                    + id_usuario + " and repeticion= 1", null);
+            Cursor repeticion = db.rawQuery("select id_subcategoria from  Progreso " +
+                    " where id_subcategoria >=1 and id_subcategoria <=7 and " + "id_persona = "
+                    + id_usuario + " and repeticion= 2", null);
+            if (repeticion.getCount() <= 0) {
+                if (rep.getCount() == 7) {
+                    String strSQL1 = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0, repeticion = 0 WHERE id_persona = "
+                            + id_usuario + " and " + " id_subcategoria >=1 and id_subcategoria <=7";
+                    db.execSQL(strSQL1);
+                }
+                int id = sortear(6);
+                id++;
+                id_subcategoria = "" + id;
+                String strSQL = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0,repeticion=2 WHERE id_persona = "
+                        + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
+                db.execSQL(strSQL);
+            } else {
+                if (repeticion.moveToFirst()) {
+                    id_subcategoria = repeticion.getString(repeticion.getColumnIndex("id_subcategoria"));
+                }
+            }
+
+
+            if (id_subcategoria.equals("1")) {
+                subcategoria.add(1, "Abajo");
+            } else if (id_subcategoria.equals("2")) {
+                subcategoria.add(1, "Adelante");
+            } else if (id_subcategoria.equals("3")) {
+                subcategoria.add(1, "Arriba");
+            } else if (id_subcategoria.equals("4")) {
+                subcategoria.add(1, "Atras");
+            } else if (id_subcategoria.equals("5")) {
+                subcategoria.add(1, "Centro");
+            } else if (id_subcategoria.equals("6")) {
+                subcategoria.add(1, "Derecha");
+            } else if (id_subcategoria.equals("7")) {
+                subcategoria.add(1, "Izquierda");
+            }
+
+
+            rep.close();
+            repeticion.close();
+        }
         List datos = new ArrayList<>();
         if ((subcategoria.get(1)).trim().equals("Abajo")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "abajo");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Adelante")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "adelante");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Arriba")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "arriba");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Atras")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "atras");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Centro")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "centro");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Derecha")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "derecha");
             cursor.close();
             cursor1.close();
         } else if ((subcategoria.get(1)).trim().equals("Izquierda")) {
-            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+            Cursor cursor = obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = obtenerTablaPersona_pregunta(db, id_usuario);
             realizarPreguntas(cursor, cursor1, "izquierda");
             cursor.close();

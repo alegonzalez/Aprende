@@ -56,11 +56,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         boolean result = true;
         TypefaceProvider.registerDefaultIconSets();
-/*
 
+/*
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
-
         for (int i = 1; i <= 7; i++) {
             ContentValues values = new ContentValues();
             values.put("id_persona", 1);
@@ -72,10 +71,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 values.put("estado", true);
 
             values.put("cantidad_errores", 0);
+           values.put("repeticion", 0);
             db.insert("Progreso", null, values);
-        }
 
 
+                ContentValues est = new ContentValues();
+                est.put("id_persona", 1);
+                est.put("id_subcategoria", i);
+                est.put("cantidad_preguntas", 3);
+                if(i == 7){
+                    est.put("estado", false);
+                }else{
+                    est.put("estado", true);
+                }
+
+
+                est.put("porcentaje", 0);
+                est.put("cantidad_errores", 0);
+                db.insert("Estadistica", null, est);
+
+
+}
+*/
+/*
         Relaciones_espaciales r = new Relaciones_espaciales();
         int numero = r.sortear(4);
         numero++;

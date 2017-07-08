@@ -166,7 +166,7 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
                 } else {
                     //Excelente paso  la subcategoria
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
-                    r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario);
+                    r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario,estadoEstadistica);
                     r.actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
                     int resultado = obtenerSiguienteSubctegoria(db);
                     if (resultado != 0) {
