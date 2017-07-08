@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import ale.aprende.aprende.MenuJuego;
 import ale.aprende.aprende.R;
@@ -27,14 +28,14 @@ public class Inicio extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_inicio);
         pbProgreso = (ProgressBar) findViewById(R.id.pgCarga);
-        pbProgreso.setMax(maximo_pregreso());
+        //pbProgreso.setMax(maximo_pregreso());
         pbProgreso.setScaleY(4f);
+        pbProgreso.showContextMenu();
         execWithThread();
-        iniciarAnimacion();
     }
 
-
     public void execWithThread() {
+
         new Thread(
                 new Runnable() {
                     @Override
@@ -46,45 +47,23 @@ public class Inicio extends AppCompatActivity {
                             Categoria categoria = new Categoria(db);
                             categoria.llenarTablaCategoria();
                             int icount = p.verificarTablaPregunta(db);
-                            if(icount<=0){
+                            if (icount <= 0) {
                                 p.llenarTablaPregunta(getApplicationContext());
                                 p.llenarPreguntasColores(getApplicationContext());
+                                p.llenarPreguntasNumeros(getApplicationContext());
                                 Respuesta r = new Respuesta();
                                 r.llenarTablaRespuesta(getApplicationContext());
                                 r.llenarTablaRespuestaColores(getApplicationContext());
+                                r.llenarTablaRespuestaNumeros(getApplicationContext());
+                                Intent intent = new Intent(Inicio.this, MainActivity.class);
+                                intent.addCategory(Intent.CATEGORY_HOME);
+                                startActivity(intent);
+                                finish();
                             }
                         }
                         db.close();
                     }
                 }
         ).start();
-    }
-
-    private void iniciarAnimacion() {
-        new CountDownTimer(milisegundos, 1000) {
-
-            @Override
-            public void onTick(long millisUntilFinished) {
-                pbProgreso.setProgress(establecer_proceso(millisUntilFinished));
-            }
-
-            @Override
-            public void onFinish() {
-                Intent intent = new Intent(Inicio.this, MainActivity.class);
-                intent.addCategory(Intent.CATEGORY_HOME);
-                startActivity(intent);
-                finish();
-            }
-        }.start();
-    }
-
-    // Se encarga de ir llenando el progreso de carga
-    private int establecer_proceso(long milis) {
-        return (int) ((milisegundos - milis) / 1000);
-    }
-
-    //El maximo progreso que va a ir teniendo la barra de progreso
-    private int maximo_pregreso() {
-        return segundos - retardo;
     }
 }
