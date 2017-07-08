@@ -21,18 +21,10 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 
+import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.beardedhen.androidbootstrap.TypefaceProvider;
-import com.nightonke.boommenu.BoomButtons.BoomButton;
-import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
-import com.nightonke.boommenu.BoomMenuButton;
-import com.nightonke.boommenu.ButtonEnum;
-import com.nightonke.boommenu.OnBoomListener;
-import com.nightonke.boommenu.Piece.PiecePlaceEnum;
-import com.nightonke.boommenu.Util;
 
-import java.util.ArrayList;
 
-import ale.aprende.aprende.BuilderManager;
 import ale.aprende.aprende.Relaciones_espaciales;
 import ale.aprende.aprende.bd.Categoria;
 import ale.aprende.aprende.Ingresar.Ingresar;
@@ -43,19 +35,18 @@ import ale.aprende.aprende.bd.Pregunta;
 import ale.aprende.aprende.bd.Respuesta;
 import ale.aprende.aprende.registrar.Registrar;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity {
     //Declaración de variables
-    private BoomMenuButton bmb;
     private static final int SOLICITUD_PERMISO = 1;
-    private ArrayList<Pair> piecesAndButtons = new ArrayList<>();
+    private BootstrapButton btnRegistrar, btnIngresar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        boolean result = true;
-        TypefaceProvider.registerDefaultIconSets();
+        btnRegistrar = (BootstrapButton) findViewById(R.id.btn_registrar);
+        btnIngresar = (BootstrapButton) findViewById(R.id.btn_ingresar);
 
 /*
         DBHandler mdb = new DBHandler(getApplicationContext());
@@ -129,96 +120,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     .setCancelable(false)
                     .show();
         }
+    }
 
-        bmb = (BoomMenuButton) findViewById(R.id.botonPrinipal);
-        assert bmb != null;
-        bmb.setButtonEnum(ButtonEnum.Ham);
-        bmb.setPiecePlaceEnum(PiecePlaceEnum.HAM_2);
-        bmb.setButtonPlaceEnum(ButtonPlaceEnum.HAM_2);
-        bmb.setBottomHamButtonTopMargin(Util.dp2px(50));
-        bmb.setUse3DTransformAnimation(true);
-        ListView listView = (ListView) findViewById(R.id.list_view);
-        assert listView != null;
-        listView.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_expandable_list_item_1,
-                BuilderManager.getHamButtonData(piecesAndButtons)));
-        cargarBotones(bmb);
-        listView.setVisibility(View.GONE);
-        MenuJuego mn = new MenuJuego();
-        Animation resultado = mn.elaborarAnimacion(bmb);
-        bmb.startAnimation(resultado);
-        listenClickEventOf(R.id.botonPrinipal);
-        bmb.getOnBoomListener();
-        bmb.setAutoBoom(true);
-        //Evento click en el botón
-        bmb.setOnBoomListener(new OnBoomListener() {
-            @Override
-            public void onClicked(int index, BoomButton boomButton) {
-                if (index == 0) {
-                    Intent intento = new Intent(MainActivity.this, Registrar.class);
-                    startActivity(intento);
-                } else {
+    //click en el boton para ingresar a la aplicación
+    public void ingresarUsuario(View view) {
 /*
                     Intent intento = new Intent(MainActivity.this, Ingresar.class);
                     startActivity(intento);
 */
 
-                    Intent intento = new Intent(MainActivity.this, MenuJuego.class);
-                    startActivity(intento);
-
-                }
-            }
-
-            @Override
-            public void onBackgroundClick() {
-
-            }
-
-            @Override
-            public void onBoomWillHide() {
-
-            }
-
-            @Override
-            public void onBoomDidHide() {
-
-            }
-
-            @Override
-            public void onBoomWillShow() {
-
-
-                //   btn.performClick();
-
-            }
-
-            @Override
-            public void onBoomDidShow() {
-
-
-            }
-        });
-
-
+        Intent intento = new Intent(MainActivity.this, MenuJuego.class);
+        startActivity(intento);
     }
 
-    private void listenClickEventOf(int bmb) {
-        findViewById(bmb).setOnClickListener(this);
-    }
 
-    //Carga los botones en donde aparace las opciones de registrar e ingresar
-    private void cargarBotones(BoomMenuButton boton) {
-        int posicion = 5;
-        boton.setPiecePlaceEnum((PiecePlaceEnum) piecesAndButtons.get(posicion).first);
-        boton.setButtonPlaceEnum((ButtonPlaceEnum) piecesAndButtons.get(posicion).second);
-        boton.clearBuilders();
-        for (int i = 0; i < boton.getPiecePlaceEnum().pieceNumber(); i++)
-            if (i == 0) {
-                boton.addBuilder(BuilderManager.getHamButtonBuilder(R.string.registrar, R.drawable.registrar, 0));
-            } else {
-                boton.addBuilder(BuilderManager.getHamButtonBuilder(R.string.ingresar, R.drawable.ingresar, 0));
-            }
+    //Click en el boton de registrar
+    public void registrarUsuario(View view) {
+        Intent intento = new Intent(MainActivity.this, Registrar.class);
+        startActivity(intento);
     }
-
 
     //Verificar permiso
     private void verificarPermiso() {
@@ -283,10 +203,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
         mensaje.show();
     }
-
-    @Override
-    public void onClick(View v) {
-
-    }
-
 }

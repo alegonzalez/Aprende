@@ -25,9 +25,9 @@
         app:roundedCorners="true"
         app:showOutline="false"
         android:onClick="registrarUsuario"
-        android:layout_above="@+id/btn_ingresar"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="78dp" />
+        android:layout_marginTop="170dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
 
     <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btn_ingresar"
@@ -41,10 +41,10 @@
         app:roundedCorners="true"
         app:showOutline="false"
         android:onClick="ingresarUsuario"
-        android:layout_marginBottom="129dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/btn_registrar"
-        android:layout_alignEnd="@+id/btn_registrar" />
+        android:layout_alignLeft="@+id/btn_registrar"
+        android:layout_alignStart="@+id/btn_registrar"
+        android:layout_marginBottom="97dp" />
 
 
 </RelativeLayout>

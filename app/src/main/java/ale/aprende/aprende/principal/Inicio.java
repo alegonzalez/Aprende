@@ -55,6 +55,8 @@ public class Inicio extends AppCompatActivity {
                                 r.llenarTablaRespuesta(getApplicationContext());
                                 r.llenarTablaRespuestaColores(getApplicationContext());
                                 r.llenarTablaRespuestaNumeros(getApplicationContext());
+
+                            }else{
                                 Intent intent = new Intent(Inicio.this, MainActivity.class);
                                 intent.addCategory(Intent.CATEGORY_HOME);
                                 startActivity(intent);

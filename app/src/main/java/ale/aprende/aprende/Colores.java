@@ -188,7 +188,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                 } else {
                     //Excelente paso  la subcategoria
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
-                    r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario,estadoEstadistica);
+                    r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario, estadoEstadistica);
                     r.actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
                     if (estadoEstadistica.equals("1")) {
                         String strSQL1 = "UPDATE Progreso SET repeticion = " + 1 + " WHERE id_persona = "
@@ -227,9 +227,9 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                         String strSQL1 = "UPDATE Progreso SET  cantidad_errores= 0, cantidad_preguntas=3, repeticion = 0 WHERE id_persona = "
                                 + id_usuario + " and " + " id_subcategoria >=8 and id_subcategoria <=12";
                         db.execSQL(strSQL1);
-                        if(estadoEstadistica.equals("0")){
+                        if (estadoEstadistica.equals("0")) {
                             insertarNumeros(db);
-                        }else{
+                        } else {
                             amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
                             Intent numeroActividad = new Intent(Colores.this, Numeros.class);
                             numeroActividad.putExtra("id_usuario", id_usuario);
@@ -377,8 +377,8 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
         Cursor subcategoriasProgreso = null;
         if (estadoEstadistica.equals("1")) {
             subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
-                    " where id_subcategoria > " + 7 + " and "+" id_subcategoria <= 12"+" and " + " id_persona= " + id_usuario + " and repeticion=1", null);
-        }else{
+                    " where id_subcategoria > " + 7 + " and " + " id_subcategoria <= 12" + " and " + " id_persona= " + id_usuario + " and repeticion=1", null);
+        } else {
             subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
                     " where id_subcategoria >= " + 8 + " and id_subcategoria <= 12 " + " and " + " id_persona= " + id_usuario, null);
         }
@@ -548,7 +548,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
                     met = new Runnable() {
                         public void run() {
                             hacerAudio();
-                            //      amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+                            amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
                             finalPregunta = false;
                         }
                     };

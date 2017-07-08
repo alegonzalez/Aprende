@@ -19,21 +19,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.beardedhen.androidbootstrap.TypefaceProvider;
-import com.nightonke.boommenu.BoomButtons.BoomButton;
-import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
-import com.nightonke.boommenu.BoomButtons.TextInsideCircleButton;
-import com.nightonke.boommenu.BoomMenuButton;
-import com.nightonke.boommenu.ButtonEnum;
-import com.nightonke.boommenu.OnBoomListener;
-import com.nightonke.boommenu.Piece.PiecePlaceEnum;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,8 +33,6 @@ import ale.aprende.aprende.bd.DBHandler;
 
 public class MenuJuego extends AppCompatActivity implements View.OnClickListener, RecognitionListener, View.OnTouchListener {
     //Declaración de variables
-    private ArrayList<android.util.Pair> piecesAndButtons = new ArrayList<>();
-    private BoomMenuButton bmb;
     private int id_usuario;
     private Boolean[] lista;
     private Boolean eventoTocar = false;
@@ -149,16 +136,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         return true;
     }
 
-
-    public Animation elaborarAnimacion(BoomMenuButton boton) {
-        Animation animation = new AlphaAnimation(0.0f, 1.0f);
-        animation.setDuration(800);
-
-        animation.setRepeatMode(Animation.REVERSE);
-        animation.setRepeatCount(Animation.INFINITE);
-        return animation;
-    }
-
     //verifica que temas estan bloqueados
     public Boolean[] verificarTemasBloqueados() {
         Boolean[] estado = new Boolean[5];
@@ -170,7 +147,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             int numero = r.sortear(6);
             ContentValues values = new ContentValues();
             numero = numero + 1;
-            id_subcategoria = ""+numero;
+            id_subcategoria = "" + numero;
             values.put("id_persona", id_usuario);
             values.put("id_subcategoria", numero);
             values.put("cantidad_preguntas", 3);
@@ -232,8 +209,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         if (pasada == 1) {
             speech = hacerAudio();
             pasada = 0;
-        }
-        else {
+        } else {
             hacerAudio();
             amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
         }
@@ -377,6 +353,8 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                 abrirRelacionesEspaciales();
             } else if (result.equals("Colores") || result.equals("colores") || result.equals("delfín") || result.equals("Delfín")) {
                 abrirColores();
+            } else if (result.equals("Numeros") || result.equals("numeros") || result.equals("números") || result.equals("elefante") || result.equals("Elefante")) {
+                abrirNumeros();
             }
         hacerAudio();
     }

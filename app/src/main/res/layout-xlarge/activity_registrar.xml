@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_registrar"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/boton"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="ale.aprende.aprende.registrar.Registrar">
+
+    <ImageView
+        android:id="@+id/imgPerfil"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/btnRegistrar"
+        android:layout_toEndOf="@+id/imgMasculino"
+        android:layout_toRightOf="@+id/imgMasculino" />
+
+    <ImageView
+        android:id="@+id/imgMasculino"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/imageView4"
+        android:layout_marginLeft="14dp"
+        android:layout_marginStart="14dp"
+        android:layout_toEndOf="@+id/txtSelecciónGenero"
+        android:layout_toRightOf="@+id/txtSelecciónGenero"
+        android:src="@drawable/masculino" />
+
+    <TextView
+        android:id="@+id/txtSelecciónGenero"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/rbtMasculino"
+        android:layout_marginBottom="31dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_toEndOf="@+id/imageView4"
+        android:layout_toRightOf="@+id/imageView4"
+        android:text="Seleccione el género"
+        android:fontFamily="sans-serif"
+        android:textAllCaps="false"
+        android:textSize="18sp"/>
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btnCargar"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:drawableLeft="@android:drawable/stat_sys_upload_done"
+        android:onClick="cargarFoto"
+        android:text="Cargar foto"
+        android:textColor="@color/boton"
+        android:textSize="18dp"
+        app:bootstrapBrand="info"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        tools:ignore="HardcodedText,RtlHardcoded"
+        android:layout_alignParentBottom="true"
+        android:layout_alignLeft="@+id/imgPerfil"
+        android:layout_alignStart="@+id/imgPerfil"
+        android:layout_marginLeft="120dp"
+        android:layout_marginStart="120dp" />
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btnRegistrar"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:drawableLeft="@drawable/ic_account_circle_black"
+        android:drawableTint="@color/boton"
+        android:onClick="registrar"
+        android:text="Registrar"
+        android:textColor="@color/boton"
+        android:textSize="20sp"
+        app:bootstrapBrand="info"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:layout_alignParentBottom="true"
+        android:layout_toRightOf="@+id/rbtFemenina"
+        android:layout_toEndOf="@+id/rbtFemenina" />
+
+    <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/femenino"
+        android:layout_above="@+id/txtSelecciónGenero"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <RadioButton
+        android:id="@+id/rbtFemenina"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Niña"
+        android:textSize="18dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="11dp"
+        android:layout_marginStart="11dp" />
+
+    <RadioButton
+        android:id="@+id/rbtMasculino"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Niño"
+        android:textSize="18dp"
+        android:layout_alignBaseline="@+id/rbtFemenina"
+        android:layout_alignBottom="@+id/rbtFemenina"
+        android:layout_toLeftOf="@+id/imgPerfil"
+        android:layout_toStartOf="@+id/imgPerfil"
+        android:layout_marginRight="13dp"
+        android:layout_marginEnd="13dp" />
+</RelativeLayout>

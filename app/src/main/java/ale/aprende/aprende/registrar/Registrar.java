@@ -30,6 +30,7 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
+import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.microsoft.projectoxford.face.FaceServiceClient;
 import com.microsoft.projectoxford.face.contract.Face;
 
@@ -471,7 +472,7 @@ public class Registrar extends AppCompatActivity {
 
     //metodo onclick para registrar
     public void registrar(View view) {
-        Button btn = (Button) findViewById(R.id.btnRegistrar);
+        BootstrapButton btn = (BootstrapButton) findViewById(R.id.btnRegistrar);
         btn.setEnabled(false);
         if (detectado == 0) {
             Toast.makeText(this, "Debes seleccionar una foto de perfil del niño", Toast.LENGTH_LONG).show();

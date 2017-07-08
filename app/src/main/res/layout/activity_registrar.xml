@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_registrar"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,23 +12,36 @@
     android:background="@color/boton"
     tools:context="ale.aprende.aprende.registrar.Registrar">
 
-    <Button
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btnRegistrar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:backgroundTint="@color/accent"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
         android:drawableLeft="@drawable/ic_account_circle_black"
-        android:drawableTint="@color/boton"
         android:text="Registrar"
-        android:layout_margin="3dp"
-        android:textColor="@color/boton"
+        app:bootstrapBrand="info"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
         android:onClick="registrar"
         android:fontFamily="sans-serif"
         android:textAllCaps="false"
-        android:textSize="18sp" />
+        android:textSize="18sp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 
+    <TextView
+        android:id="@+id/txtSelecciónGenero"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Seleccione el género"
+        android:fontFamily="sans-serif"
+        android:textAllCaps="false"
+        android:textSize="18sp"
+        android:layout_below="@+id/btnCargar"
+        android:layout_toLeftOf="@+id/imgMasculino"
+        android:layout_toStartOf="@+id/imgMasculino" />
 
     <ImageView
         android:layout_width="wrap_content"
@@ -36,13 +50,24 @@
         android:id="@+id/imageView4"
         android:layout_above="@+id/rbtFemenina"
         android:layout_toLeftOf="@+id/txtSelecciónGenero"
-        android:layout_toStartOf="@+id/txtSelecciónGenero" />
+        android:layout_toStartOf="@+id/txtSelecciónGenero"
+        android:layout_marginBottom="35dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/masculino"
+        android:id="@+id/imgMasculino"
+        android:layout_below="@+id/btnCargar"
+        android:layout_toRightOf="@+id/btnRegistrar"
+        android:layout_toEndOf="@+id/btnRegistrar" />
 
     <RadioButton
         android:text="Niña"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/rbtFemenina"
+        android:layout_marginBottom="55dp"
         android:layout_above="@+id/btnRegistrar"
         android:layout_alignLeft="@+id/imageView4"
         android:layout_alignStart="@+id/imageView4" />
@@ -52,57 +77,41 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/rbtMasculino"
-        android:layout_above="@+id/btnRegistrar"
+        android:layout_alignBaseline="@+id/rbtFemenina"
+        android:layout_alignBottom="@+id/rbtFemenina"
         android:layout_alignLeft="@+id/imgMasculino"
         android:layout_alignStart="@+id/imgMasculino" />
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/masculino"
-        android:id="@+id/imgMasculino"
-        android:layout_above="@+id/rbtMasculino"
-        android:layout_toRightOf="@+id/btnRegistrar"
-        android:layout_toEndOf="@+id/btnRegistrar" />
-
-
-
-    <Button
-        style="@style/Widget.AppCompat.Button.Colored"
+    <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btnCargar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:backgroundTint="@color/accent"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
         android:drawableLeft="@android:drawable/stat_sys_upload_done"
-        android:onClick="cargarFoto"
-        android:text="Cargar foto de galería"
-        android:textColor="@color/boton"
-        tools:ignore="HardcodedText,RtlHardcoded"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true"
+        android:text="Cargar foto "
+        app:bootstrapBrand="info"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:fontFamily="sans-serif"
+        android:textAllCaps="false"
         android:textSize="18sp"
-        android:textAllCaps="false" />
-
-    <TextView
-        android:id="@+id/txtSelecciónGenero"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Seleccione el género"
-        android:layout_alignTop="@+id/imgMasculino"
+        android:onClick="cargarFoto"
+        android:layout_marginBottom="44dp"
+        android:layout_above="@+id/imageView4"
         android:layout_toLeftOf="@+id/imgMasculino"
-        android:layout_toStartOf="@+id/imgMasculino"
-        android:layout_marginTop="33dp" />
+        android:layout_toStartOf="@+id/imgMasculino" />
 
     <ImageView
         android:id="@+id/imgPerfil"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignRight="@+id/btnCargar"
-        android:layout_alignEnd="@+id/btnCargar"
-        android:layout_alignLeft="@+id/btnCargar"
-        android:layout_alignStart="@+id/btnCargar"
         android:padding="1dp"
         android:background="@drawable/perfil"
-        android:layout_above="@+id/btnCargar" />
+        android:layout_marginBottom="20dp"
+        android:layout_marginTop="5dp"
+        android:layout_above="@+id/btnCargar"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>
