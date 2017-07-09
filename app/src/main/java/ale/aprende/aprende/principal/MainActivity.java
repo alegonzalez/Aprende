@@ -124,13 +124,14 @@ public class MainActivity extends AppCompatActivity {
 
     //click en el boton para ingresar a la aplicación
     public void ingresarUsuario(View view) {
-/*
+
                     Intent intento = new Intent(MainActivity.this, Ingresar.class);
                     startActivity(intento);
-*/
+/*
 
         Intent intento = new Intent(MainActivity.this, MenuJuego.class);
         startActivity(intento);
+*/
     }
 
 

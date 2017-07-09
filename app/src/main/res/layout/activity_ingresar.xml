@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/activity_ingresar"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,7 +12,7 @@
 
     tools:context="ale.aprende.aprende.Ingresar.Ingresar">
 
-    <Button
+    <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/button_capture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,13 +23,18 @@
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         android:paddingTop="20dp"
+        app:bootstrapBrand="info"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
         android:layout_above="@+id/camera_preview"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-    <Button
+    <com.beardedhen.androidbootstrap.BootstrapButton
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="55dp"
         android:id="@+id/btnCambiarPerfil"
         android:drawableTop="@drawable/ic_system_update_alt_white_36dp"
         android:onClick="cambiarFotoPerfil"
@@ -37,24 +43,33 @@
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
         android:paddingTop="16dp"
+        app:bootstrapBrand="info"
+        app:bootstrapSize="xs"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 
-    <Button
+    <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btnDetectar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="50dp"
         android:drawableTop="@drawable/ic_forward_white_36dp"
         android:onClick="deteccionRostro"
-        android:background="@color/accent"
+        app:bootstrapBrand="info"
+        app:bootstrapSize="xs"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:paddingBottom="2dp"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
-        android:paddingTop="20dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:paddingTop="50dp"/>
 
     <FrameLayout
         android:id="@+id/camera_preview"

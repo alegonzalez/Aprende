@@ -102,16 +102,14 @@
         android:layout_toLeftOf="@+id/imgMasculino"
         android:layout_toStartOf="@+id/imgMasculino" />
 
-    <ImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imgPerfil"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="156dp"
+        android:layout_height="156dp"
         android:padding="1dp"
         android:background="@drawable/perfil"
-        android:layout_marginBottom="20dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginBottom="17dp"
         android:layout_above="@+id/btnCargar"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

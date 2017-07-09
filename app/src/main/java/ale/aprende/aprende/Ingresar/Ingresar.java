@@ -28,6 +28,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.microsoft.projectoxford.face.FaceServiceClient;
 import com.microsoft.projectoxford.face.contract.Face;
 import com.microsoft.projectoxford.face.contract.VerifyResult;
@@ -69,7 +70,7 @@ public class Ingresar extends AppCompatActivity {
     private UUID mRostroId1;
     protected FaceListAdapter mFaceListAdapter0;
     protected FaceListAdapter mFaceListAdapter1;
-    private Button btnDetectar;
+    private BootstrapButton btnDetectar;
     private String genero = "";
     public static final int MEDIA_TYPE_IMAGE = 1;
     FrameLayout preview;
@@ -78,7 +79,7 @@ public class Ingresar extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(ale.aprende.aprende.R.layout.activity_ingresar);
-        btnDetectar = (Button) findViewById(R.id.btnDetectar);
+        btnDetectar = (BootstrapButton) findViewById(R.id.btnDetectar);
         if (!(verificarImagenFolder())) {
             Intent intent = new Intent(Ingresar.this, Registrar.class);
             startActivity(intent);
@@ -121,8 +122,9 @@ public class Ingresar extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-
-        mCamera.release();
+        if (mCamera != null) {
+            mCamera.release();
+        }
         super.onDestroy();
     }
 
@@ -352,7 +354,7 @@ public class Ingresar extends AppCompatActivity {
             // Obtener una instancia del cliente de servicio de cara para detectar las caras en la imagen.
             FaceServiceClient faceServiceClient = SampleApp.getFaceServiceClient();
             try {
-               // publishProgress("Verificando");
+                // publishProgress("Verificando");
                 // Inicio de la verificación
                 return faceServiceClient.verify(
                         mRostroId0,      /* The first face ID to verify */

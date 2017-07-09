@@ -50,6 +50,7 @@ import ale.aprende.aprende.bd.DBHandler;
 import ale.aprende.aprende.helper.ImageHelper;
 import ale.aprende.aprende.helper.LogHelper;
 import ale.aprende.aprende.helper.SampleApp;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class Cambiar_foto extends AppCompatActivity {
     RadioButton rbtMasculino, rbtFemenina;
@@ -57,7 +58,8 @@ public class Cambiar_foto extends AppCompatActivity {
     private String nombreImagen = "";
     private UUID mFaceId0;
     public Bitmap bitmapPerfil;
-    public ImageView imageView, rostroimg = null;
+    public ImageView  rostroimg = null;
+    public CircleImageView imageView;
     private Bitmap mBitmap0;
     public String fotoDetectada = "";
     private String nombreBasedatosImagen = "";
@@ -125,7 +127,7 @@ public class Cambiar_foto extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cambiar_foto);
-        imageView = (ImageView) findViewById(R.id.imgPerfil);
+        imageView = (CircleImageView) findViewById(R.id.imgPerfil);
         rbtMasculino = (RadioButton) findViewById(R.id.rbtMasculino);
         rbtFemenina = (RadioButton) findViewById(R.id.rbtFemenina);
         rbtFemenina.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -325,7 +327,7 @@ public class Cambiar_foto extends AppCompatActivity {
                 cambio = 3;
                 break;
             case ExifInterface.ORIENTATION_NORMAL:
-                bitmapPerfil = rotateBitmap(bitmapPerfil, 270);
+                bitmapPerfil = rotateBitmap(bitmapPerfil, 0);
                 cambio = 4;
             default:
                 break;
@@ -523,7 +525,7 @@ public class Cambiar_foto extends AppCompatActivity {
                 // ImageView img = (ImageView) findViewById(R.id.rostro);
                 //img.setImageBitmap(null);
                 //bitmapPerfil = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                imageView = (ImageView) findViewById(R.id.imgPerfil);
+                imageView = (CircleImageView) findViewById(R.id.imgPerfil);
                 imageView.setImageBitmap(bitmapPerfil);
                 mBitmap0 = bitmap;
                 detectar(bitmapPerfil, 0);

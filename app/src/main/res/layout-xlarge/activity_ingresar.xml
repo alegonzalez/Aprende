@@ -14,23 +14,6 @@
 
 
     <com.beardedhen.androidbootstrap.BootstrapButton
-        android:id="@+id/button_capture"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignLeft="@+id/btnCambiarPerfil"
-        android:layout_alignStart="@+id/btnCambiarPerfil"
-        android:layout_centerVertical="true"
-        android:layout_gravity="center"
-        android:background="@color/accent"
-        android:drawableTop="@drawable/ic_autorenew_white_36dp"
-        android:onClick="frontal"
-        app:bootstrapBrand="info"
-        app:bootstrapSize="xs"
-        app:buttonMode="regular"
-        app:roundedCorners="true"
-        app:showOutline="false" />
-
-    <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btnDetectar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
@@ -41,28 +24,10 @@
         android:drawableTop="@drawable/ic_forward_white_36dp"
         android:onClick="deteccionRostro"
         app:bootstrapBrand="info"
-        app:bootstrapSize="xs"
+
         app:buttonMode="regular"
         app:roundedCorners="true"
         app:showOutline="false" />
-
-    <com.beardedhen.androidbootstrap.BootstrapButton
-        android:id="@+id/btnCambiarPerfil"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="433dp"
-        android:layout_marginStart="433dp"
-        android:drawableTop="@drawable/ic_system_update_alt_white_36dp"
-        android:onClick="cambiarFotoPerfil"
-        app:bootstrapBrand="info"
-        app:bootstrapSize="xs"
-        app:buttonMode="regular"
-        app:roundedCorners="true"
-        app:showOutline="false"
-         />
 
     <FrameLayout
         android:id="@+id/camera_preview"
@@ -74,4 +39,38 @@
         android:layout_alignParentStart="true"
         android:layout_toLeftOf="@+id/button_capture"
         android:layout_toStartOf="@+id/button_capture" />
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btnCambiarPerfil"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:fontAwesomeIcon="fa_align_center"
+        android:layout_marginLeft="583dp"
+        android:layout_marginStart="583dp"
+        android:background="@color/accent"
+        android:drawableTop="@drawable/ic_system_update_alt_white_36dp"
+        android:onClick="cambiarFotoPerfil"
+        app:bootstrapBrand="info"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/button_capture"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:drawableTop="@drawable/ic_autorenew_white_36dp"
+        android:onClick="frontal"
+        app:bootstrapBrand="info"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:layout_marginBottom="185dp"
+        android:layout_above="@+id/btnDetectar"
+        android:layout_alignLeft="@+id/btnCambiarPerfil"
+        android:layout_alignStart="@+id/btnCambiarPerfil" />
 </RelativeLayout>

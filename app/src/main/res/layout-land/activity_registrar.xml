@@ -31,25 +31,6 @@
         app:roundedCorners="true"
         app:showOutline="false" />
 
-    <com.beardedhen.androidbootstrap.BootstrapButton
-        android:id="@+id/btnCargar"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
-        android:layout_alignParentBottom="true"
-        android:layout_toEndOf="@+id/imgMasculino"
-        android:layout_toRightOf="@+id/imgMasculino"
-        android:drawableLeft="@android:drawable/stat_sys_upload_done"
-        android:onClick="cargarFoto"
-        android:text="Cargar foto"
-        android:textColor="@color/boton"
-        android:textSize="18dp"
-        app:bootstrapBrand="info"
-        app:bootstrapSize="lg"
-        app:buttonMode="regular"
-        app:roundedCorners="true"
-        app:showOutline="false"
-        tools:ignore="HardcodedText,RtlHardcoded" />
-
     <RadioButton
         android:id="@+id/rbtMasculino"
         android:layout_width="wrap_content"
@@ -59,14 +40,6 @@
         android:layout_below="@+id/imgMasculino"
         android:text="Niño"
         android:textSize="18dp" />
-
-    <ImageView
-        android:id="@+id/imgPerfil"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/btnRegistrar"
-        android:layout_toEndOf="@+id/imgMasculino"
-        android:layout_toRightOf="@+id/imgMasculino" />
 
     <ImageView
         android:id="@+id/imageView4"
@@ -113,4 +86,33 @@
         android:fontFamily="sans-serif"
         android:textAllCaps="false"
         android:textSize="18sp"/>
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/imgPerfil"
+        android:layout_width="156dp"
+        android:layout_height="156dp"
+        android:layout_alignTop="@+id/txtSelecciónGenero"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="78dp"
+        android:layout_marginEnd="78dp" />
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btnCargar"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:drawableLeft="@android:drawable/stat_sys_upload_done"
+        android:onClick="cargarFoto"
+        android:text="Cargar foto"
+        android:textColor="@color/boton"
+        android:textSize="18dp"
+        app:bootstrapBrand="info"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        tools:ignore="HardcodedText,RtlHardcoded"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@+id/imgPerfil"
+        android:layout_alignEnd="@+id/imgPerfil" />
 </RelativeLayout>

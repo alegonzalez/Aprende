@@ -30,57 +30,16 @@
         app:roundedCorners="true"
         app:showOutline="false"/>
 
-    <RadioButton
-        android:text="Niño"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="15dp"
-        android:id="@+id/rbtMasculino"
-        android:layout_below="@+id/imgMasculino"
-        android:layout_alignLeft="@+id/imgMasculino"
-        android:layout_alignStart="@+id/imgMasculino" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/femenino"
-        android:id="@+id/imageView4"
-        android:layout_marginTop="28dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
     <TextView
         android:id="@+id/txtSelecciónGenero"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Seleccione el género"
-        android:textSize="15dp"
+        android:textSize="18sp"
         android:layout_marginBottom="34dp"
         android:layout_above="@+id/rbtMasculino"
         android:layout_toRightOf="@+id/imageView4"
         android:layout_toEndOf="@+id/imageView4" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/masculino"
-        android:id="@+id/imgMasculino"
-        android:layout_alignTop="@+id/imageView4"
-        android:layout_toRightOf="@+id/txtSelecciónGenero"
-        android:layout_toEndOf="@+id/txtSelecciónGenero"
-        android:layout_marginLeft="14dp"
-        android:layout_marginStart="14dp" />
-
-    <RadioButton
-        android:text="Niña"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/rbtFemenina"
-        android:textSize="15dp"
-        android:layout_below="@+id/imageView4"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
 
     <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btnCargar"
@@ -101,15 +60,60 @@
         app:roundedCorners="true"
         app:showOutline="false"/>
 
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/masculino"
+        android:id="@+id/imgMasculino"
+        android:layout_marginLeft="14dp"
+        android:layout_marginStart="14dp"
+        android:layout_above="@+id/rbtMasculino"
+        android:layout_toRightOf="@+id/txtSelecciónGenero"
+        android:layout_toEndOf="@+id/txtSelecciónGenero"
+        android:layout_marginBottom="12dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/femenino"
+        android:id="@+id/imageView4"
+        android:layout_alignTop="@+id/imgMasculino"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <RadioButton
+        android:text="Niña"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/rbtFemenina"
+        android:textSize="15dp"
+        android:layout_below="@+id/txtSelecciónGenero"
+        android:layout_alignRight="@+id/imageView4"
+        android:layout_alignEnd="@+id/imageView4"
+        android:layout_marginRight="17dp"
+        android:layout_marginEnd="17dp" />
+
+    <RadioButton
+        android:text="Niño"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="15dp"
+        android:id="@+id/rbtMasculino"
+        android:layout_marginRight="11dp"
+        android:layout_marginEnd="11dp"
+        android:layout_centerVertical="true"
+        android:layout_alignRight="@+id/imgMasculino"
+        android:layout_alignEnd="@+id/imgMasculino" />
+
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imgPerfil"
         android:layout_width="156dp"
         android:layout_height="156dp"
-        android:layout_alignTop="@+id/txtSelecciónGenero"
-        android:layout_toRightOf="@+id/imgMasculino"
-        android:layout_toEndOf="@+id/imgMasculino"
-        android:layout_marginLeft="102dp"
-        android:layout_marginStart="102dp" />
+        android:layout_marginRight="119dp"
+        android:layout_marginEnd="119dp"
+        android:layout_alignTop="@+id/imgMasculino"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
 
 </RelativeLayout>

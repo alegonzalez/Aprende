@@ -13,14 +13,6 @@
     tools:context="ale.aprende.aprende.registrar.Registrar">
 
     <ImageView
-        android:id="@+id/imgPerfil"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/btnRegistrar"
-        android:layout_toEndOf="@+id/imgMasculino"
-        android:layout_toRightOf="@+id/imgMasculino" />
-
-    <ImageView
         android:id="@+id/imgMasculino"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -63,9 +55,7 @@
         tools:ignore="HardcodedText,RtlHardcoded"
         android:layout_alignParentBottom="true"
         android:layout_alignLeft="@+id/imgPerfil"
-        android:layout_alignStart="@+id/imgPerfil"
-        android:layout_marginLeft="120dp"
-        android:layout_marginStart="120dp" />
+        android:layout_alignStart="@+id/imgPerfil" />
 
     <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btnRegistrar"
@@ -107,16 +97,27 @@
         android:layout_marginLeft="11dp"
         android:layout_marginStart="11dp" />
 
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/imgPerfil"
+        android:layout_width="156dp"
+        android:layout_height="156dp"
+        android:layout_marginRight="33dp"
+        android:layout_marginEnd="33dp"
+        android:layout_marginTop="38dp"
+        android:layout_alignTop="@+id/imgMasculino"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
     <RadioButton
         android:id="@+id/rbtMasculino"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Niño"
         android:textSize="18dp"
+        android:layout_marginRight="13dp"
+        android:layout_marginEnd="13dp"
         android:layout_alignBaseline="@+id/rbtFemenina"
         android:layout_alignBottom="@+id/rbtFemenina"
-        android:layout_toLeftOf="@+id/imgPerfil"
-        android:layout_toStartOf="@+id/imgPerfil"
-        android:layout_marginRight="13dp"
-        android:layout_marginEnd="13dp" />
+        android:layout_alignRight="@+id/imgMasculino"
+        android:layout_alignEnd="@+id/imgMasculino" />
 </RelativeLayout>

@@ -54,12 +54,14 @@ import ale.aprende.aprende.helper.LogHelper;
 import ale.aprende.aprende.helper.SampleApp;
 import ale.aprende.aprende.principal.MainActivity;
 import ale.aprende.aprende.R;
+import de.hdodenhof.circleimageview.CircleImageView;
 
 public class Registrar extends AppCompatActivity {
     //Declaración de variables
     private final int ELEGIR_IMAGEN = 1;
     public RadioButton rbtFemenina, rbtMasculino;
-    public ImageView imageView, rostroimg = null;
+    public ImageView  rostroimg = null;
+    public CircleImageView imageView;
     public String nombreImagen = "";
     private Bitmap bitmapPerfil;
     private String fotoDetectada = "";
@@ -148,7 +150,8 @@ public class Registrar extends AppCompatActivity {
         if (contador == 0) {
             rbtFemenina = (RadioButton) findViewById(R.id.rbtFemenina);
             rbtMasculino = (RadioButton) findViewById(R.id.rbtMasculino);
-            imageView = (ImageView) findViewById(R.id.imgPerfil);
+            imageView = (CircleImageView) findViewById(R.id.imgPerfil);
+
             //evento del radio button en caso que eliga como genero niña
             rbtFemenina.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -195,20 +198,8 @@ public class Registrar extends AppCompatActivity {
             intent.setType("image/jpeg");
             startActivityForResult(intent, ELEGIR_IMAGEN);
         }
-/*
-        Intent gallIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        gallIntent.setType("image/*");
-        startActivityForResult(Intent.createChooser(gallIntent, "Seleccione la imagen"), ELEGIR_IMAGEN);
-        */
     }
 
-    //Obtener
-    public String obtenerDireccionImagen(Uri uri) {
-        Cursor cursor = getContentResolver().query(uri, null, null, null, null);
-        cursor.moveToFirst();
-        int idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA);
-        return cursor.getString(idx);
-    }
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static String getPath(final Context context, final Uri uri) {
 
@@ -376,9 +367,8 @@ public class Registrar extends AppCompatActivity {
             ExifInterface exif = new ExifInterface(archivo.getAbsolutePath());
             bitmapPerfil = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
             int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, -1);
-
             bitmapPerfil = orientacionImagen(orientation);//ExifInterface.ORIENTATION_NORMAL
-            imageView = (ImageView) findViewById(R.id.imgPerfil);
+            imageView = (CircleImageView) findViewById(R.id.imgPerfil);
             imageView.setImageBitmap(bitmapPerfil);
             mBitmap0 = bitmap;
             detectar(bitmapPerfil, 0);
@@ -403,7 +393,7 @@ public class Registrar extends AppCompatActivity {
                 cambio = 3;
                 break;
             case ExifInterface.ORIENTATION_NORMAL:
-                bitmapPerfil = rotateBitmap(bitmapPerfil, 270);
+                bitmapPerfil = rotateBitmap(bitmapPerfil, 0);
                 cambio = 4;
             default:
                 break;
