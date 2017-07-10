@@ -233,7 +233,7 @@ public class Cambiar_foto extends AppCompatActivity {
             if (!(ActualizarDatosGenero(genero))) {
                 Toast.makeText(this, "No se pudo actualizar el genero", Toast.LENGTH_SHORT).show();
             } else {
-                Intent intent = new Intent(this, Ingresar.class);
+                Intent intent = new Intent(Cambiar_foto.this, Ingresar.class);
                 startActivity(intent);
                 finish();
             }

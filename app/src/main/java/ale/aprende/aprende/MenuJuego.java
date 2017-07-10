@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
+import ale.aprende.aprende.Ingresar.Ingresar;
 import ale.aprende.aprende.bd.DBHandler;
 
 public class MenuJuego extends AppCompatActivity implements View.OnClickListener, RecognitionListener, View.OnTouchListener {
@@ -439,6 +440,13 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         }
         return true;
 
+    }
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent = new Intent(MenuJuego.this, Ingresar.class);
+        startActivity(intent);
+        finish();
     }
 
     //Este metodo se encarga de reproducir si es una niña o niño

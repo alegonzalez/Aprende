@@ -74,6 +74,7 @@ public class Ingresar extends AppCompatActivity {
     private String genero = "";
     public static final int MEDIA_TYPE_IMAGE = 1;
     FrameLayout preview;
+    private Boolean estadoActividad = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,9 +110,14 @@ public class Ingresar extends AppCompatActivity {
                 mCamera = Camera.open(0);
                 //mPreview = new CameraPreview(this, mCamera);
                 //preview.addView(mPreview);
-            } else {
-                // mCamera.startPreview();
             }
+            if (estadoActividad == true) {
+                mPreview = new CameraPreview(this, mCamera);
+                preview.addView(mPreview);
+                mCamera.startPreview();
+                estadoActividad = false;
+            }
+
             //mPreview.myStartPreview();
         } catch (Exception e) {
 
@@ -119,6 +125,14 @@ public class Ingresar extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStop() {
+        estadoActividad = true;
+        preview.removeAllViews();
+        mCamera.stopPreview();
+        super.onStop();
+
+    }
 
     @Override
     protected void onDestroy() {
@@ -184,9 +198,10 @@ public class Ingresar extends AppCompatActivity {
 
     //metodo onclick para reconocer el rostro
     public void deteccionRostro(View view) {
+        if (btnDetectar.isEnabled()) {
+            mCamera.takePicture(null, null, mPicture);
+        }
         btnDetectar.setEnabled(false);
-        mCamera.takePicture(null, null, mPicture);
-
     }
 
     /**
@@ -307,7 +322,7 @@ public class Ingresar extends AppCompatActivity {
 
             }
             Bitmap resizedBitmap = Bitmap.createBitmap(imagen2, 0, 0, width, height, matrix, true);
-
+            mCamera.startPreview();
             detect(resizedBitmap, 1);
             archivo_imagen.delete();
         }
@@ -490,7 +505,7 @@ public class Ingresar extends AppCompatActivity {
 
                 addLog("Response: Success. Detectado "
                         + result.length + " rostro(s) en la imagen" + index);
-                setInfo(result.length + " rostro" + (result.length != 1 ? "s" : "") + " detectado");
+                //setInfo(result.length + " rostro" + (result.length != 1 ? "s" : "") + " detectado");
                 // Mostrar la lista detallada de caras detectadas.
                 FaceListAdapter faceListAdapter = new FaceListAdapter(result, index);
                 // Establece el ID de cara predeterminado en el ID de la primera cara, si se detectan una o más caras.
@@ -510,9 +525,13 @@ public class Ingresar extends AppCompatActivity {
                     imagen2 = null;
                     btnDetectar.setEnabled(false);
                 }
-                new VerificationTask(mRostroId0, mRostroId1).execute();
+                if (faceListAdapter.faces.size() > 0) {
+                    new VerificationTask(mRostroId0, mRostroId1).execute();
+                }
+
             } else {
                 preview.removeAllViews();
+                btnDetectar.setEnabled(true);
             }
             if (result != null && result.length == 0) {
                 setInfo("El rostro no pudo ser detectado!");
