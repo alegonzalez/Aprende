@@ -104,4 +104,23 @@ public class Pregunta {
         }
         db.close();
     }
+
+    //Este metodo se encarga de insertar las pregunra de las figuras geometricas en la tabla de pregunta
+    public void llenarPreguntasFigurasGeomtricas(Context cm) {
+        DBHandler mdb = new DBHandler(cm);
+        SQLiteDatabase db = mdb.getWritableDatabase();
+        int id_subcategoria = 44;
+        String[] listaFiguraGeomtricas = new String[]{"circulo", "triangulo", "rectangulo", "cuadrado"};
+        for (int i = 0; i < listaFiguraGeomtricas.length; i++) {
+            for (int j = 1; j <= 10; j++) {
+                ContentValues values = new ContentValues();
+                values.put("audio", "p"+j);
+                values.put("nombre_imagen", j+".png");
+                values.put("id_subcategoria", id_subcategoria);
+                db.insert("Pregunta", null, values);
+            }
+            id_subcategoria++;
+        }
+        db.close();
+    }
 }

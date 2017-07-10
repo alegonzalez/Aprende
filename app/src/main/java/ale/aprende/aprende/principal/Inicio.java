@@ -51,10 +51,12 @@ public class Inicio extends AppCompatActivity {
                                 p.llenarTablaPregunta(getApplicationContext());
                                 p.llenarPreguntasColores(getApplicationContext());
                                 p.llenarPreguntasNumeros(getApplicationContext());
+                                p.llenarPreguntasFigurasGeomtricas(getApplicationContext());
                                 Respuesta r = new Respuesta();
                                 r.llenarTablaRespuesta(getApplicationContext());
                                 r.llenarTablaRespuestaColores(getApplicationContext());
                                 r.llenarTablaRespuestaNumeros(getApplicationContext());
+                                r.llenarTablaRespuestaFigurasGeometricas(getApplicationContext());
                                 Intent intent = new Intent(Inicio.this, MainActivity.class);
                                 intent.addCategory(Intent.CATEGORY_HOME);
                                 startActivity(intent);

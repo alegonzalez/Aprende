@@ -76,9 +76,9 @@ public class Respuesta {
             for (int j = 0; j <= 4; j++) {
                 ContentValues values = new ContentValues();
                 values.put("id_pregunta", id_pregunta);
-                values.put("nombre_imagen", nombres[j]+"_"+i+".png");
+                values.put("nombre_imagen", nombres[j] + "_" + i + ".png");
                 values.put("estado", 1);
-                values.put("audio", "r"+i);
+                values.put("audio", "r" + i);
                 db.insert("Imagen_Respuesta", null, values);
             }
             id_pregunta++;
@@ -136,4 +136,24 @@ public class Respuesta {
         return mcursor.getInt(0);
     }
 
+    //Inserta en la tabla de respuesta acerca de las figuras geometricas
+    public void llenarTablaRespuestaFigurasGeometricas(Context cm) {
+        DBHandler mdb = new DBHandler(cm);
+        SQLiteDatabase db = mdb.getWritableDatabase();
+        String[]colores = new String[]{"amarillo","azul","rojo","anaranjado","verde"};
+        String[] listaFiguraGeomtricas = new String[]{"circulo", "triangulo", "rectangulo", "cuadrado"};
+        int id_pregunta = 271;
+        for (int i = 0; i < listaFiguraGeomtricas.length; i++) {
+            for (int j = 0; j <= 4; j++) {
+                ContentValues values = new ContentValues();
+                values.put("id_pregunta", id_pregunta);
+                values.put("nombre_imagen", listaFiguraGeomtricas[i]+"_"+colores[j] + "_" + i + ".png");
+                values.put("estado", 1);
+                values.put("audio", listaFiguraGeomtricas[i]+".mp3");
+                db.insert("Imagen_Respuesta", null, values);
+            }
+            id_pregunta++;
+        }
+        db.close();
+    }
 }

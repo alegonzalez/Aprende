@@ -166,7 +166,7 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
                 } else {
                     //Excelente paso  la subcategoria
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
-                    r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario,estadoEstadistica);
+                    r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario, estadoEstadistica);
                     r.actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
                     int resultado = obtenerSiguienteSubctegoria(db);
                     if (resultado != 0) {
@@ -315,9 +315,7 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
         String[] listaColores = {"azul", "amarillo", "rojo", "verde", "naranja"};
         String[] combinacionColores = r.obtenerNumeros(4);
         ordenBotones = r.obtenerNumeros(2);
-
         Drawable[] archivo = new Drawable[3];
-        int numero = r.sortear(3);
         int incorrectas = 0;
         String resultado = "";
         archivo[0] = obtenerImagenRespuestas("numero/r" + nombreSubcategoria + "/" + listaColores[Integer.parseInt(combinacionColores[0])] + "_" + nombreSubcategoria + ".png");
@@ -331,33 +329,32 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
                     lista = r.eliminarValoresArreglo(lista, cantidad);
                     i--;
                 } else {
-                    numero = r.sortear(3);
                     incorrectas = Integer.parseInt(lista[i]);
                     resultado = "" + incorrectas;
                     archivo[i] = obtenerImagenRespuestas("numero/r" + resultado + "/" + listaColores[Integer.parseInt(combinacionColores[i])] + "_" + resultado + ".png");
                     nombre[i] = listaColores[Integer.parseInt(combinacionColores[i])] + "_" + resultado;
                 }
             } else if (Integer.parseInt(nombreSubcategoria) > 9 && Integer.parseInt(nombreSubcategoria) <= 19) {
-                if (lista[i].equals(nombreSubcategoria)) {
+                String numero = "1" + lista[i];
+                if (numero.equals(nombreSubcategoria)) {
                     lista[i] = "";
                     int cantidad = r.verificarCantidadArreglo(lista);
                     lista = r.eliminarValoresArreglo(lista, cantidad);
                     i--;
                 } else {
-                    numero = r.sortear(3);
                     incorrectas = Integer.parseInt(lista[i]);
                     resultado = "1" + incorrectas;
                     archivo[i] = obtenerImagenRespuestas("numero/r" + resultado + "/" + listaColores[Integer.parseInt(combinacionColores[i])] + "_" + resultado + ".png");
                     nombre[i] = listaColores[Integer.parseInt(combinacionColores[i])] + "_" + resultado;
                 }
             } else if (Integer.parseInt(nombreSubcategoria) > 19 && Integer.parseInt(nombreSubcategoria) <= 30) {
-                if (lista[i].equals(nombreSubcategoria)) {
+                String numero = "2" + lista[i];
+                if (numero.equals(nombreSubcategoria)) {
                     lista[i] = "";
                     int cantidad = r.verificarCantidadArreglo(lista);
                     lista = r.eliminarValoresArreglo(lista, cantidad);
                     i--;
                 } else {
-                    numero = r.sortear(3);
                     incorrectas = Integer.parseInt(lista[i]);
                     resultado = (incorrectas == 10) ? "30" : "2" + incorrectas;
                     archivo[i] = obtenerImagenRespuestas("numero/r" + resultado + "/" + listaColores[Integer.parseInt(combinacionColores[i])] + "_" + resultado + ".png");
