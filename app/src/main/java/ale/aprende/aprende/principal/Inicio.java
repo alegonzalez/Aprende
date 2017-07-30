@@ -52,6 +52,7 @@ public class Inicio extends AppCompatActivity {
                                 p.llenarPreguntasColores(getApplicationContext());
                                 p.llenarPreguntasNumeros(getApplicationContext());
                                 p.llenarPreguntasFigurasGeomtricas(getApplicationContext());
+                                p.llenarPreguntasAbecedario(getApplicationContext());
                                 Respuesta r = new Respuesta();
                                 r.llenarTablaRespuesta(getApplicationContext());
                                 r.llenarTablaRespuestaColores(getApplicationContext());

@@ -867,7 +867,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
     //Realiza random sin repetir la combinación de números
     public String[] obtenerNumeros(int numero) {
-        String[] listaNumeros = new String[11];
+        String[] listaNumeros = new String[31];
         ArrayList<Integer> list = new ArrayList<Integer>(numero);
         for (int i = 0; i <= numero; i++) {
             list.add(i);

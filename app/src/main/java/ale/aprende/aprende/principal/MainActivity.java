@@ -47,16 +47,18 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         btnRegistrar = (BootstrapButton) findViewById(R.id.btn_registrar);
         btnIngresar = (BootstrapButton) findViewById(R.id.btn_ingresar);
-
-/*
+        /*
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
-        for (int i = 1; i <= 7; i++) {
+
+
+
+        for (int i = 1; i <= 74; i++) {
             ContentValues values = new ContentValues();
             values.put("id_persona", 1);
             values.put("id_subcategoria", i);
             values.put("cantidad_preguntas", 3);
-            if (i == 7)
+            if (i == 74)
                 values.put("estado", false);
             else
                 values.put("estado", true);
@@ -70,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 est.put("id_persona", 1);
                 est.put("id_subcategoria", i);
                 est.put("cantidad_preguntas", 3);
-                if(i == 7){
+                if(i == 74){
                     est.put("estado", false);
                 }else{
                     est.put("estado", true);
@@ -83,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 }
-*/
+
 /*
         Relaciones_espaciales r = new Relaciones_espaciales();
         int numero = r.sortear(4);
@@ -124,14 +126,14 @@ public class MainActivity extends AppCompatActivity {
 
     //click en el boton para ingresar a la aplicación
     public void ingresarUsuario(View view) {
-
+/*
                     Intent intento = new Intent(MainActivity.this, Ingresar.class);
                     startActivity(intento);
-/*
+*/
 
         Intent intento = new Intent(MainActivity.this, MenuJuego.class);
         startActivity(intento);
-*/
+
     }
 
 

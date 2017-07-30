@@ -65,20 +65,6 @@ public class Pregunta {
         }
     }
 
-
-    //Este metodo obtiene la cantidad de archivos que se encuentran en un folder en especifico
-    private List obtenerCantidadArchivos(String tema, Context c) {
-        AssetManager assetManager = c.getAssets();
-        String[] archivos = new String[0];
-        try {
-            archivos = assetManager.list(tema);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        List<String> listaArchivos = new LinkedList<String>(Arrays.asList(archivos));
-        return listaArchivos;
-    }
-
     //Verifica si en la tabla pregunta hay datos
     public int verificarTablaPregunta(SQLiteDatabase db) {
         String count = "SELECT count(*) FROM Pregunta";
@@ -114,13 +100,47 @@ public class Pregunta {
         for (int i = 0; i < listaFiguraGeomtricas.length; i++) {
             for (int j = 1; j <= 10; j++) {
                 ContentValues values = new ContentValues();
-                values.put("audio", "p"+j);
-                values.put("nombre_imagen", j+".png");
+                values.put("audio", "p" + j);
+                values.put("nombre_imagen", j + ".png");
                 values.put("id_subcategoria", id_subcategoria);
                 db.insert("Pregunta", null, values);
             }
             id_subcategoria++;
         }
         db.close();
+    }
+
+    //Este metodo se encarga de llenar las preguntas de la categoria del abecedario
+    public void llenarPreguntasAbecedario(Context cm) {
+        DBHandler mdb = new DBHandler(cm);
+        SQLiteDatabase db = mdb.getWritableDatabase();
+        int id_subcategoria = 48;
+        String[] listaAbecedario = new String[]{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "nn", "o", "p", "q", "r", "s",
+                "t", "u", "v", "w", "x", "y", "z"};
+        for (int i = 0; i < listaAbecedario.length; i++) {
+            List datos = obtenerCantidadArchivos("abecedario/pregunta_abecedario/"+listaAbecedario[i], cm);
+            for (int j = 1; j <= datos.size(); j++) {
+                ContentValues values = new ContentValues();
+                values.put("audio", "pregunta");
+                values.put("nombre_imagen", j + ".png");
+                values.put("id_subcategoria", id_subcategoria);
+                db.insert("Pregunta", null, values);
+            }
+            id_subcategoria++;
+        }
+        db.close();
+    }
+
+    //Este metodo obtiene la cantidad de archivos que se encuentran en un folder en especifico
+    private List obtenerCantidadArchivos(String tema, Context c) {
+        AssetManager assetManager = c.getAssets();
+        String[] archivos = new String[0];
+        try {
+            archivos = assetManager.list(tema);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<String> listaArchivos = new LinkedList<String>(Arrays.asList(archivos));
+        return listaArchivos;
     }
 }

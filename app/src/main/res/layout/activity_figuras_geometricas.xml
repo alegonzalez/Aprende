@@ -10,4 +10,42 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="ale.aprende.aprende.Figuras_geometricas">
 
+    <ImageView
+        android:id="@+id/imgPregunta"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_centerHorizontal="true" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/imgPregunta"
+        android:layout_alignParentBottom="true"
+        android:layout_alignStart="@+id/imgPregunta"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/imgBtnPrimeraOpcion"
+            android:layout_width="100dp"
+            android:scaleType="fitXY"
+            android:layout_height="100dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:onClick="opcion1" />
+
+
+        <ImageButton
+            android:id="@+id/imgBtnSegundaOpcion"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:onClick="opcion2"
+            android:scaleType="fitXY"/>
+
+        <ImageButton
+            android:id="@+id/imgBtnTerceraOpcion"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:onClick="opcion3"
+            android:scaleType="fitXY"/>
+    </LinearLayout>
 </RelativeLayout>

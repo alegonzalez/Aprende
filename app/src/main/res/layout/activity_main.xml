@@ -47,4 +47,6 @@
         android:layout_alignEnd="@+id/btn_registrar" />
 
 
+
+
 </RelativeLayout>

@@ -127,7 +127,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                     btn_numeros.setCompoundDrawablesWithIntrinsicBounds(R.drawable.elephant, 0, 0, 0);
                 } else if (lista[i] == true && i == 3) {
                     btn_figuras_geometricas.setCompoundDrawablesWithIntrinsicBounds(R.drawable.cat, 0, 0, 0);
-                } else if (lista[i] == true && i == 3) {
+                } else if (lista[i] == true && i == 4) {
                     btn_abecedario.setCompoundDrawablesWithIntrinsicBounds(R.drawable.pig, 0, 0, 0);
                 }
             }
@@ -143,7 +143,16 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
         Cursor cursor = db.rawQuery("select * from Progreso where id_persona= " + id_usuario + " and estado = 0", null);
-        if (!(cursor.moveToFirst()) || cursor.getCount() == 0) {
+        Cursor datos = db.rawQuery("select max(id_subcategoria) as id_subcategoria from Progreso where id_persona= " + id_usuario, null);
+        int valor = datos.getCount();
+        int valor2 = cursor.getCount();
+        String id_subcategoria = " ";
+        datos.moveToFirst();
+        id_subcategoria = datos.getString(datos.getColumnIndex("id_subcategoria"));
+        if(id_subcategoria == null){
+            id_subcategoria = "";
+        }
+        if (cursor.getCount() == 0 && !(id_subcategoria.equals("74"))) {
             Relaciones_espaciales r = new Relaciones_espaciales();
             int numero = r.sortear(6);
             ContentValues values = new ContentValues();
@@ -162,7 +171,10 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             estado[4] = false;
             audioBienvenida();
         } else {
-            String id_subcategoria = cursor.getString(cursor.getColumnIndex("id_subcategoria"));
+            if (!(id_subcategoria.equals("74"))) {
+                cursor.moveToFirst();
+                id_subcategoria = cursor.getString(cursor.getColumnIndex("id_subcategoria"));
+            }
             this.id_subcategoria = id_subcategoria;
             Cursor categoria = db.rawQuery("select * from SubCategoria  where id= '" + id_subcategoria.trim() + "'", null);
             if (categoria != null && categoria.moveToFirst()) {
@@ -191,10 +203,10 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                     estado[3] = true;
                     estado[4] = false;
                 } else if (categoria.getInt(categoria.getColumnIndex("id_categoria")) == 5) {
-                    estado[0] = false;
-                    estado[1] = false;
-                    estado[2] = false;
-                    estado[3] = false;
+                    estado[0] = true;
+                    estado[1] = true;
+                    estado[2] = true;
+                    estado[3] = true;
                     estado[4] = true;
                 }
             }
@@ -303,7 +315,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         speech.setRecognitionListener(this);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES");
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 30000);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 1000);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
         speech.startListening(recognizerIntent);
@@ -356,6 +368,11 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                 abrirColores();
             } else if (result.equals("Numeros") || result.equals("numeros") || result.equals("números") || result.equals("elefante") || result.equals("Elefante")) {
                 abrirNumeros();
+            } else if (result.equals("figuras geométricas") || result.equals("Figuras geométricas") || result.equals("Gato") || result.equals("gato")) {
+                abrirFigurasGeometricas();
+            } else if (result.equals("Abecedario") || result.equals("abecedario") || result.equals("Cerdo") || result.equals("cerdo") || result.equals("Chancho")
+                    || result.equals("chancho")) {
+                abrirAbecedario();
             }
         hacerAudio();
     }
@@ -441,6 +458,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         return true;
 
     }
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();

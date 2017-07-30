@@ -416,9 +416,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener {
     }
 
     public String obtenerArchivoPregunta(String nombreImagen, String audio, String nombreSubcategoria, String direccion, Context c) {
-        AssetManager assetManager = c.getAssets();
         String direccionImagen = "";
-        String[] archivos = new String[1];
         if (direccion.equals("colores/")) {
             direccionImagen = direccion + nombreSubcategoria + "/" + nombreImagen + ".png";
         } else {

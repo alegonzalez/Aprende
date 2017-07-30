@@ -434,6 +434,7 @@ public class Ingresar extends AppCompatActivity {
             } else {
                 //verificationResult += ". La confianza es de  " + formatter.format(result.confidence);
                 setInfo(verificationResult);
+                btnDetectar.setEnabled(true);
             }
 
         }

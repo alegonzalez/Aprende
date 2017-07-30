@@ -1,6 +1,7 @@
 package ale.aprende.aprende;
 
 import android.animation.ObjectAnimator;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
@@ -168,9 +169,20 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
                     r.actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
                     r.actualizarEstadoProgreso(db, id_subcategoria, id_usuario, estadoEstadistica);
                     r.actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
+                    if (estadoEstadistica.equals("1")) {
+                        String strSQL1 = "UPDATE Progreso SET repeticion = " + 1 + " WHERE id_persona = "
+                                + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
+                        db.execSQL(strSQL1);
+                    }
                     int resultado = obtenerSiguienteSubctegoria(db);
                     if (resultado != 0) {
-                        r.insertarNuevaSubCategoria(resultado, db, id_usuario);
+                        if (estadoEstadistica.equals("0")) {
+                            r.insertarNuevaSubCategoria(resultado, db, id_usuario);
+                        } else {
+                            String strSQL = "UPDATE Progreso SET repeticion = " + 2 + " WHERE id_persona = "
+                                    + id_usuario + " and " + " id_subcategoria= " + resultado;
+                            db.execSQL(strSQL);
+                        }
                         Cursor est = r.verificarDatosTablaEstadistica(db, id_subcategoria, id_usuario);
                         id_subcategoria = "" + resultado;
                         if (est.getCount() <= 0) {
@@ -190,7 +202,20 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
                         handler.postDelayed(met, 5000);
 
                     } else {
-                        Toast.makeText(this, "Insertar figuras geometricas", Toast.LENGTH_SHORT).show();
+                        String strSQL1 = "UPDATE Progreso SET  cantidad_errores= 0, cantidad_preguntas=3, repeticion = 0 WHERE id_persona = "
+                                + id_usuario + " and " + " id_subcategoria >=13 and id_subcategoria <=43";
+                        db.execSQL(strSQL1);
+                        if (estadoEstadistica.equals("0")) {
+                            abrirFigurasGeometricas(db);
+                        } else {
+                            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                            Intent numeroActividad = new Intent(Numeros.this, Figuras_geometricas.class);
+                            numeroActividad.putExtra("id_usuario", id_usuario);
+                            numeroActividad.putExtra("genero", genero);
+                            numeroActividad.putExtra("id_subcategoria", 46);
+                            startActivity(numeroActividad);
+                            finish();
+                        }
                         return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
@@ -202,6 +227,35 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
         }
     }
 
+    private void abrirFigurasGeometricas(SQLiteDatabase db) {
+        int numero = r.sortear(3);
+        numero++;
+        if (numero == 1) {
+            numero = 44;
+        } else if (numero == 2) {
+            numero = 45;
+        } else if (numero == 3) {
+            numero = 46;
+        } else if (numero == 4) {
+            numero = 47;
+        }
+        ContentValues values = new ContentValues();
+        values.put("id_persona", id_usuario);
+        values.put("id_subcategoria", numero);
+        values.put("cantidad_preguntas", 3);
+        values.put("estado", false);
+        values.put("cantidad_errores", 0);
+        values.put("repeticion", 0);
+        db.insert("Progreso", null, values);
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        Intent geometria = new Intent(Numeros.this, Figuras_geometricas.class);
+        geometria.putExtra("id_usuario", id_usuario);
+        geometria.putExtra("genero", genero);
+        geometria.putExtra("id_subcategoria", numero);
+        startActivity(geometria);
+        finish();
+    }
+
     //Obtiene la siguiente subcategoria
     private int obtenerSiguienteSubctegoria(SQLiteDatabase db) {
         int resultado = 0;
@@ -209,11 +263,21 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
             //Aplica la logica
             Cursor datosEstadisticas = null;
             if (nombreSubcategoria.equals("9")) {
-                datosEstadisticas = db.rawQuery("select sum(cantidad_preguntas) as cantidad_preguntas" + " from Estadistica " +
-                        " where id_subcategoria >= " + 13 + " and id_subcategoria <= 22 " + " and " + " id_persona= " + id_usuario, null);
+                if (estadoEstadistica.equals("1")) {
+                    datosEstadisticas = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                            " where id_subcategoria >= " + 13 + " and " + " id_subcategoria <= 22" + " and " + " id_persona= " + id_usuario + " and repeticion=1", null);
+                } else {
+                    datosEstadisticas = db.rawQuery("select sum(cantidad_preguntas) as cantidad_preguntas" + " from Estadistica " +
+                            " where id_subcategoria >= " + 13 + " and id_subcategoria <= 22 " + " and " + " id_persona= " + id_usuario, null);
+                }
             } else {
-                datosEstadisticas = db.rawQuery("select sum(cantidad_preguntas) as cantidad_preguntas " + " from Estadistica " +
-                        " where id_subcategoria >= " + 23 + " and id_subcategoria <= 32 " + " and " + " id_persona= " + id_usuario, null);
+                if (estadoEstadistica.equals("1")) {
+                    datosEstadisticas = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                            " where id_subcategoria >= " + 23 + " and " + " id_subcategoria <= " + " and " + " id_persona= " + id_usuario + " and repeticion=1", null);
+                } else {
+                    datosEstadisticas = db.rawQuery("select sum(cantidad_preguntas) as cantidad_preguntas " + " from Estadistica " +
+                            " where id_subcategoria >= " + 23 + " and id_subcategoria <= 32 " + " and " + " id_persona= " + id_usuario, null);
+                }
             }
             if (datosEstadisticas.moveToFirst()) {
                 int cantidad_preguntas = Integer.parseInt(datosEstadisticas.getString(datosEstadisticas.getColumnIndex("cantidad_preguntas")));
@@ -262,18 +326,34 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
         Cursor subcategoriasProgreso = null;
         if (Integer.parseInt(nombreSubcategoria) <= 9) {
             //13 a la 22
-            subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
-                    " where id_subcategoria >= " + 13 + " and id_subcategoria <= 22 " + " and " + " id_persona= " + id_usuario, null);
+            if (estadoEstadistica.equals("1")) {
+                subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                        " where id_subcategoria >= " + 13 + " and id_subcategoria <= 22  and repeticion=1" + " and " + " id_persona= " + id_usuario, null);
+            } else {
+                subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                        " where id_subcategoria >= " + 13 + " and id_subcategoria <= 22 " + " and " + " id_persona= " + id_usuario, null);
+            }
+
             listaDisponible = new String[]{"13", "14", "15", "16", "17", "18", "19", "20", "21", "22"};
         } else if (Integer.parseInt(nombreSubcategoria) > 9 && Integer.parseInt(nombreSubcategoria) <= 19) {
             //23 a la 32
-            subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
-                    " where id_subcategoria >= " + 23 + " and id_subcategoria <= 32 " + " and " + " id_persona= " + id_usuario, null);
+            if (estadoEstadistica.equals("1")) {
+                subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                        " where id_subcategoria >= " + 13 + " and id_subcategoria <= 22  and repeticion=1" + " and " + " id_persona= " + id_usuario, null);
+            } else {
+                subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                        " where id_subcategoria >= " + 23 + " and id_subcategoria <= 32 " + " and " + " id_persona= " + id_usuario, null);
+            }
             listaDisponible = new String[]{"23", "24", "25", "26", "27", "28", "29", "30", "31", "32"};
         } else if (Integer.parseInt(nombreSubcategoria) > 19) {
             //33 a la 43
-            subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
-                    " where id_subcategoria >= " + 33 + " and id_subcategoria <= 43 " + " and " + " id_persona= " + id_usuario, null);
+            if (estadoEstadistica.equals("1")) {
+                subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                        " where id_subcategoria >= " + 13 + " and id_subcategoria <= 22  and repeticion=1" + " and " + " id_persona= " + id_usuario, null);
+            } else {
+                subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
+                        " where id_subcategoria >= " + 33 + " and id_subcategoria <= 43 " + " and " + " id_persona= " + id_usuario, null);
+            }
             listaDisponible = new String[]{"33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43"};
         }
         if (subcategoriasProgreso.getCount() > 0) {
@@ -298,6 +378,7 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
 
     //Este metodo es cuando el niño selecciona incorrecta la  opción
     public void incorrecto(String cantidad_preguntas, String cantidad_errores) {
+        handler.removeCallbacksAndMessages(null);
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
         if (estadoEstadistica.equals("0")) {
@@ -430,26 +511,115 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
     public String[] obtenerAudiosRespuesta(String tema, String audio, String nombreSubcategoria) {
         String[] direccionAudios = new String[3];
         String[] resultado = opcion1.getTag().toString().split("_");
-        //direccionAudios[0] = "r" + resultado[0].substring(1, resultado.length) + ".mp3";
         direccionAudios[0] = "r" + resultado[1] + ".mp3";
         String[] resultado1 = opcion2.getTag().toString().split("_");
         direccionAudios[1] = "r" + resultado1[1] + ".mp3";
-        //direccionAudios[1] = "r" + resultado1[0].substring(1, resultado1.length) + ".mp3";
         String[] resultado2 = opcion3.getTag().toString().split("_");
-        // direccionAudios[2] = "r" + resultado2[0].substring(1, resultado2.length) + ".mp3";
         direccionAudios[2] = "r" + resultado2[1] + ".mp3";
         return direccionAudios;
     }
 
     //Verificar el tipo de subcategoria
-    public void verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb, Context
-            contexto) {
+    public void verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb, Context contexto) {
         SQLiteDatabase db = mdb.getWritableDatabase();
         id_subcategoria = subcategoria.get(0);
+        if (Integer.parseInt(id_subcategoria) >= 13 && Integer.parseInt(id_subcategoria) <= 43) {
+
+        } else {
+            Cursor rep = db.rawQuery("select id from  Progreso " +
+                    " where id_subcategoria >=13 and id_subcategoria <=43 and " + "id_persona = "
+                    + id_usuario + " and repeticion= 1", null);
+            Cursor repeticion = db.rawQuery("select id_subcategoria from  Progreso " +
+                    " where id_subcategoria >=13 and id_subcategoria <=43 and " + "id_persona = "
+                    + id_usuario + " and repeticion= 2", null);
+            if (repeticion.getCount() <= 0) {
+                if (rep.getCount() == 7) {
+                    String strSQL1 = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0, repeticion = 0 WHERE id_persona = "
+                            + id_usuario + " and " + " id_subcategoria >=8 and id_subcategoria <=12";
+                    db.execSQL(strSQL1);
+                }
+                id_subcategoria = "13";
+                subcategoria.add(1, "0");
+                String strSQL = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0,repeticion=2 WHERE id_persona = "
+                        + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
+                db.execSQL(strSQL);
+            } else {
+                if (repeticion.moveToFirst()) {
+                    id_subcategoria = repeticion.getString(repeticion.getColumnIndex("id_subcategoria"));
+                    if (id_subcategoria.equals("13")) {
+                        subcategoria.add(1, "0");
+                    } else if (id_subcategoria.equals("14")) {
+                        subcategoria.add(1, "1");
+                    } else if (id_subcategoria.equals("15")) {
+                        subcategoria.add(1, "2");
+                    } else if (id_subcategoria.equals("16")) {
+                        subcategoria.add(1, "3");
+                    } else if (id_subcategoria.equals("17")) {
+                        subcategoria.add(1, "4");
+                    } else if (id_subcategoria.equals("18")) {
+                        subcategoria.add(1, "5");
+                    } else if (id_subcategoria.equals("19")) {
+                        subcategoria.add(1, "6");
+                    } else if (id_subcategoria.equals("20")) {
+                        subcategoria.add(1, "7");
+                    } else if (id_subcategoria.equals("21")) {
+                        subcategoria.add(1, "8");
+                    } else if (id_subcategoria.equals("22")) {
+                        subcategoria.add(1, "9");
+                    } else if (id_subcategoria.equals("23")) {
+                        subcategoria.add(1, "10");
+                    } else if (id_subcategoria.equals("24")) {
+                        subcategoria.add(1, "11");
+                    } else if (id_subcategoria.equals("25")) {
+                        subcategoria.add(1, "12");
+                    } else if (id_subcategoria.equals("26")) {
+                        subcategoria.add(1, "13");
+                    } else if (id_subcategoria.equals("27")) {
+                        subcategoria.add(1, "14");
+                    } else if (id_subcategoria.equals("28")) {
+                        subcategoria.add(1, "15");
+                    } else if (id_subcategoria.equals("29")) {
+                        subcategoria.add(1, "16");
+                    } else if (id_subcategoria.equals("30")) {
+                        subcategoria.add(1, "17");
+                    } else if (id_subcategoria.equals("31")) {
+                        subcategoria.add(1, "18");
+                    } else if (id_subcategoria.equals("32")) {
+                        subcategoria.add(1, "19");
+                    } else if (id_subcategoria.equals("33")) {
+                        subcategoria.add(1, "20");
+                    } else if (id_subcategoria.equals("34")) {
+                        subcategoria.add(1, "21");
+                    } else if (id_subcategoria.equals("35")) {
+                        subcategoria.add(1, "22");
+                    } else if (id_subcategoria.equals("36")) {
+                        subcategoria.add(1, "23");
+                    } else if (id_subcategoria.equals("37")) {
+                        subcategoria.add(1, "24");
+                    } else if (id_subcategoria.equals("38")) {
+                        subcategoria.add(1, "25");
+                    } else if (id_subcategoria.equals("39")) {
+                        subcategoria.add(1, "26");
+                    } else if (id_subcategoria.equals("40")) {
+                        subcategoria.add(1, "27");
+                    } else if (id_subcategoria.equals("41")) {
+                        subcategoria.add(1, "28");
+                    } else if (id_subcategoria.equals("42")) {
+                        subcategoria.add(1, "29");
+                    } else if (id_subcategoria.equals("43")) {
+                        subcategoria.add(1, "30");
+                    }
+
+                }
+            }
+            rep.close();
+            repeticion.close();
+        }
+
         List datos = new ArrayList<>();
         for (int i = 0; i <= 30; i++) {
             if (subcategoria.get(1).trim().equals("" + i)) {
-                Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(subcategoria.get(0)), mdb);
+                Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
                 Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
                 realizarPreguntas(cursor, cursor1, "" + i, mdb, contexto);
                 break;
