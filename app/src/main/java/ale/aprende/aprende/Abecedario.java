@@ -1,9 +1,12 @@
 package ale.aprende.aprende;
 
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
@@ -16,6 +19,7 @@ import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -25,15 +29,18 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.text.Normalizer;
 
 import ale.aprende.aprende.bd.DBHandler;
 
-public class Abecedario extends AppCompatActivity implements RecognitionListener {
+public class Abecedario extends AppCompatActivity implements RecognitionListener, View.OnTouchListener {
+    //declaración de variables
     private int id_usuario = 0;
     private String genero, id_subcategoria, id_pregunta, audiogeneral, nombreSubcategoria = "";
     final MediaPlayer respuesta = new MediaPlayer();
     MediaPlayer audio = new MediaPlayer();
     MediaPlayer pregunta = new MediaPlayer();
+    private Boolean eventoTocar = false;
     ImageView img;
     ImageButton opcion1, opcion2, opcion3;
     Relaciones_espaciales r = new Relaciones_espaciales();
@@ -43,6 +50,7 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
     public SpeechRecognizer speech;
     private Intent recognizerIntent;
     final Handler handler = new Handler();
+    final Handler tocarPantalla = new Handler();
     Runnable met;
     Boolean finalPregunta = false;
     Colores c = new Colores();
@@ -117,7 +125,6 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
     }
 
     public void verificarRespuesta(List datos, ImageButton opcion) {
-        String hola = nombreSubcategoria.substring(1, 2);
         if ((opcion.getTag().toString().substring(0, 1).equals(nombreSubcategoria.substring(1, 2)))) {
             //Es correcta la opcion
             verificarErrores((Cursor) datos.get(3), (SQLiteDatabase) datos.get(2), Integer.parseInt(datos.get(0).toString()), Integer.parseInt(datos.get(1).toString()));
@@ -185,7 +192,7 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
                     if (resultado != 0) {
                         if (estadoEstadistica.equals("0")) {
                             r.insertarNuevaSubCategoria(resultado, db, id_usuario);
-                        }else{
+                        } else {
                             String strSQL = "UPDATE Progreso SET repeticion = " + 2 + " WHERE id_persona = "
                                     + id_usuario + " and " + " id_subcategoria= " + resultado;
                             db.execSQL(strSQL);
@@ -210,15 +217,25 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
                         handler.postDelayed(met, 5000);
 
                     } else {
+                        tocarPantalla.removeCallbacksAndMessages(null);
                         String strSQL1 = "UPDATE Progreso SET  cantidad_errores= 0, cantidad_preguntas=3, repeticion = 0 WHERE id_persona = "
                                 + id_usuario + " and " + " id_subcategoria >=48 ";
                         db.execSQL(strSQL1);
-                        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-                        Intent numeroActividad = new Intent(Abecedario.this, MenuJuego.class);
-                        numeroActividad.putExtra("id_usuario", id_usuario);
-                        numeroActividad.putExtra("genero", genero);
-                        startActivity(numeroActividad);
-                        finish();
+                        String tipo_genero = (genero.equals("M")) ? "general/final_m.mp3" : "general/final_f.mp3";
+                        audio.reset();
+                        audioMostrar(tipo_genero, audio, amanager, this);
+                        met = new Runnable() {
+                            public void run() {
+                                amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                                Intent numeroActividad = new Intent(Abecedario.this, MenuJuego.class);
+                                numeroActividad.putExtra("id_usuario", id_usuario);
+                                numeroActividad.putExtra("genero", genero);
+                                startActivity(numeroActividad);
+                                finish();
+                            }
+                        };
+                        handler.postDelayed(met, 5000);
+
                         return;
                     }
                 }
@@ -253,8 +270,8 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
         Cursor subcategoriasProgreso = null;
         if (estadoEstadistica.equals("1")) {
             subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
-                    " where id_subcategoria >= " + 48+ " and " + " id_persona= " + id_usuario + " and repeticion= 1", null);
-        }else{
+                    " where id_subcategoria >= " + 48 + " and " + " id_persona= " + id_usuario + " and repeticion= 1", null);
+        } else {
             subcategoriasProgreso = db.rawQuery("select id_subcategoria " + " from Progreso " +
                     " where id_subcategoria >= " + 48 + " and " + " id_persona= " + id_usuario, null);
         }
@@ -317,6 +334,7 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
                             hacerAudio();
                             amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
                             finalPregunta = false;
+                            ejecutar();
                         }
                     };
                     handler.postDelayed(met, 2500);
@@ -382,13 +400,13 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
         archivoNumero = verificarCategoriaNumero((Integer.parseInt(resultadoNumeros[0])));
         String nombreTema = "";
         nombreTema = verificarLetra(temas[Integer.parseInt(resultadoTemas[0])].substring(1));
-        resultado[0] = "abecedario/" + nombreTema + "/" + nombreTema + "_" + archivoNumero + "/" + nombreTema + "_" + resultadoNumeros[0] + "_" + figuras_geometricas[Integer.parseInt(resultadoFigurasGeometricas[0])] + "_" + listaColores[Integer.parseInt(resultadoColores[0])] + ".png";
+        resultado[0] = "abecedario/" + "respuesta_abecedario/" + nombreTema + "/" + nombreTema + "_" + resultadoNumeros[0] + "_" + figuras_geometricas[Integer.parseInt(resultadoFigurasGeometricas[0])] + "_" + listaColores[Integer.parseInt(resultadoColores[0])] + ".png";
         archivoNumero = verificarCategoriaNumero((Integer.parseInt(resultadoNumeros[1])));
         nombreTema = verificarLetra(temas[Integer.parseInt(resultadoTemas[1])].substring(1));
-        resultado[1] = "abecedario/" + nombreTema + "/" + nombreTema + "_" + archivoNumero + "/" + nombreTema + "_" + resultadoNumeros[1] + "_" + figuras_geometricas[Integer.parseInt(resultadoFigurasGeometricas[1])] + "_" + listaColores[Integer.parseInt(resultadoColores[1])] + ".png";
+        resultado[1] = "abecedario/" + "respuesta_abecedario/" + nombreTema + "/" + nombreTema + "_" + resultadoNumeros[1] + "_" + figuras_geometricas[Integer.parseInt(resultadoFigurasGeometricas[1])] + "_" + listaColores[Integer.parseInt(resultadoColores[1])] + ".png";
         archivoNumero = verificarCategoriaNumero((Integer.parseInt(resultadoNumeros[2])));
         nombreTema = verificarLetra(nombreSubcategoria.substring(1));
-        resultado[2] = "abecedario/" + nombreTema + "/" + nombreTema + "_" + archivoNumero + "/" + nombreTema + "_" + resultadoNumeros[2] + "_" + figuras_geometricas[Integer.parseInt(resultadoFigurasGeometricas[2])] + "_" + listaColores[Integer.parseInt(resultadoColores[2])] + ".png";
+        resultado[2] = "abecedario/" + "respuesta_abecedario/" + nombreTema + "/" + nombreTema + "_" + resultadoNumeros[2] + "_" + figuras_geometricas[Integer.parseInt(resultadoFigurasGeometricas[2])] + "_" + listaColores[Integer.parseInt(resultadoColores[2])] + ".png";
 
         respuestas = r.obtenerNumeros(2);
         Drawable imagen = null;
@@ -469,94 +487,6 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
             }
         }
         db.close();
-    }
-
-    //Este metodo se encarga de verificar la letra del abecedario
-    private List<String> verificarCategoriaAbecedario(int id_subcategoria) {
-        List<String> datos = new ArrayList<>();
-        if (id_subcategoria == 0) {
-            datos.add(0, "48");
-            datos.add(1, "Aa");
-        } else if (id_subcategoria == 1) {
-            datos.add(0, "49");
-            datos.add(1, "Bb");
-        } else if (id_subcategoria == 2) {
-            datos.add(0, "50");
-            datos.add(1, "Cc");
-        } else if (id_subcategoria == 3) {
-            datos.add(0, "51");
-            datos.add(1, "Dd");
-        } else if (id_subcategoria == 4) {
-            datos.add(0, "52");
-            datos.add(1, "Ee");
-        } else if (id_subcategoria == 5) {
-            datos.add(0, "53");
-            datos.add(1, "Ff");
-        } else if (id_subcategoria == 6) {
-            datos.add(0, "54");
-            datos.add(1, "Gg");
-        } else if (id_subcategoria == 7) {
-            datos.add(0, "55");
-            datos.add(1, "Hh");
-        } else if (id_subcategoria == 8) {
-            datos.add(0, "56");
-            datos.add(1, "Ii");
-        } else if (id_subcategoria == 9) {
-            datos.add(0, "57");
-            datos.add(1, "Jj");
-        } else if (id_subcategoria == 10) {
-            datos.add(0, "58");
-            datos.add(1, "Kk");
-        } else if (id_subcategoria == 11) {
-            datos.add(0, "59");
-            datos.add(1, "Ll");
-        } else if (id_subcategoria == 12) {
-            datos.add(0, "60");
-            datos.add(1, "Mm");
-        } else if (id_subcategoria == 13) {
-            datos.add(0, "61");
-            datos.add(1, "Nn");
-        } else if (id_subcategoria == 14) {
-            datos.add(0, "Ññ");
-            datos.add(1, "Dd");
-        } else if (id_subcategoria == 15) {
-            datos.add(0, "63");
-            datos.add(1, "Oo");
-        } else if (id_subcategoria == 16) {
-            datos.add(0, "64");
-            datos.add(1, "Pp");
-        } else if (id_subcategoria == 17) {
-            datos.add(0, "65");
-            datos.add(1, "Qq");
-        } else if (id_subcategoria == 18) {
-            datos.add(0, "66");
-            datos.add(1, "Rr");
-        } else if (id_subcategoria == 19) {
-            datos.add(0, "67");
-            datos.add(1, "Ss");
-        } else if (id_subcategoria == 20) {
-            datos.add(0, "68");
-            datos.add(1, "Tt");
-        } else if (id_subcategoria == 21) {
-            datos.add(0, "69");
-            datos.add(1, "Uu");
-        } else if (id_subcategoria == 22) {
-            datos.add(0, "70");
-            datos.add(1, "Vv");
-        } else if (id_subcategoria == 23) {
-            datos.add(0, "71");
-            datos.add(1, "Ww");
-        } else if (id_subcategoria == 24) {
-            datos.add(0, "72");
-            datos.add(1, "Xx");
-        } else if (id_subcategoria == 25) {
-            datos.add(0, "73");
-            datos.add(1, "Yy");
-        } else if (id_subcategoria == 26) {
-            datos.add(0, "74");
-            datos.add(1, "Zz");
-        }
-        return datos;
     }
 
     //Realiza las preguntas segun tema
@@ -721,6 +651,7 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
         abecedario.putExtra("genero", genero);
         abecedario.putExtra("id_subcategoria", id_subcategoria);
         startActivity(abecedario);
+        finish();
     }
 
     //Este metodo se encarga de ocultar los botones
@@ -753,8 +684,15 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
         super.onResume();
         if (finalPregunta == true) {
             ejecutarReproduccionAudio();
-        } else if (pausa == 1) {
+        }  else if (pausa == 3) {
             pregunta.start();
+        }else if(pausa == 1){
+            audio.reset();
+            animar(opcion1);
+            animar(opcion2);
+            animar(opcion3);
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            ejecutar();
         }
     }
 
@@ -767,11 +705,14 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
         try {
             if (pregunta.isPlaying()) {
                 pregunta.pause();
+                pausa = 3;
             }
         } catch (Exception e) {
         }
 
         handler.removeCallbacksAndMessages(null);
+        tocarPantalla.removeCallbacksAndMessages(null);
+        audio.reset();
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         super.onPause();
     }
@@ -863,8 +804,15 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
 
     }
 
+    public static String limpiarString(String texto) {
+        texto = Normalizer.normalize(texto, Normalizer.Form.NFD);
+        texto = texto.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return texto;
+    }
+
     //Este metodo se encarga de validar el reconocimiento de voz
     private void verificarReconocimientoVoz(String texto) {
+        texto = limpiarString(texto);
         String nombreColor = "";
         String numero = "";
         String figura_geometrica = "";
@@ -881,16 +829,134 @@ public class Abecedario extends AppCompatActivity implements RecognitionListener
             numero = opcion3.getTag().toString().split("_")[1];
             figura_geometrica = opcion3.getTag().toString().split("_")[2];
         }
-        if (nombreSubcategoria.substring(1, 2).equals(texto) || nombreColor.equals(texto + ".png") || numero.equals(texto) || figura_geometrica.equals(texto)) {
+        if (nombreSubcategoria.substring(1, 2).equals(texto.toLowerCase()) || nombreColor.equals(texto + ".png") || numero.equals(texto) || figura_geometrica.equals(texto)) {
             //Correcto
             List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
             verificarErrores((Cursor) datos.get(3), (SQLiteDatabase) datos.get(2), Integer.parseInt(datos.get(0).toString()), Integer.parseInt(datos.get(1).toString()));
-        } else if (opcion1.getTag().toString().split("_")[0].equals(texto) || opcion1.getTag().toString().split("_")[1].equals(texto) || opcion1.getTag().toString().split("_")[2].equals(texto) || opcion1.getTag().toString().split("_")[3].equals(texto + ".png")
-                || opcion2.getTag().toString().split("_")[0].equals(texto) || opcion2.getTag().toString().split("_")[1].equals(texto) || opcion2.getTag().toString().split("_")[2].equals(texto) || opcion2.getTag().toString().split("_")[3].equals(texto + ".png")
-                || opcion3.getTag().toString().split("_")[0].equals(texto) || opcion3.getTag().toString().split("_")[1].equals(texto) || opcion3.getTag().toString().split("_")[2].equals(texto) || opcion3.getTag().toString().split("_")[3].equals(texto + ".png")) {
+        } else if (opcion1.getTag().toString().split("_")[0].equals(texto.toLowerCase()) || opcion1.getTag().toString().split("_")[1].equals(texto) || opcion1.getTag().toString().split("_")[2].equals(texto) || opcion1.getTag().toString().split("_")[3].equals(texto + ".png")
+                || opcion2.getTag().toString().split("_")[0].equals(texto.toLowerCase()) || opcion2.getTag().toString().split("_")[1].equals(texto) || opcion2.getTag().toString().split("_")[2].equals(texto) || opcion2.getTag().toString().split("_")[3].equals(texto + ".png")
+                || opcion3.getTag().toString().split("_")[0].equals(texto.toLowerCase()) || opcion3.getTag().toString().split("_")[1].equals(texto) || opcion3.getTag().toString().split("_")[2].equals(texto) || opcion3.getTag().toString().split("_")[3].equals(texto + ".png")) {
             //incorrecto
             List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
             incorrecto((String) datos.get(0), (String) datos.get(1));
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        tocarPantalla.removeCallbacksAndMessages(null);
+        super.onDestroy();
+    }
+
+    //Este metodo verifica que si la pantalla no es tocada en cierto limite de tiempo
+    public void verificarNoTocaPantalla() {
+        if (!eventoTocar) {
+            eventoTocar = false;
+            tocarPantalla.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    verificarNoTocaPantalla();
+                }
+            }, 12000);
+
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            String direccionAudio = (genero.equals("M")) ? "general/ejercicios_m.mp3" : "general/ejercicios_f.mp3";
+            reproducir(direccionAudio);
+            animar(opcion1);
+            animar(opcion2);
+            animar(opcion3);
+            tocarPantalla.removeCallbacksAndMessages(null);
+        } else {
+            tocarPantalla.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    verificarNoTocaPantalla();
+
+                }
+            }, 12000);
+            eventoTocar = false;
+        }
+    }
+
+    //Reproduce el audio si el usuario no toca la pantalla en 12 segundos
+    private void reproducir(String direccion) {
+        audio.reset();
+        try {
+            AssetFileDescriptor afd = getAssets().openFd(direccion);
+            audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            audio.prepare();
+            audio.setVolume(1, 1);
+            audio.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //animari botones
+    private void animar(ImageButton btn) {
+        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(btn, "alpha", 1f, .3f);
+        fadeOut.setDuration(1000);
+        fadeOut.setRepeatCount(ValueAnimator.INFINITE);
+        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(btn, "alpha", .3f, 1f);
+        fadeIn.setDuration(1000);
+        fadeIn.setRepeatCount(ValueAnimator.INFINITE);
+        final AnimatorSet mAnimationSet = new AnimatorSet();
+
+        mAnimationSet.play(fadeIn).after(fadeOut);
+        mAnimationSet.start();
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        int eventaction = event.getAction();
+        if (eventaction == MotionEvent.ACTION_DOWN) {
+            eventoTocar = true;
+        }
+        return true;
+
+    }
+
+    //Ejecicion del método en cierto tiempo
+    private void ejecutar() {
+        tocarPantalla.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //Do something after 100ms
+                verificarNoTocaPantalla();
+            }
+        }, 12000);
+    }
+
+    //Este metodo se encarga de reproducir cuando hay un error o aprueba un tema
+    public void audioMostrar(String direccion, MediaPlayer audio, AudioManager amanager, Context contexto) {
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        audio.reset();
+        try {
+            AssetFileDescriptor afd = contexto.getAssets().openFd(direccion);
+            audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            audio.prepare();
+            audio.setVolume(1, 1);
+            audio.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    //Metodo detecta cuando cambia de horientación
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            handler.removeCallbacks(met);
+            //respuesta.release();
+            abrirFigurasGeometricas();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            handler.removeCallbacks(met);
+            //respuesta.release();
+            abrirFigurasGeometricas();
         }
     }
 }

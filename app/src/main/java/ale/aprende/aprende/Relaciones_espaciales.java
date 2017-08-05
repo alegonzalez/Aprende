@@ -1,11 +1,14 @@
 package ale.aprende.aprende;
 
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -24,11 +27,14 @@ import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+
+import com.beardedhen.androidbootstrap.BootstrapButton;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,9 +46,10 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import ale.aprende.aprende.bd.DBHandler;
 
-public class Relaciones_espaciales extends AppCompatActivity implements RecognitionListener {
+public class Relaciones_espaciales extends AppCompatActivity implements RecognitionListener, View.OnTouchListener {
     //Declaración de variables
     private int id_usuario;
+    private Boolean eventoTocar = false;
     ImageView img;
     ImageButton opcion1, opcion2, opcion3;
     MediaPlayer pregunta = new MediaPlayer();
@@ -56,6 +63,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     private Intent recognizerIntent;
     private String estadoEstadistica = "1";
     final Handler handler = new Handler();
+    final Handler tocarPantalla = new Handler();
     Runnable met;
     Boolean finalPregunta = false;
 
@@ -71,6 +79,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         id_usuario = getIntent().getExtras().getInt("id_usuario");
         genero = getIntent().getExtras().getString("genero");
         amanager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         DBHandler mdb = new DBHandler(getApplicationContext());
         List<String> subcategoria = obtenerProgreso(mdb);
         verificarTipoSubcategoria(subcategoria, mdb);
@@ -106,6 +115,17 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 //                audio = new MediaPlayer();
             }
         });
+    }
+
+    private void ejecutar() {
+        //Ejecicion del método en cierto tiempo
+        tocarPantalla.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //Do something after 100ms
+                verificarNoTocaPantalla();
+            }
+        }, 12000);
     }
 
     //Ejecuta las respuestas
@@ -171,8 +191,10 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         } else {
             handler.removeCallbacksAndMessages(null);
             //Reproducir audio para motivar al niño
+            tocarPantalla.removeCallbacksAndMessages(null);
             String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
             audioMostrar(tipo_genero, audio, amanager, this);
+            ejecutar();
             cantidad_errores += 1;
             if (estadoEstadistica.equals("0")) {
                 ponerErroresEstadisticas(1, 0, db, id_subcategoria, id_usuario);
@@ -239,7 +261,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 } else {
                     //Tema superado
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
-                    actualizarEstadoProgreso(db, id_subcategoria, id_usuario,estadoEstadistica);
+                    actualizarEstadoProgreso(db, id_subcategoria, id_usuario, estadoEstadistica);
                     if (estadoEstadistica.equals("0")) {
                         ponerErroresEstadisticas(0, 0, db, id_subcategoria, id_usuario);
                     }
@@ -275,23 +297,25 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                         };
                         handler.postDelayed(met, 5000);
                     } else {
-                        String strSQL1 = "UPDATE Progreso SET cantidad_errores= 0, cantidad_preguntas=3, repeticion = 0 WHERE id_persona = "
+                        String strSQL1 = "UPDATE Progreso SET  cantidad_errores= 0, cantidad_preguntas=3, repeticion = 0 WHERE id_persona = "
                                 + id_usuario + " and " + " id_subcategoria >=1 and id_subcategoria <=7";
                         db.execSQL(strSQL1);
-                        if (estadoEstadistica.equals("1")) {
-                            Colores col = new Colores();
-                            int numero = sortear(4);
-                            numero++;
-                            numero = col.obtenerNumeroSubcategoria(numero);
-                            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-                            Intent color = new Intent(Relaciones_espaciales.this, Colores.class);
-                            color.putExtra("id_usuario", id_usuario);
-                            color.putExtra("genero", genero);
-                            color.putExtra("id_subcategoria", numero);
-                            startActivity(color);
-                            finish();
+                        if (estadoEstadistica.equals("0")) {
+                            String tipo_genero = (genero.equals("M")) ? "general/colores_m.mp3" : "general/colores_f.mp3";
+                            audio.reset();
+                            audioMostrar(tipo_genero, audio, amanager, this);
+                            met = new Runnable() {
+                                public void run() {
+                                    DBHandler mdb = new DBHandler(getApplicationContext());
+                                    SQLiteDatabase db1 = mdb.getWritableDatabase();
+                                    insertarColores(db1);
+                                    db1.close();
+                                }
+                            };
+                            handler.postDelayed(met, 5000);
                         } else {
-                            insertarColores(db);
+
+                            procederColores();
                         }
                         return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
@@ -362,7 +386,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                 } else {
                     //Excelente paso  la subcategoria
                     actualizarProgreso(cantidad_preguntas, 0, db, id_subcategoria, id_usuario);
-                    actualizarEstadoProgreso(db, id_subcategoria, id_usuario,estadoEstadistica);
+                    actualizarEstadoProgreso(db, id_subcategoria, id_usuario, estadoEstadistica);
                     actualizarEstadisticaTema(db, id_subcategoria, id_usuario);
                     if (estadoEstadistica.equals("1")) {
                         String strSQL1 = "UPDATE Progreso SET repeticion = " + 1 + " WHERE id_persona = "
@@ -387,6 +411,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                             estadoEstadistica = est.getString(est.getColumnIndex("estado"));
                         }
                         String tipo_genero = (genero.equals("M")) ? "general/tema_superado_m.mp3" : "general/tema_superado_f.mp3";
+                        audio.reset();
                         audioMostrar(tipo_genero, audio, amanager, this);
                         met = new Runnable() {
                             public void run() {
@@ -398,22 +423,22 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                         String strSQL1 = "UPDATE Progreso SET  cantidad_errores= 0, cantidad_preguntas=3, repeticion = 0 WHERE id_persona = "
                                 + id_usuario + " and " + " id_subcategoria >=1 and id_subcategoria <=7";
                         db.execSQL(strSQL1);
-                        if (estadoEstadistica.equals("1")) {
-                            Colores col = new Colores();
-                            int numero = sortear(4);
-                            numero++;
-                            numero = col.obtenerNumeroSubcategoria(numero);
-                            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-                            Intent color = new Intent(Relaciones_espaciales.this, Colores.class);
-                            color.putExtra("id_usuario", id_usuario);
-                            color.putExtra("genero", genero);
-                            color.putExtra("id_subcategoria", numero);
-                            startActivity(color);
-                            finish();
+                        if (estadoEstadistica.equals("0")) {
+                            String tipo_genero = (genero.equals("M")) ? "general/colores_m.mp3" : "general/colores_f.mp3";
+                            audio.reset();
+                            audioMostrar(tipo_genero, audio, amanager, this);
+                            met = new Runnable() {
+                                public void run() {
+                                    DBHandler mdb = new DBHandler(getApplicationContext());
+                                    SQLiteDatabase db1 = mdb.getWritableDatabase();
+                                    insertarColores(db1);
+                                    db1.close();
+                                }
+                            };
+                            handler.postDelayed(met, 5000);
                         } else {
-                            insertarColores(db);
+                            procederColores();
                         }
-
                         return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
@@ -424,6 +449,24 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             }
         }
     }
+
+    //Este metodo se encarga de abrir las colores y de actualizar los datos
+    private void procederColores() {
+        Colores col = new Colores();
+        int numero = sortear(4);
+        numero++;
+        numero = col.obtenerNumeroSubcategoria(numero);
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        Intent color = new Intent(Relaciones_espaciales.this, Colores.class);
+        color.putExtra("id_usuario", id_usuario);
+        color.putExtra("genero", genero);
+        color.putExtra("id_subcategoria", numero);
+        startActivity(color);
+        finish();
+    }
+
+
+
     //Insert los colores por primera vez
     private void insertarColores(SQLiteDatabase db) {
         int numero = sortear(4);
@@ -524,7 +567,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Este método actualiza el estado del progreso
-    public void actualizarEstadoProgreso(SQLiteDatabase db, String id_subcategoria, int id_usuario,String estadoEstadistica) {
+    public void actualizarEstadoProgreso(SQLiteDatabase db, String id_subcategoria, int id_usuario, String estadoEstadistica) {
         if (estadoEstadistica.equals("1")) {
             String strSQL = "UPDATE Progreso SET repeticion = " + 1 + ", estado= 1  WHERE id_persona = "
                     + id_usuario + " and " + " id_subcategoria= " + id_subcategoria;
@@ -575,7 +618,6 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         String[] audio = new String[11];
         String[] id_p = new String[11];
         int contador = 0;
-        int pasada = 0;
         if (cursor1.getCount() > 0) {
             if (cursor.moveToFirst()) {
                 for (int j = 0; j < cursor.getCount(); j++) {
@@ -756,6 +798,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     hacerAudio();
                     amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
                     finalPregunta = false;
+                    ejecutar();
                 }
             };
             handler.postDelayed(met, 5000);
@@ -796,6 +839,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
                     hacerAudio();
                     amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
                     finalPregunta = false;
+                    ejecutar();
                 }
             };
             handler.postDelayed(met, 12000);
@@ -991,57 +1035,67 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         return aleatorio.nextInt(cantidad_preguntas);
     }
 
+    //Este metodo se encarga de verificar cuando el usuario quiere volver a jugar un tema ya superado
+    private String volverJugarTema(SQLiteDatabase db) {
+        String nombreSubcategoria = "";
+        Cursor rep = db.rawQuery("select id from  Progreso " +
+                " where id_subcategoria >=1 and id_subcategoria <=7 and " + "id_persona = "
+                + id_usuario + " and repeticion= 1", null);
+        Cursor repeticion = db.rawQuery("select id_subcategoria from  Progreso " +
+                " where id_subcategoria >=1 and id_subcategoria <=7 and " + "id_persona = "
+                + id_usuario + " and repeticion= 2", null);
+        if (repeticion.getCount() <= 0) {
+            if (rep.getCount() == 7) {
+                String strSQL1 = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0, repeticion = 0 WHERE id_persona = "
+                        + id_usuario + " and " + " id_subcategoria >=1 and id_subcategoria <=7";
+                db.execSQL(strSQL1);
+            }
+            int id = sortear(6);
+            id++;
+            id_subcategoria = "" + id;
+            String strSQL = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0,repeticion=2 WHERE id_persona = "
+                    + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
+            db.execSQL(strSQL);
+        } else {
+            if (repeticion.moveToFirst()) {
+                id_subcategoria = repeticion.getString(repeticion.getColumnIndex("id_subcategoria"));
+            }
+        }
+        if (id_subcategoria.equals("1")) {
+            nombreSubcategoria = "Abajo";
+        } else if (id_subcategoria.equals("2")) {
+            nombreSubcategoria = "Adelante";
+        } else if (id_subcategoria.equals("3")) {
+            nombreSubcategoria = "Arriba";
+        } else if (id_subcategoria.equals("4")) {
+            nombreSubcategoria = "Atras";
+        } else if (id_subcategoria.equals("5")) {
+            nombreSubcategoria = "Centro";
+        } else if (id_subcategoria.equals("6")) {
+            nombreSubcategoria = "Derecha";
+        } else if (id_subcategoria.equals("7")) {
+            nombreSubcategoria = "Izquierda";
+        }
+        rep.close();
+        repeticion.close();
+        return nombreSubcategoria;
+    }
+
     //Verificar el tipo de subcategoria
     public List verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb) {
         SQLiteDatabase db = mdb.getWritableDatabase();
-        id_subcategoria = subcategoria.get(0);
-        if (Integer.parseInt(id_subcategoria) >= 1 && Integer.parseInt(id_subcategoria) <= 7) {
-
-        } else {
-            Cursor rep = db.rawQuery("select id from  Progreso " +
-                    " where id_subcategoria >=1 and id_subcategoria <=7 and " + "id_persona = "
-                    + id_usuario + " and repeticion= 1", null);
-            Cursor repeticion = db.rawQuery("select id_subcategoria from  Progreso " +
-                    " where id_subcategoria >=1 and id_subcategoria <=7 and " + "id_persona = "
-                    + id_usuario + " and repeticion= 2", null);
-            if (repeticion.getCount() <= 0) {
-                if (rep.getCount() == 7) {
-                    String strSQL1 = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0, repeticion = 0 WHERE id_persona = "
-                            + id_usuario + " and " + " id_subcategoria >=1 and id_subcategoria <=7";
-                    db.execSQL(strSQL1);
-                }
-                int id = sortear(6);
-                id++;
-                id_subcategoria = "" + id;
-                String strSQL = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0,repeticion=2 WHERE id_persona = "
-                        + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
-                db.execSQL(strSQL);
+        if (subcategoria.size() != 0) {
+            id_subcategoria = subcategoria.get(0);
+            if (Integer.parseInt(id_subcategoria) >= 1 && Integer.parseInt(id_subcategoria) <= 7) {
             } else {
-                if (repeticion.moveToFirst()) {
-                    id_subcategoria = repeticion.getString(repeticion.getColumnIndex("id_subcategoria"));
-                }
+                //Llamar al metodo
+                subcategoria.add(0, id_subcategoria);
+                subcategoria.add(1, volverJugarTema(db));
             }
-
-
-            if (id_subcategoria.equals("1")) {
-                subcategoria.add(1, "Abajo");
-            } else if (id_subcategoria.equals("2")) {
-                subcategoria.add(1, "Adelante");
-            } else if (id_subcategoria.equals("3")) {
-                subcategoria.add(1, "Arriba");
-            } else if (id_subcategoria.equals("4")) {
-                subcategoria.add(1, "Atras");
-            } else if (id_subcategoria.equals("5")) {
-                subcategoria.add(1, "Centro");
-            } else if (id_subcategoria.equals("6")) {
-                subcategoria.add(1, "Derecha");
-            } else if (id_subcategoria.equals("7")) {
-                subcategoria.add(1, "Izquierda");
-            }
-
-
-            rep.close();
-            repeticion.close();
+        } else {
+            //LLamar al metodo
+            subcategoria.add(0, id_subcategoria);
+            subcategoria.add(1, volverJugarTema(db));
         }
         List datos = new ArrayList<>();
         if ((subcategoria.get(1)).trim().equals("Abajo")) {
@@ -1201,6 +1255,8 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         actualizarProgreso(cantidad_preguntas, cantidad_errores + 1, db, id_subcategoria, id_usuario);
         String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
         audioMostrar(tipo_genero, audio, amanager, this);
+        tocarPantalla.removeCallbacksAndMessages(null);
+        ejecutar();
     }
 
     //Verifica las respuestas de las preguntas segun la subcategoria
@@ -1651,8 +1707,15 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         super.onResume();
         if (finalPregunta == true) {
             ejecutarReproduccionAudio();
-        } else if (pausa == 1) {
+        } else if (pausa == 3) {
             pregunta.start();
+        }else if(pausa == 1){
+            audio.reset();
+            animar(opcion1);
+            animar(opcion2);
+            animar(opcion3);
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            ejecutar();
         }
     }
 
@@ -1665,11 +1728,14 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         try {
             if (pregunta.isPlaying()) {
                 pregunta.pause();
+                pausa = 3;
             }
         } catch (Exception e) {
         }
 
         handler.removeCallbacksAndMessages(null);
+        tocarPantalla.removeCallbacksAndMessages(null);
+        audio.reset();
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         super.onPause();
     }
@@ -1679,6 +1745,94 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
         super.onDestroy();
         if (speech != null) {
             speech.destroy();
+        }
+        tocarPantalla.removeCallbacksAndMessages(null);
+        audio.reset();
+    }
+
+    //Este metodo verifica que si la pantalla no es tocada en cierto limite de tiempo
+    public void verificarNoTocaPantalla() {
+        if (!eventoTocar) {
+            eventoTocar = false;
+            tocarPantalla.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    verificarNoTocaPantalla();
+                }
+            }, 12000);
+
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            String direccionAudio = (genero.equals("M")) ? "general/ejercicios_m.mp3" : "general/ejercicios_f.mp3";
+            reproducir(direccionAudio);
+            animar(opcion1);
+            animar(opcion2);
+            animar(opcion3);
+            tocarPantalla.removeCallbacksAndMessages(null);
+        } else {
+            tocarPantalla.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    verificarNoTocaPantalla();
+
+                }
+            }, 12000);
+            eventoTocar = false;
+        }
+    }
+
+    private void reproducir(String direccion) {
+        audio.reset();
+        try {
+            AssetFileDescriptor afd = getAssets().openFd(direccion);
+            audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            afd.close();
+            audio.prepare();
+            audio.setVolume(1, 1);
+            audio.start();
+//            pasada = 1;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //animari botones
+    private void animar(ImageButton btn) {
+        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(btn, "alpha", 1f, .3f);
+        fadeOut.setDuration(1000);
+        fadeOut.setRepeatCount(ValueAnimator.INFINITE);
+        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(btn, "alpha", .3f, 1f);
+        fadeIn.setDuration(1000);
+        fadeIn.setRepeatCount(ValueAnimator.INFINITE);
+        final AnimatorSet mAnimationSet = new AnimatorSet();
+
+        mAnimationSet.play(fadeIn).after(fadeOut);
+        mAnimationSet.start();
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        int eventaction = event.getAction();
+        if (eventaction == MotionEvent.ACTION_DOWN) {
+            eventoTocar = true;
+        }
+        return true;
+
+    }
+    //Metodo detecta cuando cambia de horientación
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            handler.removeCallbacks(met);
+            //respuesta.release();
+            abrirRelacionesEspaciales();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            handler.removeCallbacks(met);
+            //respuesta.release();
+            abrirRelacionesEspaciales();
         }
     }
 }

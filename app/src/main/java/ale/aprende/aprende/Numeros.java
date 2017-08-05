@@ -1,11 +1,14 @@
 package ale.aprende.aprende;
 
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
@@ -18,6 +21,7 @@ import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -31,9 +35,10 @@ import java.util.List;
 
 import ale.aprende.aprende.bd.DBHandler;
 
-public class Numeros extends AppCompatActivity implements RecognitionListener {
+public class Numeros extends AppCompatActivity implements RecognitionListener, View.OnTouchListener {
     //Declaración de variables
     private int id_usuario = 0;
+    private Boolean eventoTocar = false;
     private String genero, id_subcategoria, id_pregunta, audiogeneral, nombreSubcategoria = "";
     final MediaPlayer respuesta = new MediaPlayer();
     MediaPlayer audio = new MediaPlayer();
@@ -47,6 +52,7 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
     public SpeechRecognizer speech;
     private Intent recognizerIntent;
     final Handler handler = new Handler();
+    final Handler tocarPantalla = new Handler();
     Runnable met;
     Boolean finalPregunta = false;
     Colores c = new Colores();
@@ -98,7 +104,16 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
             }
         });
     }
-
+    private void ejecutar() {
+        //Ejecicion del método en cierto tiempo
+        tocarPantalla.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //Do something after 100ms
+                verificarNoTocaPantalla();
+            }
+        }, 12000);
+    }
     //Evento click de la primera opcion
     public void opcion1(View view) {
         List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
@@ -206,15 +221,20 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
                                 + id_usuario + " and " + " id_subcategoria >=13 and id_subcategoria <=43";
                         db.execSQL(strSQL1);
                         if (estadoEstadistica.equals("0")) {
-                            abrirFigurasGeometricas(db);
-                        } else {
-                            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-                            Intent numeroActividad = new Intent(Numeros.this, Figuras_geometricas.class);
-                            numeroActividad.putExtra("id_usuario", id_usuario);
-                            numeroActividad.putExtra("genero", genero);
-                            numeroActividad.putExtra("id_subcategoria", 46);
-                            startActivity(numeroActividad);
-                            finish();
+                            String tipo_genero = (genero.equals("M")) ? "general/figuras_geometricas_m.mp3" : "general/figuras_geometricas_f.mp3";
+                            audio.reset();
+                            audioMostrar(tipo_genero, audio, amanager, this);
+                            met = new Runnable() {
+                                public void run() {
+                                    DBHandler mdb = new DBHandler(getApplicationContext());
+                                    SQLiteDatabase db1 = mdb.getWritableDatabase();
+                                    abrirFigurasGeometricas(db1);
+                                    db1.close();
+                                }
+                            };
+                            handler.postDelayed(met, 5000);
+                        }else{
+                            procederFigurasGeomtricas();
                         }
                         return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
@@ -226,7 +246,30 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
             }
         }
     }
-
+    //Este metodo se encarga de reproducir cuando hay un error o aprueba un tema
+    public void audioMostrar(String direccion, MediaPlayer audio, AudioManager amanager, Context contexto) {
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        audio.reset();
+        try {
+            AssetFileDescriptor afd = contexto.getAssets().openFd(direccion);
+            audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            audio.prepare();
+            audio.setVolume(1, 1);
+            audio.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    //Este metodo se encarga de abrir las colores y de actualizar los datos
+    private void procederFigurasGeomtricas() {
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        Intent numeroActividad = new Intent(Numeros.this, Figuras_geometricas.class);
+        numeroActividad.putExtra("id_usuario", id_usuario);
+        numeroActividad.putExtra("genero", genero);
+        numeroActividad.putExtra("id_subcategoria", 46);
+        startActivity(numeroActividad);
+        finish();
+    }
     private void abrirFigurasGeometricas(SQLiteDatabase db) {
         int numero = r.sortear(3);
         numero++;
@@ -387,6 +430,8 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
         r.actualizarProgreso(Integer.parseInt(cantidad_preguntas), Integer.parseInt(cantidad_errores) + 1, db, id_subcategoria, id_usuario);
         String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
         r.audioMostrar(tipo_genero, audio, amanager, this);
+        tocarPantalla.removeCallbacksAndMessages(null);
+        ejecutar();
     }
 
     //Establece los colores de los botones de las respuestas
@@ -495,6 +540,7 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
                             hacerAudio();
                             amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
                             finalPregunta = false;
+                            ejecutar();
                         }
                     };
                     handler.postDelayed(met, 2500);
@@ -519,103 +565,116 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
         return direccionAudios;
     }
 
+    //Este metodo se encarga de verificar cuando el usuario quiere volver a jugar un tema ya superado
+    private String volverJugarTema(SQLiteDatabase db) {
+        String nombreSubcategoria = "";
+        Cursor rep = db.rawQuery("select id from  Progreso " +
+                " where id_subcategoria >=13 and id_subcategoria <=43 and " + "id_persona = "
+                + id_usuario + " and repeticion= 1", null);
+        Cursor repeticion = db.rawQuery("select id_subcategoria from  Progreso " +
+                " where id_subcategoria >=13 and id_subcategoria <=43 and " + "id_persona = "
+                + id_usuario + " and repeticion= 2", null);
+        if (repeticion.getCount() <= 0) {
+            if (rep.getCount() == 7) {
+                String strSQL1 = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0, repeticion = 0 WHERE id_persona = "
+                        + id_usuario + " and " + " id_subcategoria >=8 and id_subcategoria <=12";
+                db.execSQL(strSQL1);
+            }
+            id_subcategoria = "13";
+            nombreSubcategoria = "0";
+            String strSQL = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0,repeticion=2 WHERE id_persona = "
+                    + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
+            db.execSQL(strSQL);
+        } else {
+            if (repeticion.moveToFirst()) {
+                id_subcategoria = repeticion.getString(repeticion.getColumnIndex("id_subcategoria"));
+                if (id_subcategoria.equals("13")) {
+                    nombreSubcategoria = "0";
+                } else if (id_subcategoria.equals("14")) {
+                    nombreSubcategoria = "1";
+                } else if (id_subcategoria.equals("15")) {
+                    nombreSubcategoria = "2";
+                } else if (id_subcategoria.equals("16")) {
+                    nombreSubcategoria = "3";
+                } else if (id_subcategoria.equals("17")) {
+                    nombreSubcategoria = "4";
+                } else if (id_subcategoria.equals("18")) {
+                    nombreSubcategoria = "5";
+                } else if (id_subcategoria.equals("19")) {
+                    nombreSubcategoria = "6";
+                } else if (id_subcategoria.equals("20")) {
+                    nombreSubcategoria = "7";
+                } else if (id_subcategoria.equals("21")) {
+                    nombreSubcategoria = "8";
+                } else if (id_subcategoria.equals("22")) {
+                    nombreSubcategoria = "9";
+                } else if (id_subcategoria.equals("23")) {
+                    nombreSubcategoria = "10";
+                } else if (id_subcategoria.equals("24")) {
+                    nombreSubcategoria = "11";
+                } else if (id_subcategoria.equals("25")) {
+                    nombreSubcategoria = "12";
+                } else if (id_subcategoria.equals("26")) {
+                    nombreSubcategoria = "13";
+                } else if (id_subcategoria.equals("27")) {
+                    nombreSubcategoria = "14";
+                } else if (id_subcategoria.equals("28")) {
+                    nombreSubcategoria = "15";
+                } else if (id_subcategoria.equals("29")) {
+                    nombreSubcategoria = "16";
+                } else if (id_subcategoria.equals("30")) {
+                    nombreSubcategoria = "17";
+                } else if (id_subcategoria.equals("31")) {
+                    nombreSubcategoria = "18";
+                } else if (id_subcategoria.equals("32")) {
+                    nombreSubcategoria = "19";
+                } else if (id_subcategoria.equals("33")) {
+                    nombreSubcategoria = "20";
+                } else if (id_subcategoria.equals("34")) {
+                    nombreSubcategoria = "21";
+                } else if (id_subcategoria.equals("35")) {
+                    nombreSubcategoria = "22";
+                } else if (id_subcategoria.equals("36")) {
+                    nombreSubcategoria = "23";
+                } else if (id_subcategoria.equals("37")) {
+                    nombreSubcategoria = "24";
+                } else if (id_subcategoria.equals("38")) {
+                    nombreSubcategoria = "25";
+                } else if (id_subcategoria.equals("39")) {
+                    nombreSubcategoria = "26";
+                } else if (id_subcategoria.equals("40")) {
+                    nombreSubcategoria = "27";
+                } else if (id_subcategoria.equals("41")) {
+                    nombreSubcategoria = "28";
+                } else if (id_subcategoria.equals("42")) {
+                    nombreSubcategoria = "29";
+                } else if (id_subcategoria.equals("43")) {
+                    nombreSubcategoria = "30";
+                }
+
+            }
+        }
+        rep.close();
+        repeticion.close();
+        return nombreSubcategoria;
+    }
+
     //Verificar el tipo de subcategoria
     public void verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb, Context contexto) {
         SQLiteDatabase db = mdb.getWritableDatabase();
-        id_subcategoria = subcategoria.get(0);
-        if (Integer.parseInt(id_subcategoria) >= 13 && Integer.parseInt(id_subcategoria) <= 43) {
-
-        } else {
-            Cursor rep = db.rawQuery("select id from  Progreso " +
-                    " where id_subcategoria >=13 and id_subcategoria <=43 and " + "id_persona = "
-                    + id_usuario + " and repeticion= 1", null);
-            Cursor repeticion = db.rawQuery("select id_subcategoria from  Progreso " +
-                    " where id_subcategoria >=13 and id_subcategoria <=43 and " + "id_persona = "
-                    + id_usuario + " and repeticion= 2", null);
-            if (repeticion.getCount() <= 0) {
-                if (rep.getCount() == 7) {
-                    String strSQL1 = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0, repeticion = 0 WHERE id_persona = "
-                            + id_usuario + " and " + " id_subcategoria >=8 and id_subcategoria <=12";
-                    db.execSQL(strSQL1);
-                }
-                id_subcategoria = "13";
-                subcategoria.add(1, "0");
-                String strSQL = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0,repeticion=2 WHERE id_persona = "
-                        + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
-                db.execSQL(strSQL);
+        if (subcategoria.size() != 0) {
+            id_subcategoria = subcategoria.get(0);
+            if (Integer.parseInt(id_subcategoria) >= 13 && Integer.parseInt(id_subcategoria) <= 43) {
             } else {
-                if (repeticion.moveToFirst()) {
-                    id_subcategoria = repeticion.getString(repeticion.getColumnIndex("id_subcategoria"));
-                    if (id_subcategoria.equals("13")) {
-                        subcategoria.add(1, "0");
-                    } else if (id_subcategoria.equals("14")) {
-                        subcategoria.add(1, "1");
-                    } else if (id_subcategoria.equals("15")) {
-                        subcategoria.add(1, "2");
-                    } else if (id_subcategoria.equals("16")) {
-                        subcategoria.add(1, "3");
-                    } else if (id_subcategoria.equals("17")) {
-                        subcategoria.add(1, "4");
-                    } else if (id_subcategoria.equals("18")) {
-                        subcategoria.add(1, "5");
-                    } else if (id_subcategoria.equals("19")) {
-                        subcategoria.add(1, "6");
-                    } else if (id_subcategoria.equals("20")) {
-                        subcategoria.add(1, "7");
-                    } else if (id_subcategoria.equals("21")) {
-                        subcategoria.add(1, "8");
-                    } else if (id_subcategoria.equals("22")) {
-                        subcategoria.add(1, "9");
-                    } else if (id_subcategoria.equals("23")) {
-                        subcategoria.add(1, "10");
-                    } else if (id_subcategoria.equals("24")) {
-                        subcategoria.add(1, "11");
-                    } else if (id_subcategoria.equals("25")) {
-                        subcategoria.add(1, "12");
-                    } else if (id_subcategoria.equals("26")) {
-                        subcategoria.add(1, "13");
-                    } else if (id_subcategoria.equals("27")) {
-                        subcategoria.add(1, "14");
-                    } else if (id_subcategoria.equals("28")) {
-                        subcategoria.add(1, "15");
-                    } else if (id_subcategoria.equals("29")) {
-                        subcategoria.add(1, "16");
-                    } else if (id_subcategoria.equals("30")) {
-                        subcategoria.add(1, "17");
-                    } else if (id_subcategoria.equals("31")) {
-                        subcategoria.add(1, "18");
-                    } else if (id_subcategoria.equals("32")) {
-                        subcategoria.add(1, "19");
-                    } else if (id_subcategoria.equals("33")) {
-                        subcategoria.add(1, "20");
-                    } else if (id_subcategoria.equals("34")) {
-                        subcategoria.add(1, "21");
-                    } else if (id_subcategoria.equals("35")) {
-                        subcategoria.add(1, "22");
-                    } else if (id_subcategoria.equals("36")) {
-                        subcategoria.add(1, "23");
-                    } else if (id_subcategoria.equals("37")) {
-                        subcategoria.add(1, "24");
-                    } else if (id_subcategoria.equals("38")) {
-                        subcategoria.add(1, "25");
-                    } else if (id_subcategoria.equals("39")) {
-                        subcategoria.add(1, "26");
-                    } else if (id_subcategoria.equals("40")) {
-                        subcategoria.add(1, "27");
-                    } else if (id_subcategoria.equals("41")) {
-                        subcategoria.add(1, "28");
-                    } else if (id_subcategoria.equals("42")) {
-                        subcategoria.add(1, "29");
-                    } else if (id_subcategoria.equals("43")) {
-                        subcategoria.add(1, "30");
-                    }
-
-                }
+                //Llamar al metodo
+                subcategoria.add(0, id_subcategoria);
+                subcategoria.add(1, volverJugarTema(db));
             }
-            rep.close();
-            repeticion.close();
+        } else {
+            //LLamar al metodo
+            subcategoria.add(0, id_subcategoria);
+            subcategoria.add(1, volverJugarTema(db));
         }
-
         List datos = new ArrayList<>();
         for (int i = 0; i <= 30; i++) {
             if (subcategoria.get(1).trim().equals("" + i)) {
@@ -794,6 +853,7 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
         abrir.putExtra("genero", genero);
         abrir.putExtra("id_subcategoria", id_subcategoria);
         startActivity(abrir);
+        finish();
     }
 
     //Este metodo se encarga de ocultar los botones
@@ -835,8 +895,15 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
         super.onResume();
         if (finalPregunta == true) {
             ejecutarReproduccionAudio();
-        } else if (pausa == 1) {
+        }  else if (pausa == 3) {
             pregunta.start();
+        }else if(pausa == 1){
+            audio.reset();
+            animar(opcion1);
+            animar(opcion2);
+            animar(opcion3);
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            ejecutar();
         }
     }
 
@@ -849,11 +916,13 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
         try {
             if (pregunta.isPlaying()) {
                 pregunta.pause();
+                pausa = 3;
             }
         } catch (Exception e) {
         }
-
         handler.removeCallbacksAndMessages(null);
+        tocarPantalla.removeCallbacksAndMessages(null);
+        audio.reset();
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         super.onPause();
     }
@@ -904,6 +973,12 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
     }
 
     @Override
+    protected void onDestroy() {
+        tocarPantalla.removeCallbacksAndMessages(null);
+        super.onDestroy();
+    }
+
+    @Override
     public void onResults(Bundle results) {
         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
         String texto = "";
@@ -947,11 +1022,98 @@ public class Numeros extends AppCompatActivity implements RecognitionListener {
         if (respuesta3[1].equals(nombreSubcategoria)) {
             nombreColor = respuesta3[0];
         }
-        List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
+
         if (texto.equals(nombreColor) || texto.equals(nombreSubcategoria)) {
+            List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
             verificarErrores((Cursor) datos.get(3), (SQLiteDatabase) datos.get(2), Integer.parseInt(datos.get(0).toString()), Integer.parseInt(datos.get(1).toString()));
         } else if (texto.equals(respuesta1[0]) || texto.equals(respuesta1[1]) || texto.equals(respuesta2[0]) || texto.equals(respuesta2[1]) || texto.equals(respuesta3[0]) || texto.equals(respuesta3[1])) {
+            List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
             incorrecto((String) datos.get(0), (String) datos.get(1));
+        }
+    }
+    //Este metodo verifica que si la pantalla no es tocada en cierto limite de tiempo
+    public void verificarNoTocaPantalla() {
+        if (!eventoTocar) {
+            eventoTocar = false;
+            tocarPantalla.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    verificarNoTocaPantalla();
+                }
+            }, 12000);
+
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            String direccionAudio = (genero.equals("M")) ? "general/ejercicios_m.mp3" : "general/ejercicios_f.mp3";
+            reproducir(direccionAudio);
+            animar(opcion1);
+            animar(opcion2);
+            animar(opcion3);
+            tocarPantalla.removeCallbacksAndMessages(null);
+        } else {
+            tocarPantalla.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    verificarNoTocaPantalla();
+
+                }
+            }, 12000);
+            eventoTocar = false;
+        }
+    }
+
+    //Reproduce el audio si el usuario no toca la pantalla en 12 segundos
+    private void reproducir(String direccion) {
+        audio.reset();
+        try {
+            AssetFileDescriptor afd = getAssets().openFd(direccion);
+            audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            audio.prepare();
+            audio.setVolume(1, 1);
+            audio.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //animari botones
+    private void animar(ImageButton btn) {
+        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(btn, "alpha", 1f, .3f);
+        fadeOut.setDuration(1000);
+        fadeOut.setRepeatCount(ValueAnimator.INFINITE);
+        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(btn, "alpha", .3f, 1f);
+        fadeIn.setDuration(1000);
+        fadeIn.setRepeatCount(ValueAnimator.INFINITE);
+        final AnimatorSet mAnimationSet = new AnimatorSet();
+
+        mAnimationSet.play(fadeIn).after(fadeOut);
+        mAnimationSet.start();
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        int eventaction = event.getAction();
+        if (eventaction == MotionEvent.ACTION_DOWN) {
+            eventoTocar = true;
+        }
+        return true;
+
+    }
+    //Metodo detecta cuando cambia de horientación
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            handler.removeCallbacks(met);
+            //respuesta.release();
+            abrirNumeros();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            handler.removeCallbacks(met);
+            //respuesta.release();
+            abrirNumeros();
         }
     }
 }

@@ -36,7 +36,8 @@
         android:text="Seleccione el género"
         android:fontFamily="sans-serif"
         android:textAllCaps="false"
-        android:textSize="18sp"/>
+        android:textSize="18sp"
+        android:textColor="@color/bootstrap_brand_secondary_fill" />
 
     <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btnCargar"
@@ -47,7 +48,7 @@
         android:text="Cargar foto"
         android:textColor="@color/boton"
         android:textSize="18dp"
-        app:bootstrapBrand="info"
+        app:bootstrapBrand="danger"
         app:bootstrapSize="lg"
         app:buttonMode="regular"
         app:roundedCorners="true"
@@ -62,12 +63,11 @@
         android:layout_width="200dp"
         android:layout_height="100dp"
         android:drawableLeft="@drawable/ic_account_circle_black"
-        android:drawableTint="@color/boton"
         android:onClick="registrar"
         android:text="Registrar"
         android:textColor="@color/boton"
         android:textSize="20sp"
-        app:bootstrapBrand="info"
+        app:bootstrapBrand="danger"
         app:bootstrapSize="lg"
         app:buttonMode="regular"
         app:roundedCorners="true"
@@ -95,7 +95,9 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_marginLeft="11dp"
-        android:layout_marginStart="11dp" />
+        android:layout_marginStart="11dp"
+        android:textColor="@color/bootstrap_brand_secondary_fill"
+        app:buttonTint="@color/bootstrap_brand_secondary_fill" />
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imgPerfil"
@@ -119,5 +121,7 @@
         android:layout_alignBaseline="@+id/rbtFemenina"
         android:layout_alignBottom="@+id/rbtFemenina"
         android:layout_alignRight="@+id/imgMasculino"
-        android:layout_alignEnd="@+id/imgMasculino" />
+        android:layout_alignEnd="@+id/imgMasculino"
+        android:textColor="@color/bootstrap_brand_secondary_fill"
+        app:buttonTint="@color/bootstrap_brand_secondary_fill" />
 </RelativeLayout>

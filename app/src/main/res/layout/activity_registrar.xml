@@ -19,7 +19,7 @@
         android:layout_height="50dp"
         android:drawableLeft="@drawable/ic_account_circle_black"
         android:text="Registrar"
-        app:bootstrapBrand="info"
+        app:bootstrapBrand="danger"
         app:bootstrapSize="lg"
         app:buttonMode="regular"
         app:roundedCorners="true"
@@ -29,78 +29,8 @@
         android:textAllCaps="false"
         android:textSize="18sp"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:id="@+id/txtSelecciónGenero"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Seleccione el género"
-        android:fontFamily="sans-serif"
-        android:textAllCaps="false"
-        android:textSize="18sp"
-        android:layout_below="@+id/btnCargar"
-        android:layout_toLeftOf="@+id/imgMasculino"
-        android:layout_toStartOf="@+id/imgMasculino" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/femenino"
-        android:id="@+id/imageView4"
-        android:layout_above="@+id/rbtFemenina"
-        android:layout_toLeftOf="@+id/txtSelecciónGenero"
-        android:layout_toStartOf="@+id/txtSelecciónGenero"
-        android:layout_marginBottom="35dp" />
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/masculino"
-        android:id="@+id/imgMasculino"
-        android:layout_below="@+id/btnCargar"
-        android:layout_toRightOf="@+id/btnRegistrar"
-        android:layout_toEndOf="@+id/btnRegistrar" />
-
-    <RadioButton
-        android:text="Niña"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/rbtFemenina"
-        android:layout_marginBottom="55dp"
-        android:layout_above="@+id/btnRegistrar"
-        android:layout_alignLeft="@+id/imageView4"
-        android:layout_alignStart="@+id/imageView4" />
-
-    <RadioButton
-        android:text="Niño"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/rbtMasculino"
-        android:layout_alignBaseline="@+id/rbtFemenina"
-        android:layout_alignBottom="@+id/rbtFemenina"
-        android:layout_alignLeft="@+id/imgMasculino"
-        android:layout_alignStart="@+id/imgMasculino" />
-
-    <com.beardedhen.androidbootstrap.BootstrapButton
-        android:id="@+id/btnCargar"
-        android:layout_width="200dp"
-        android:layout_height="50dp"
-        android:drawableLeft="@android:drawable/stat_sys_upload_done"
-        android:text="Cargar foto "
-        app:bootstrapBrand="info"
-        app:bootstrapSize="lg"
-        app:buttonMode="regular"
-        app:roundedCorners="true"
-        app:showOutline="false"
-        android:fontFamily="sans-serif"
-        android:textAllCaps="false"
-        android:textSize="18sp"
-        android:onClick="cargarFoto"
-        android:layout_marginBottom="44dp"
-        android:layout_above="@+id/imageView4"
-        android:layout_toLeftOf="@+id/imgMasculino"
-        android:layout_toStartOf="@+id/imgMasculino" />
+        android:layout_centerHorizontal="true"
+         />
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imgPerfil"
@@ -111,5 +41,90 @@
         android:layout_marginBottom="17dp"
         android:layout_above="@+id/btnCargar"
         android:layout_centerHorizontal="true" />
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btnCargar"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:drawableLeft="@android:drawable/stat_sys_upload_done"
+        android:text="Cargar foto "
+        app:bootstrapBrand="danger"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:fontFamily="sans-serif"
+        android:textAllCaps="false"
+        android:textSize="18sp"
+        android:onClick="cargarFoto"
+        android:layout_marginBottom="18dp"
+        android:layout_above="@+id/txtSelecciónGenero"
+        android:layout_alignLeft="@+id/btnRegistrar"
+        android:layout_alignStart="@+id/btnRegistrar" />
+
+    <RadioButton
+        android:text="Niña"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/rbtFemenina"
+        android:textColor="@color/bootstrap_brand_secondary_fill"
+        android:textColorHighlight="@color/bootstrap_brand_secondary_fill"
+        android:textColorHint="@color/bootstrap_brand_secondary_fill"
+        android:backgroundTint="@color/bootstrap_brand_secondary_fill"
+        android:backgroundTintMode="src_over"
+        app:buttonTint="@color/bootstrap_brand_secondary_fill"
+        android:layout_marginTop="22dp"
+        android:layout_below="@+id/imgMasculino"
+        android:layout_alignLeft="@+id/imageView4"
+        android:layout_alignStart="@+id/imageView4" />
+
+    <RadioButton
+        android:text="Niño"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/rbtMasculino"
+        android:textColor="@color/bootstrap_brand_secondary_fill"
+        app:buttonTint="@color/bootstrap_brand_secondary_fill"
+        android:layout_alignBaseline="@+id/rbtFemenina"
+        android:layout_alignBottom="@+id/rbtFemenina"
+        android:layout_alignRight="@+id/imgMasculino"
+        android:layout_alignEnd="@+id/imgMasculino"
+        android:layout_marginRight="13dp"
+        android:layout_marginEnd="13dp" />
+
+    <TextView
+        android:id="@+id/txtSelecciónGenero"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Seleccione el género"
+        android:fontFamily="sans-serif"
+        android:textAllCaps="false"
+        android:textSize="18sp"
+        android:backgroundTint="@color/bootstrap_brand_secondary_fill"
+        android:textColor="@color/bootstrap_brand_secondary_fill"
+        android:layout_above="@+id/btnRegistrar"
+        android:layout_alignRight="@+id/imgPerfil"
+        android:layout_alignEnd="@+id/imgPerfil"
+        android:layout_marginBottom="187dp" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/masculino"
+        android:id="@+id/imgMasculino"
+        android:layout_marginTop="35dp"
+        android:layout_below="@+id/btnCargar"
+        android:layout_alignRight="@+id/btnCargar"
+        android:layout_alignEnd="@+id/btnCargar" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/femenino"
+        android:id="@+id/imageView4"
+        android:layout_above="@+id/rbtFemenina"
+        android:layout_alignLeft="@+id/btnCargar"
+        android:layout_alignStart="@+id/btnCargar"
+        android:layout_alignTop="@+id/imgMasculino" />
 
 </RelativeLayout>

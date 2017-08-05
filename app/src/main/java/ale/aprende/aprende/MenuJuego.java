@@ -1,5 +1,8 @@
 package ale.aprende.aprende;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -8,17 +11,17 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.widget.RelativeLayout;
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
@@ -40,11 +43,11 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     AudioManager amanager;
     public SpeechRecognizer speech;
     private Intent recognizerIntent;
-    final Handler handler = new Handler();
+    private final Handler handler = new Handler();
     RelativeLayout r;
     private String id_subcategoria = "";
     private String genero = "M";
-    MediaPlayer audio = new MediaPlayer();
+    private MediaPlayer audio = new MediaPlayer();
     private int pasada = 0;
     private BootstrapButton btn_relaciones_espaciales, btn_colores, btn_numeros, btn_figuras_geometricas, btn_abecedario;
 
@@ -64,46 +67,125 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         btn_abecedario = (BootstrapButton) findViewById(R.id.btn_abecedario);
         //genero = getIntent().getExtras().getString("genero");
         cargarBotones();
-        //Ejecicion del método en cierto tiempo
+        //Ejecición del método en cierto tiempo
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 //Do something after 100ms
                 verificarNoTocaPantalla();
             }
-        }, 30000);
+        }, 15000);
         audio.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
-                audio.release();
+                audio.reset();
             }
         });
     }
 
     //Método onclick para el boton de relaciones espaciales
     public void relacionesEspaciales(View view) {
-        abrirRelacionesEspaciales();
+        //Ejecicion del método en cierto tiempo
+        if (lista[1] == false) {
+            String direccionAudio = (genero.equals("M")) ? "general/relaciones_espaciales_m.mp3" : "genero/relaciones_espaciales_f.mp3";
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            audio.reset();
+            reproducirAudio(direccionAudio);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    audio.reset();
+                    abrirRelacionesEspaciales();
+                }
+            }, 5000);
+        } else {
+            audio.reset();
+            abrirRelacionesEspaciales();
+        }
     }
 
     //Método onclick para el boton de colores
     public void colores(View view) {
-        abrirColores();
+        if (lista[2] == false) {
+            String direccionAudio = (genero.equals("M")) ? "general/colores_m.mp3" : "genero/colores_f.mp3";
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            audio.reset();
+            reproducirAudio(direccionAudio);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    audio.reset();
+                    abrirColores();
+                }
+            }, 5000);
+        } else {
+            audio.reset();
+            abrirColores();
+        }
     }
 
     //Método onclick para el boton de numeros
     public void numeros(View view) {
-        abrirNumeros();
+        if (lista[3] == false) {
+            String direccionAudio = (genero.equals("M")) ? "general/numeros_m.mp3" : "genero/numeros_f.mp3";
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            audio.reset();
+            reproducirAudio(direccionAudio);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    audio.reset();
+                    abrirNumeros();
+                }
+            }, 5000);
+        } else {
+            audio.reset();
+            abrirNumeros();
+        }
+
     }
 
     //Método onclick para el boton de figuras geometricas
     public void figuras_geometricas(View view) {
-        abrirFigurasGeometricas();
+        if (lista[4] == false) {
+            String direccionAudio = (genero.equals("M")) ? "general/figuras_geometricas_m.mp3" : "genero/figuras_geometricas_f.mp3";
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            audio.reset();
+            reproducirAudio(direccionAudio);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    audio.reset();
+                    abrirFigurasGeometricas();
+                }
+            }, 7000);
+        } else {
+            audio.reset();
+            abrirFigurasGeometricas();
+        }
+
     }
 
     //Método onclick para el boton de abecedario
     public void abecedario(View view) {
-        abrirAbecedario();
+        if (lista[4] == true) {
+            String direccionAudio = (genero.equals("M")) ? "general/abecedario_m.mp3" : "genero/abecedario_f.mp3";
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            audio.reset();
+            reproducirAudio(direccionAudio);
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    audio.reset();
+                    abrirAbecedario();
+                }
+            }, 7000);
+        } else {
+            audio.reset();
+            abrirAbecedario();
+        }
+
     }
 
     //Obtiene el id del usuario que se encuentra desde la imagen
@@ -149,7 +231,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         String id_subcategoria = " ";
         datos.moveToFirst();
         id_subcategoria = datos.getString(datos.getColumnIndex("id_subcategoria"));
-        if(id_subcategoria == null){
+        if (id_subcategoria == null) {
             id_subcategoria = "";
         }
         if (cursor.getCount() == 0 && !(id_subcategoria.equals("74"))) {
@@ -222,29 +304,49 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         if (pasada == 1) {
             speech = hacerAudio();
             pasada = 0;
+            audio.reset();
+            BootstrapButton btn = null;
+            btn = obtenerBoton();
+            animar(btn);
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            ejecutar();
         } else {
             hacerAudio();
             amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
         }
-
         super.onResume();
+    }
+
+    private void ejecutar() {
+        //Ejecicion del método en cierto tiempo
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //Do something after 100ms
+                verificarNoTocaPantalla();
+            }
+        }, 12000);
     }
 
     @Override
     protected void onPause() {
+        pasada = 1;
         speech.destroy();
+        handler.removeCallbacksAndMessages(null);
+        audio.reset();
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         super.onPause();
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
+        handler.removeCallbacksAndMessages(null);
+        audio.reset();
         super.onDestroy();
         if (speech != null) {
             speech.stopListening();
             speech.destroy();
         }
-
     }
 
     //Abrir la actividad de relaciones espaciales
@@ -265,6 +367,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             intento.putExtra("genero", genero);
             intento.putExtra("id_subcategoria", id_subcategoria);
             startActivity(intento);
+            finish();
         }
     }
 
@@ -277,6 +380,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             intento.putExtra("genero", genero);
             intento.putExtra("id_subcategoria", id_subcategoria);
             startActivity(intento);
+            finish();
         }
     }
 
@@ -289,6 +393,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             intento.putExtra("genero", genero);
             intento.putExtra("id_subcategoria", id_subcategoria);
             startActivity(intento);
+            finish();
         }
     }
 
@@ -301,6 +406,7 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
             intento.putExtra("genero", genero);
             intento.putExtra("id_subcategoria", id_subcategoria);
             startActivity(intento);
+            finish();
         }
     }
 
@@ -363,16 +469,91 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         String texto = "";
         for (String result : matches)
             if (result.equals("Relaciones espaciales") || result.equals("relaciones espaciales") || result.equals("Caballo") || result.equals("caballo")) {
-                abrirRelacionesEspaciales();
+                if (lista[1] == false) {
+                    String direccionAudio = (genero.equals("M")) ? "general/relaciones_espaciales_m.mp3" : "genero/relaciones_espaciales_f.mp3";
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                    audio.reset();
+                    reproducirAudio(direccionAudio);
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            audio.reset();
+                            abrirRelacionesEspaciales();
+                        }
+                    }, 5000);
+                } else {
+                    audio.reset();
+                    abrirRelacionesEspaciales();
+                }
             } else if (result.equals("Colores") || result.equals("colores") || result.equals("delfín") || result.equals("Delfín")) {
-                abrirColores();
+                if (lista[2] == false) {
+                    String direccionAudio = (genero.equals("M")) ? "general/colores_m.mp3" : "genero/colores_f.mp3";
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                    audio.reset();
+                    reproducirAudio(direccionAudio);
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            audio.reset();
+                            abrirColores();
+                        }
+                    }, 5000);
+                } else {
+                    audio.reset();
+                    abrirColores();
+                }
             } else if (result.equals("Numeros") || result.equals("numeros") || result.equals("números") || result.equals("elefante") || result.equals("Elefante")) {
-                abrirNumeros();
+                if (lista[3] == false) {
+                    String direccionAudio = (genero.equals("M")) ? "general/numeros_m.mp3" : "genero/numeros_f.mp3";
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                    audio.reset();
+                    reproducirAudio(direccionAudio);
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            audio.reset();
+                            abrirNumeros();
+                        }
+                    }, 5000);
+                } else {
+                    audio.reset();
+                    abrirNumeros();
+                }
             } else if (result.equals("figuras geométricas") || result.equals("Figuras geométricas") || result.equals("Gato") || result.equals("gato")) {
-                abrirFigurasGeometricas();
+                if (lista[4] == false) {
+                    String direccionAudio = (genero.equals("M")) ? "general/figuras_geometricas_m.mp3" : "genero/figuras_geometricas_f.mp3";
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                    audio.reset();
+                    reproducirAudio(direccionAudio);
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            audio.reset();
+                            abrirFigurasGeometricas();
+                        }
+                    }, 7000);
+                } else {
+                    audio.reset();
+                    abrirFigurasGeometricas();
+                }
             } else if (result.equals("Abecedario") || result.equals("abecedario") || result.equals("Cerdo") || result.equals("cerdo") || result.equals("Chancho")
                     || result.equals("chancho")) {
-                abrirAbecedario();
+                if (lista[4] == true) {
+                    String direccionAudio = (genero.equals("M")) ? "general/abecedario_m.mp3" : "genero/abecedario_f.mp3";
+                    amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+                    audio.reset();
+                    reproducirAudio(direccionAudio);
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            audio.reset();
+                            abrirAbecedario();
+                        }
+                    }, 7000);
+                } else {
+                    audio.reset();
+                    abrirAbecedario();
+                }
             }
         hacerAudio();
     }
@@ -435,7 +616,16 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                     //Do something after 100ms
                     verificarNoTocaPantalla();
                 }
-            }, 30000);
+            }, 15000);
+
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            if (!(audio.isPlaying())) {
+                String direccionAudio = (genero.equals("M")) ? "general/menu_m.mp3" : "general/menu_f.mp3";
+                reproducirAudio(direccionAudio);
+                BootstrapButton btn = null;
+                btn = obtenerBoton();
+                animar(btn);
+            }
         } else {
             handler.postDelayed(new Runnable() {
                 @Override
@@ -443,11 +633,30 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
                     //Do something after 100ms
                     verificarNoTocaPantalla();
                 }
-            }, 30000);
+            }, 15000);
             eventoTocar = false;
         }
     }
 
+    private BootstrapButton obtenerBoton() {
+        BootstrapButton btn = null;
+        if (lista[0] == true) {
+            btn = btn_relaciones_espaciales;
+        }
+        if (lista[1] == true) {
+            btn = btn_colores;
+        }
+        if (lista[2] == true) {
+            btn = btn_numeros;
+        }
+        if (lista[3] == true) {
+            btn = btn_figuras_geometricas;
+        }
+        if (lista[4] == true) {
+            btn = btn_abecedario;
+        }
+        return btn;
+    }
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -476,10 +685,16 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         } else {
             nombre_imagen = "general/bienvenida_f.mp3";
         }
+        reproducirAudio(nombre_imagen);
+    }
+
+
+    private void reproducirAudio(String direccionAudio) {
+        audio.reset();
         try {
-            AssetFileDescriptor afd = getAssets().openFd(nombre_imagen);
+            AssetFileDescriptor afd = this.getAssets().openFd(direccionAudio);
             audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
-            //afd.close();
+            // afd.close();
             audio.prepare();
             audio.setVolume(1, 1);
             audio.start();
@@ -487,5 +702,19 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    //Animar los botones
+    private void animar(BootstrapButton btn) {
+        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(btn, "alpha", 1f, .3f);
+        fadeOut.setDuration(1000);
+        fadeOut.setRepeatCount(ValueAnimator.INFINITE);
+        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(btn, "alpha", .3f, 1f);
+        fadeIn.setDuration(1000);
+        fadeIn.setRepeatCount(ValueAnimator.INFINITE);
+        final AnimatorSet mAnimationSet = new AnimatorSet();
+        mAnimationSet.removeAllListeners();
+        mAnimationSet.play(fadeIn).after(fadeOut);
+        mAnimationSet.start();
     }
 }

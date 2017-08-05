@@ -20,12 +20,11 @@
         android:layout_toEndOf="@+id/rbtFemenina"
         android:layout_toRightOf="@+id/rbtFemenina"
         android:drawableLeft="@drawable/ic_account_circle_black"
-        android:drawableTint="@color/boton"
         android:onClick="registrar"
         android:text="Registrar"
         android:textColor="@color/boton"
         android:textSize="18dp"
-        app:bootstrapBrand="info"
+        app:bootstrapBrand="danger"
         app:bootstrapSize="lg"
         app:buttonMode="regular"
         app:roundedCorners="true"
@@ -39,7 +38,9 @@
         android:layout_alignStart="@+id/imgMasculino"
         android:layout_below="@+id/imgMasculino"
         android:text="Niño"
-        android:textSize="18dp" />
+        android:textSize="18dp"
+        app:buttonTint="@color/bootstrap_brand_secondary_fill"
+        android:textColor="@color/bootstrap_brand_secondary_fill" />
 
     <ImageView
         android:id="@+id/imageView4"
@@ -70,7 +71,9 @@
         android:layout_alignParentStart="true"
         android:layout_below="@+id/imageView4"
         android:text="Niña"
-        android:textSize="18dp" />
+        android:textSize="18dp"
+        app:buttonTint="@color/bootstrap_brand_secondary_fill"
+        android:textColor="@color/bootstrap_brand_secondary_fill" />
 
     <TextView
         android:id="@+id/txtSelecciónGenero"
@@ -85,7 +88,8 @@
         android:text="Seleccione el género"
         android:fontFamily="sans-serif"
         android:textAllCaps="false"
-        android:textSize="18sp"/>
+        android:textSize="18sp"
+        android:textColor="@color/bootstrap_thumbnail_background" />
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imgPerfil"
@@ -106,7 +110,7 @@
         android:text="Cargar foto"
         android:textColor="@color/boton"
         android:textSize="18dp"
-        app:bootstrapBrand="info"
+        app:bootstrapBrand="danger"
         app:bootstrapSize="lg"
         app:buttonMode="regular"
         app:roundedCorners="true"

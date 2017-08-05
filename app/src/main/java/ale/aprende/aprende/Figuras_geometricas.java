@@ -1,11 +1,14 @@
 package ale.aprende.aprende;
 
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
@@ -18,20 +21,24 @@ import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
 import ale.aprende.aprende.bd.DBHandler;
 
-public class Figuras_geometricas extends AppCompatActivity implements RecognitionListener {
+public class Figuras_geometricas extends AppCompatActivity implements RecognitionListener, View.OnTouchListener {
     private int id_usuario = 0;
+    private Boolean eventoTocar = false;
     private String genero, id_subcategoria, id_pregunta, audiogeneral, nombreSubcategoria = "";
     final MediaPlayer respuesta = new MediaPlayer();
     MediaPlayer audio = new MediaPlayer();
@@ -45,6 +52,7 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
     public SpeechRecognizer speech;
     private Intent recognizerIntent;
     final Handler handler = new Handler();
+    final Handler tocarPantalla = new Handler();
     Runnable met;
     Boolean finalPregunta = false;
     Colores c = new Colores();
@@ -104,6 +112,17 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
         opcion1.setEnabled(false);
     }
 
+    private void ejecutar() {
+        //Ejecicion del método en cierto tiempo
+        tocarPantalla.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                //Do something after 100ms
+                verificarNoTocaPantalla();
+            }
+        }, 12000);
+    }
+
     //Metodo onclick del botón
     public void opcion2(View view) {
         List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
@@ -138,6 +157,8 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
         r.actualizarProgreso(Integer.parseInt(cantidad_preguntas), Integer.parseInt(cantidad_errores) + 1, db, id_subcategoria, id_usuario);
         String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
         r.audioMostrar(tipo_genero, audio, amanager, this);
+        tocarPantalla.removeCallbacksAndMessages(null);
+        ejecutar();
     }
 
     public void verificarErrores(Cursor cursor, SQLiteDatabase db, int cantidad_preguntas, int cantidad_errores) {
@@ -191,7 +212,6 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
                                     + id_usuario + " and " + " id_subcategoria= " + resultado;
                             db.execSQL(strSQL);
                         }
-
                         Cursor est = r.verificarDatosTablaEstadistica(db, id_subcategoria, id_usuario);
                         id_subcategoria = "" + resultado;
                         if (est.getCount() <= 0) {
@@ -214,18 +234,22 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
                         String strSQL1 = "UPDATE Progreso SET  cantidad_errores= 0, cantidad_preguntas=3, repeticion = 0 WHERE id_persona = "
                                 + id_usuario + " and " + " id_subcategoria >=44 and id_subcategoria <=47";
                         db.execSQL(strSQL1);
-                        if(estadoEstadistica.equals("0")){
-                            abrirAbecedario(db);
-                        }else{
-                            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
-                            Intent numeroActividad = new Intent(Figuras_geometricas.this, Abecedario.class);
-                            numeroActividad.putExtra("id_usuario", id_usuario);
-                            numeroActividad.putExtra("genero", genero);
-                            numeroActividad.putExtra("id_subcategoria", 48);
-                            startActivity(numeroActividad);
-                            finish();
+                        if (estadoEstadistica.equals("0")) {
+                            String tipo_genero = (genero.equals("M")) ? "general/abecedario_m.mp3" : "general/abecedario_f.mp3";
+                            audio.reset();
+                            audioMostrar(tipo_genero, audio, amanager, this);
+                            met = new Runnable() {
+                                public void run() {
+                                    DBHandler mdb = new DBHandler(getApplicationContext());
+                                    SQLiteDatabase db1 = mdb.getWritableDatabase();
+                                    abrirAbecedario(db1);
+                                    db1.close();
+                                }
+                            };
+                            handler.postDelayed(met, 5000);
+                        } else {
+                            procederAbecedario();
                         }
-
                         return;
                         //Insertar en la tabla de progreso  la primer subcategoria de colores
                     }
@@ -234,6 +258,32 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
                 r.actualizarProgreso(cantidad_preguntas, cantidad_errores, db, id_subcategoria, id_usuario);
                 abrirFigurasGeometricas();
             }
+        }
+    }
+
+    //Este metodo se encarga de abrir las colores y de actualizar los datos
+    private void procederAbecedario() {
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        Intent numeroActividad = new Intent(Figuras_geometricas.this, Abecedario.class);
+        numeroActividad.putExtra("id_usuario", id_usuario);
+        numeroActividad.putExtra("genero", genero);
+        numeroActividad.putExtra("id_subcategoria", 48);
+        startActivity(numeroActividad);
+        finish();
+    }
+
+    //Este metodo se encarga de reproducir cuando hay un error o aprueba un tema
+    public void audioMostrar(String direccion, MediaPlayer audio, AudioManager amanager, Context contexto) {
+        amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+        audio.reset();
+        try {
+            AssetFileDescriptor afd = contexto.getAssets().openFd(direccion);
+            audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            audio.prepare();
+            audio.setVolume(1, 1);
+            audio.start();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -330,6 +380,7 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
                             hacerAudio();
                             amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
                             finalPregunta = false;
+                            ejecutar();
                         }
                     };
                     handler.postDelayed(met, 2500);
@@ -572,63 +623,75 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
         figuras_geometricas.putExtra("genero", genero);
         figuras_geometricas.putExtra("id_subcategoria", id_subcategoria);
         startActivity(figuras_geometricas);
+        finish();
+    }
+
+    private String volverJugarTema(SQLiteDatabase db) {
+        String nombreSubcategoria = "";
+        Cursor rep = db.rawQuery("select id from  Progreso " +
+                " where id_subcategoria >=44 and id_subcategoria <=47 and " + "id_persona = "
+                + id_usuario + " and repeticion= 1", null);
+        Cursor repeticion = db.rawQuery("select id_subcategoria from  Progreso " +
+                " where id_subcategoria >=44 and id_subcategoria <=47 and " + "id_persona = "
+                + id_usuario + " and repeticion= 2", null);
+        if (repeticion.getCount() <= 0) {
+            if (rep.getCount() == 7) {
+                String strSQL1 = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0, repeticion = 0 WHERE id_persona = "
+                        + id_usuario + " and " + " id_subcategoria >=44 and id_subcategoria <=47";
+                db.execSQL(strSQL1);
+            }
+            int id = r.sortear(3);
+            if (id == 0) {
+                id_subcategoria = "44";
+                nombreSubcategoria = "Circulo";
+            } else if (id == 1) {
+                id_subcategoria = "45";
+                nombreSubcategoria = "Triangulo";
+            } else if (id == 2) {
+                id_subcategoria = "46";
+                nombreSubcategoria = "Rectangulo";
+            } else if (id == 3) {
+                id_subcategoria = "47";
+                nombreSubcategoria = "Cuadrado";
+            }
+            String strSQL = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0,repeticion=2 WHERE id_persona = "
+                    + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
+            db.execSQL(strSQL);
+        } else {
+            if (repeticion.moveToFirst()) {
+                id_subcategoria = repeticion.getString(repeticion.getColumnIndex("id_subcategoria"));
+                if (id_subcategoria.equals("44")) {
+                    nombreSubcategoria = "Circulo";
+                } else if (id_subcategoria.equals("45")) {
+                    nombreSubcategoria = "Triangulo";
+                } else if (id_subcategoria.equals("46")) {
+                    nombreSubcategoria = "Rectangulo";
+                } else if (id_subcategoria.equals("47")) {
+                    nombreSubcategoria = "Cuadrado";
+                }
+            }
+        }
+        rep.close();
+        repeticion.close();
+        return nombreSubcategoria;
     }
 
     //Verificar el tipo de subcategoria
     public void verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb, Context contexto) {
         SQLiteDatabase db = mdb.getWritableDatabase();
-        id_subcategoria = subcategoria.get(0);
-        if (Integer.parseInt(id_subcategoria) >= 44 && Integer.parseInt(id_subcategoria) <= 47) {
-
-        } else {
-            Cursor rep = db.rawQuery("select id from  Progreso " +
-                    " where id_subcategoria >=44 and id_subcategoria <=47 and " + "id_persona = "
-                    + id_usuario + " and repeticion= 1", null);
-            Cursor repeticion = db.rawQuery("select id_subcategoria from  Progreso " +
-                    " where id_subcategoria >=44 and id_subcategoria <=47 and " + "id_persona = "
-                    + id_usuario + " and repeticion= 2", null);
-            if (repeticion.getCount() <= 0) {
-                if (rep.getCount() == 7) {
-                    String strSQL1 = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0, repeticion = 0 WHERE id_persona = "
-                            + id_usuario + " and " + " id_subcategoria >=44 and id_subcategoria <=47";
-                    db.execSQL(strSQL1);
-                }
-                int id = r.sortear(3);
-                if (id == 0) {
-                    id_subcategoria = "44";
-                    subcategoria.add(1, "Circulo");
-                } else if (id == 1) {
-                    id_subcategoria = "45";
-                    subcategoria.add(1, "Triangulo");
-                } else if (id == 2) {
-                    id_subcategoria = "46";
-                    subcategoria.add(1, "Rectangulo");
-                } else if (id == 3) {
-                    id_subcategoria = "47";
-                    subcategoria.add(1, "Cuadrado");
-                }
-                String strSQL = "UPDATE Progreso SET cantidad_preguntas = 3, cantidad_errores = 0,repeticion=2 WHERE id_persona = "
-                        + id_usuario + " and " + " id_subcategoria= " + id_subcategoria + "";
-                db.execSQL(strSQL);
+        if (subcategoria.size() != 0) {
+            id_subcategoria = subcategoria.get(0);
+            if (Integer.parseInt(id_subcategoria) >= 44 && Integer.parseInt(id_subcategoria) <= 47) {
             } else {
-                if (repeticion.moveToFirst()) {
-                    id_subcategoria = repeticion.getString(repeticion.getColumnIndex("id_subcategoria"));
-                    if (id_subcategoria.equals("44")) {
-                        subcategoria.add(1, "Circulo");
-                    } else if (id_subcategoria.equals("45")) {
-                        subcategoria.add(1, "Triangulo");
-                    } else if (id_subcategoria.equals("46")) {
-                        subcategoria.add(1, "Rectangulo");
-                    } else if (id_subcategoria.equals("47")) {
-                        subcategoria.add(1, "Cuadrado");
-                    }
-                }
+                //Llamar al metodo
+                subcategoria.add(0, id_subcategoria);
+                subcategoria.add(1, volverJugarTema(db));
             }
-            rep.close();
-            repeticion.close();
+        } else {
+            //LLamar al metodo
+            subcategoria.add(0, id_subcategoria);
+            subcategoria.add(1, volverJugarTema(db));
         }
-
-        List datos = new ArrayList<>();
         if ((subcategoria.get(1)).trim().equals("Circulo")) {
             Cursor cursor = r.obtenerPreguntasRealizadas(Integer.parseInt(id_subcategoria), mdb);
             Cursor cursor1 = r.obtenerTablaPersona_pregunta(db, id_usuario);
@@ -692,8 +755,15 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
         super.onResume();
         if (finalPregunta == true) {
             ejecutarReproduccionAudio();
-        } else if (pausa == 1) {
+        }  else if (pausa == 3) {
             pregunta.start();
+        }else if(pausa == 1){
+            audio.reset();
+            animar(opcion1);
+            animar(opcion2);
+            animar(opcion3);
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, true);
+            ejecutar();
         }
     }
 
@@ -706,11 +776,14 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
         try {
             if (pregunta.isPlaying()) {
                 pregunta.pause();
+                pausa = 3;
             }
         } catch (Exception e) {
         }
 
         handler.removeCallbacksAndMessages(null);
+        tocarPantalla.removeCallbacksAndMessages(null);
+        audio.reset();
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
         super.onPause();
     }
@@ -789,10 +862,17 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
 
     }
 
+    public static String limpiarString(String texto) {
+        texto = Normalizer.normalize(texto, Normalizer.Form.NFD);
+        texto = texto.replaceAll("[\\p{InCombiningDiacriticalMarks}]", "");
+        return texto;
+    }
+
     //Este metodo se encarga de validar el reconocimiento de voz
     private void verificarReconocimientoVoz(String texto) {
         String nombreColor = "";
         String numero = "";
+        texto = limpiarString(texto);
         if (opcion1.getTag().toString().split("_")[0].equals(nombreSubcategoria)) {
             nombreColor = opcion1.getTag().toString().split("_")[1];
             numero = opcion1.getTag().toString().split("_")[2];
@@ -803,15 +883,108 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
             nombreColor = opcion3.getTag().toString().split("_")[1];
             numero = opcion3.getTag().toString().split("_")[2];
         }
-        List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         if (nombreSubcategoria.equals(texto) || nombreColor.equals(texto) || numero.equals(texto + ".png")) {
+            List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
             //Correcto
             verificarErrores((Cursor) datos.get(3), (SQLiteDatabase) datos.get(2), Integer.parseInt(datos.get(0).toString()), Integer.parseInt(datos.get(1).toString()));
         } else if (opcion1.getTag().toString().split("_")[0].equals(texto) || opcion1.getTag().toString().split("_")[1].equals(texto) || opcion1.getTag().toString().split("_")[2].equals(texto + ".png")
                 || opcion2.getTag().toString().split("_")[0].equals(texto) || opcion2.getTag().toString().split("_")[1].equals(texto) || opcion2.getTag().toString().split("_")[2].equals(texto + ".png")
                 || opcion3.getTag().toString().split("_")[0].equals(texto) || opcion3.getTag().toString().split("_")[1].equals(texto) || opcion3.getTag().toString().split("_")[2].equals(texto + ".png")) {
             //incorrecto
+            List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
             incorrecto((String) datos.get(0), (String) datos.get(1));
+        }
+    }
+
+    //Este metodo verifica que si la pantalla no es tocada en cierto limite de tiempo
+    public void verificarNoTocaPantalla() {
+        if (!eventoTocar) {
+            eventoTocar = false;
+            tocarPantalla.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    verificarNoTocaPantalla();
+                }
+            }, 12000);
+
+            amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
+            String direccionAudio = (genero.equals("M")) ? "general/ejercicios_m.mp3" : "general/ejercicios_f.mp3";
+            reproducir(direccionAudio);
+            animar(opcion1);
+            animar(opcion2);
+            animar(opcion3);
+            tocarPantalla.removeCallbacksAndMessages(null);
+        } else {
+            tocarPantalla.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    //Do something after 100ms
+                    verificarNoTocaPantalla();
+
+                }
+            }, 12000);
+            eventoTocar = false;
+        }
+    }
+
+    //Reproduce el audio si el usuario no toca la pantalla en 12 segundos
+    private void reproducir(String direccion) {
+        audio.reset();
+        try {
+            AssetFileDescriptor afd = getAssets().openFd(direccion);
+            audio.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getLength());
+            audio.prepare();
+            audio.setVolume(1, 1);
+            audio.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //animari botones
+    private void animar(ImageButton btn) {
+        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(btn, "alpha", 1f, .3f);
+        fadeOut.setDuration(1000);
+        fadeOut.setRepeatCount(ValueAnimator.INFINITE);
+        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(btn, "alpha", .3f, 1f);
+        fadeIn.setDuration(1000);
+        fadeIn.setRepeatCount(ValueAnimator.INFINITE);
+        final AnimatorSet mAnimationSet = new AnimatorSet();
+
+        mAnimationSet.play(fadeIn).after(fadeOut);
+        mAnimationSet.start();
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        int eventaction = event.getAction();
+        if (eventaction == MotionEvent.ACTION_DOWN) {
+            eventoTocar = true;
+        }
+        return true;
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        tocarPantalla.removeCallbacksAndMessages(null);
+        super.onDestroy();
+    }
+    //Metodo detecta cuando cambia de horientación
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        // Checks the orientation of the screen
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            handler.removeCallbacks(met);
+            //respuesta.release();
+            abrirFigurasGeometricas();
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            handler.removeCallbacks(met);
+            //respuesta.release();
+            abrirFigurasGeometricas();
         }
     }
 }
