@@ -41,7 +41,7 @@
         android:drawableLeft="@drawable/ingresar"
         android:onClick="ingresarUsuario"
         android:text="Ingresar"
-        app:bootstrapBrand="warning"
+        app:bootstrapBrand="danger"
         app:bootstrapSize="lg"
         app:buttonMode="regular"
         app:roundedCorners="true"

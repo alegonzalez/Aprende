@@ -20,11 +20,10 @@
         android:drawableLeft="@drawable/ic_account_circle_black"
         android:drawableTint="@color/boton"
         android:text="Actualizar datos"
-        android:textColor="@color/boton"
         android:onClick="actualizar"
         android:textSize="18sp"
         android:textAllCaps="false"
-        app:bootstrapBrand="info"
+        app:bootstrapBrand="danger"
         app:bootstrapSize="lg"
         app:buttonMode="regular"
         app:roundedCorners="true"
@@ -47,7 +46,9 @@
         android:id="@+id/rbtFemenina"
         android:layout_above="@+id/btncambiar"
         android:layout_alignLeft="@+id/imageView4"
-        android:layout_alignStart="@+id/imageView4" />
+        android:layout_alignStart="@+id/imageView4"
+        android:backgroundTint="@color/bootstrap_brand_secondary_fill"
+        app:buttonTint="@color/bootstrap_brand_secondary_fill"/>
 
     <RadioButton
         android:text="Niño"
@@ -56,14 +57,16 @@
         android:id="@+id/rbtMasculino"
         android:layout_above="@+id/btncambiar"
         android:layout_alignLeft="@+id/imgMasculino"
-        android:layout_alignStart="@+id/imgMasculino" />
+        android:layout_alignStart="@+id/imgMasculino"
+        android:backgroundTint="@color/bootstrap_brand_secondary_fill"
+        app:buttonTint="@color/bootstrap_brand_secondary_fill"/>
 
 
     <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btnCargar"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
-        app:bootstrapBrand="info"
+        app:bootstrapBrand="danger"
         app:bootstrapSize="lg"
         app:buttonMode="regular"
         app:roundedCorners="true"
@@ -71,7 +74,6 @@
         android:drawableLeft="@android:drawable/stat_sys_upload_done"
         android:onClick="cargarFoto"
         android:text="Cargar foto"
-        android:textColor="@color/boton"
         tools:ignore="HardcodedText,RtlHardcoded"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
