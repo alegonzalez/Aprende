@@ -91,16 +91,6 @@
         android:textSize="18sp"
         android:textColor="@color/bootstrap_thumbnail_background" />
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/imgPerfil"
-        android:layout_width="156dp"
-        android:layout_height="156dp"
-        android:layout_alignTop="@+id/txtSelecciónGenero"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="78dp"
-        android:layout_marginEnd="78dp" />
-
     <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btnCargar"
         android:layout_width="wrap_content"
@@ -119,4 +109,12 @@
         android:layout_alignParentBottom="true"
         android:layout_alignRight="@+id/imgPerfil"
         android:layout_alignEnd="@+id/imgPerfil" />
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/imgPerfil"
+        android:layout_width="156dp"
+        android:layout_height="156dp"
+        android:layout_alignTop="@+id/txtSelecciónGenero"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 </RelativeLayout>

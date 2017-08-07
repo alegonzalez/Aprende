@@ -8,6 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@color/boton"
     tools:context="ale.aprende.aprende.Relaciones_espaciales">
 
     <ImageView
@@ -22,16 +23,20 @@
         android:layout_alignLeft="@+id/imgPregunta"
         android:layout_alignParentBottom="true"
         android:layout_alignStart="@+id/imgPregunta"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        >
 
         <ImageButton
             android:id="@+id/imgBtnPrimeraOpcion"
             android:layout_width="100dp"
-            android:scaleType="fitXY"
+            android:layout_margin="3dp"
+            android:scaleType="centerCrop"
             android:layout_height="100dp"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:onClick="opcion1" />
+            android:onClick="opcion1"
+            android:background="@color/bootstrap_brand_secondary_fill"/>
 
 
         <ImageButton
@@ -39,14 +44,18 @@
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:onClick="opcion2"
-            android:scaleType="fitXY"/>
+            android:scaleType="centerCrop"
+            android:background="@color/bootstrap_brand_secondary_fill"
+            android:layout_margin="3dp"/>
 
         <ImageButton
             android:id="@+id/imgBtnTerceraOpcion"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:onClick="opcion3"
-            android:scaleType="fitXY"/>
+            android:scaleType="centerCrop"
+            android:layout_margin="3dp"
+            android:background="@color/bootstrap_brand_secondary_fill"/>/>
     </LinearLayout>
 
 

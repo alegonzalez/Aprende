@@ -8,6 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@color/boton"
     tools:context="ale.aprende.aprende.Figuras_geometricas">
     <ImageView
         android:id="@+id/imgPregunta"
@@ -30,8 +31,9 @@
             android:id="@+id/imgBtnPrimeraOpcion"
             android:layout_width="125dp"
             android:layout_height="125dp"
-            android:scaleType="fitXY"
+            android:scaleType="centerCrop"
             android:onClick="opcion1"
+            android:background="@color/bootstrap_brand_secondary_fill"
             />
 
         <ImageButton
@@ -39,8 +41,9 @@
             android:layout_width="125dp"
             android:layout_height="125dp"
             android:layout_marginLeft="15dp"
-            android:scaleType="fitXY"
-            android:onClick="opcion2"/>
+            android:scaleType="centerCrop"
+            android:onClick="opcion2"
+            android:background="@color/bootstrap_brand_secondary_fill"/>
     </LinearLayout>
 
     <ImageButton
@@ -49,6 +52,7 @@
         android:layout_height="125dp"
         android:layout_marginTop="130dp"
         android:layout_marginLeft="70dp"
-        android:scaleType="fitXY"
-        android:onClick="opcion3"/>
+        android:scaleType="centerCrop"
+        android:onClick="opcion3"
+        android:background="@color/bootstrap_brand_secondary_fill"/>
 </RelativeLayout>

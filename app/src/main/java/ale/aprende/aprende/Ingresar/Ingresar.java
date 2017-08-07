@@ -61,8 +61,8 @@ import ale.aprende.aprende.bd.DBHandler;
 import ale.aprende.aprende.registrar.Registrar;
 
 public class Ingresar extends AppCompatActivity {
-    private Camera mCamera;
-    private CameraPreview mPreview;
+    private Camera mCamara;
+    private CameraPreview mVista;
     private int idActualCamara = Camera.CameraInfo.CAMERA_FACING_BACK;
     private Bitmap imagen1, imagen2;
     public ProgressDialog progressDialog;
@@ -88,13 +88,13 @@ public class Ingresar extends AppCompatActivity {
             finish();
         } else {
             // crear la instancia de la camara
-            mCamera = getCameraInstance();
+            mCamara = getCameraInstance();
             if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                mCamera.setDisplayOrientation(0);
+                mCamara.setDisplayOrientation(0);
             }
             preview = (FrameLayout) findViewById(R.id.camera_preview);
-            mPreview = new CameraPreview(this, mCamera);
-            preview.addView(mPreview);
+            mVista = new CameraPreview(this, mCamara);
+            preview.addView(mVista);
             progressDialog = new ProgressDialog(this);
             progressDialog.setTitle(getString(R.string.progress_dialog_title));
             LogHelper.clearVerificationLog();
@@ -105,20 +105,20 @@ public class Ingresar extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         try {
-            if (mCamera == null) {
+            if (mCamara == null) {
                 // preview.removeAllViews();
-                mCamera = Camera.open(0);
-                //mPreview = new CameraPreview(this, mCamera);
-                //preview.addView(mPreview);
+                mCamara = Camera.open(0);
+                //mVista = new CameraPreview(this, mCamara);
+                //preview.addView(mVista);
             }
             if (estadoActividad == true) {
-                mPreview = new CameraPreview(this, mCamera);
-                preview.addView(mPreview);
-                mCamera.startPreview();
+                mVista = new CameraPreview(this, mCamara);
+                preview.addView(mVista);
+                mCamara.startPreview();
                 estadoActividad = false;
             }
 
-            //mPreview.myStartPreview();
+            //mVista.myStartPreview();
         } catch (Exception e) {
 
         }
@@ -129,15 +129,15 @@ public class Ingresar extends AppCompatActivity {
     protected void onStop() {
         estadoActividad = true;
         preview.removeAllViews();
-        mCamera.stopPreview();
+        mCamara.stopPreview();
         super.onStop();
 
     }
 
     @Override
     protected void onDestroy() {
-        if (mCamera != null) {
-            mCamera.release();
+        if (mCamara != null) {
+            mCamara.release();
         }
         super.onDestroy();
     }
@@ -153,8 +153,8 @@ public class Ingresar extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        if (mCamera != null) {
-            mPreview.getHolder().removeCallback(mPreview);
+        if (mCamara != null) {
+            mVista.getHolder().removeCallback(mVista);
 
             /*
             if (Build.VERSION.SDK_INT == 22) {
@@ -190,16 +190,16 @@ public class Ingresar extends AppCompatActivity {
                 break;
         }
         if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            mCamera.setDisplayOrientation(0);
+            mCamara.setDisplayOrientation(0);
         } else {
-            mCamera.setDisplayOrientation(90);
+            mCamara.setDisplayOrientation(90);
         }
     }
 
     //metodo onclick para reconocer el rostro
     public void deteccionRostro(View view) {
         if (btnDetectar.isEnabled()) {
-            mCamera.takePicture(null, null, mPicture);
+            mCamara.takePicture(null, null, mPicture);
         }
         btnDetectar.setEnabled(false);
     }
@@ -241,17 +241,17 @@ public class Ingresar extends AppCompatActivity {
             idActualCamara = Camera.CameraInfo.CAMERA_FACING_BACK;
         }
         if (Build.VERSION.SDK_INT != 21 || Build.VERSION.SDK_INT != 22) {
-            mCamera.stopPreview();
-            mCamera.release();
+            mCamara.stopPreview();
+            mCamara.release();
         }
-        mCamera = Camera.open(idActualCamara);
-        setCameraDisplayOrientation(Ingresar.this, idActualCamara, mCamera);
+        mCamara = Camera.open(idActualCamara);
+        setCameraDisplayOrientation(Ingresar.this, idActualCamara, mCamara);
         try {
-            mCamera.setPreviewDisplay(mPreview.getHolder());
+            mCamara.setPreviewDisplay(mVista.getHolder());
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mCamera.startPreview();
+        mCamara.startPreview();
     }
 
     //Una forma segura de obtener una instancia del objeto Cámara
@@ -322,7 +322,7 @@ public class Ingresar extends AppCompatActivity {
 
             }
             Bitmap resizedBitmap = Bitmap.createBitmap(imagen2, 0, 0, width, height, matrix, true);
-            mCamera.startPreview();
+            mCamara.startPreview();
             detect(resizedBitmap, 1);
             archivo_imagen.delete();
         }

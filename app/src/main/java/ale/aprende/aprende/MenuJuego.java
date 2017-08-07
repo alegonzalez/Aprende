@@ -44,7 +44,6 @@ public class MenuJuego extends AppCompatActivity implements View.OnClickListener
     public SpeechRecognizer speech;
     private Intent recognizerIntent;
     private final Handler handler = new Handler();
-    RelativeLayout r;
     private String id_subcategoria = "";
     private String genero = "M";
     private MediaPlayer audio = new MediaPlayer();

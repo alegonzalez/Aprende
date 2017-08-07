@@ -58,7 +58,6 @@ public class Cambiar_foto extends AppCompatActivity {
     private String nombreImagen = "";
     private UUID mFaceId0;
     public Bitmap bitmapPerfil;
-    public ImageView  rostroimg = null;
     public CircleImageView imageView;
     private Bitmap mBitmap0;
     public String fotoDetectada = "";
@@ -68,7 +67,6 @@ public class Cambiar_foto extends AppCompatActivity {
     private int cambio = 0;
     ProgressDialog progressDialog;
     protected FaceListAdapter mFaceListAdapter0;
-    Registrar r = new Registrar();
     DBHandler mdb;
 
     // Background task of face detection.

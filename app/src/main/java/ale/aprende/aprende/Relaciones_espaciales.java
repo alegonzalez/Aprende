@@ -1082,7 +1082,7 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
     }
 
     //Verificar el tipo de subcategoria
-    public List verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb) {
+    public void verificarTipoSubcategoria(List<String> subcategoria, DBHandler mdb) {
         SQLiteDatabase db = mdb.getWritableDatabase();
         if (subcategoria.size() != 0) {
             id_subcategoria = subcategoria.get(0);
@@ -1142,7 +1142,6 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             cursor1.close();
         }
         db.close();
-        return datos;
     }
 
     //Este metodo obtiene la información de la tabla persona_pregunta

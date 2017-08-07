@@ -8,6 +8,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="@color/boton"
     tools:context="ale.aprende.aprende.Relaciones_espaciales">
 
     <ImageView
@@ -19,20 +20,32 @@
         android:layout_marginLeft="104dp"
         android:layout_marginStart="104dp" />
 
+    <ImageButton
+        android:id="@+id/imgBtnTerceraOpcion"
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        android:layout_marginTop="130dp"
+        android:layout_marginLeft="70dp"
+
+        android:scaleType="centerCrop"
+        android:onClick="opcion3"
+        android:background="@color/bootstrap_brand_secondary_fill"/>/>/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
+        android:orientation="horizontal"
         android:layout_alignParentTop="true"
-        android:orientation="horizontal">
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true">
 
         <ImageButton
             android:id="@+id/imgBtnPrimeraOpcion"
             android:layout_width="125dp"
             android:layout_height="125dp"
-            android:scaleType="fitXY"
+            android:scaleType="centerCrop"
             android:onClick="opcion1"
+            android:background="@color/bootstrap_brand_secondary_fill"/>/>
              />
 
         <ImageButton
@@ -40,16 +53,8 @@
             android:layout_width="125dp"
             android:layout_height="125dp"
             android:layout_marginLeft="15dp"
-            android:scaleType="fitXY"
-            android:onClick="opcion2"/>
+            android:scaleType="centerCrop"
+            android:onClick="opcion2"
+            android:background="@color/bootstrap_brand_secondary_fill"/>/>/>
     </LinearLayout>
-
-    <ImageButton
-        android:id="@+id/imgBtnTerceraOpcion"
-        android:layout_width="125dp"
-        android:layout_height="125dp"
-        android:layout_marginTop="130dp"
-        android:layout_marginLeft="70dp"
-        android:scaleType="fitXY"
-        android:onClick="opcion3"/>
 </RelativeLayout>
