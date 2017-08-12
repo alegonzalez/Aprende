@@ -9,21 +9,20 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -40,8 +39,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -52,12 +49,12 @@ import java.util.UUID;
 
 import ale.aprende.aprende.MenuJuego;
 import ale.aprende.aprende.R;
+import ale.aprende.aprende.bd.DBHandler;
 import ale.aprende.aprende.helper.ImageHelper;
 import ale.aprende.aprende.helper.LogHelper;
 import ale.aprende.aprende.helper.SampleApp;
 import ale.aprende.aprende.principal.MainActivity;
 import ale.aprende.aprende.registrar.Cambiar_foto;
-import ale.aprende.aprende.bd.DBHandler;
 import ale.aprende.aprende.registrar.Registrar;
 
 public class Ingresar extends AppCompatActivity {
@@ -81,6 +78,12 @@ public class Ingresar extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(ale.aprende.aprende.R.layout.activity_ingresar);
         btnDetectar = (BootstrapButton) findViewById(R.id.btnDetectar);
+        BootstrapButton btnCambiarPerfil = (BootstrapButton) findViewById(R.id.btnCambiarPerfil);
+        BootstrapButton btnCambiarCamara = (BootstrapButton) findViewById(R.id.button_capture);
+        btnCambiarCamara.setBackgroundColor(Color.parseColor("#FFC107"));
+        btnDetectar.setBackgroundColor(Color.parseColor("#FFC107"));
+        btnCambiarPerfil.setBackgroundColor(Color.parseColor("#FFC107"));
+
         if (!(verificarImagenFolder())) {
             Intent intent = new Intent(Ingresar.this, Registrar.class);
             startActivity(intent);
@@ -207,7 +210,7 @@ public class Ingresar extends AppCompatActivity {
     /**
      * Verifica si la imagen se encuentra en la carpeta del dispositivo
      */
-    private boolean verificarImagenFolder() {
+    public boolean verificarImagenFolder() {
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
         int verificador = 0;

@@ -12,28 +12,13 @@
     android:background="@color/boton"
     tools:context="ale.aprende.aprende.principal.Inicio">
 
-    <ImageView
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        app:srcCompat="@drawable/inicio_aprende"
-        android:id="@+id/imgInicio"
+    <pl.droidsonroids.gif.GifTextView
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:background="@drawable/ajax_loader"
+        android:id="@+id/gifTextView"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="113dp"
-        android:contentDescription=""
-        tools:ignore="ContentDescription" />
-
-    <ProgressBar
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:id="@+id/pgCarga"
-        android:layout_alignBottom="@+id/imgInicio"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="11dp"
-        android:indeterminate="true"
-        android:indeterminateTintMode="src_atop"
-        android:indeterminateTint="@color/accent"/>
+        android:layout_marginTop="158dp" />
 
 </RelativeLayout>

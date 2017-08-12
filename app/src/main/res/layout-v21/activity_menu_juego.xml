@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rlMenuJuego"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -19,7 +20,7 @@
         android:layout_alignRight="@+id/btn_colores"
         android:layout_alignStart="@+id/btn_numeros"
         android:layout_below="@+id/btn_numeros"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="5dp"
         android:backgroundTint="@color/wallet_link_text_light"
         android:drawableLeft="@drawable/ic_https_white_48dp"
         android:onClick="figuras_geometricas"
@@ -38,7 +39,7 @@
         android:layout_alignRight="@+id/btn_colores"
         android:layout_alignStart="@+id/btn_colores"
         android:layout_below="@+id/btn_colores"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="5dp"
         android:backgroundTint="@android:color/holo_orange_dark"
         android:drawableLeft="@drawable/ic_https_white_48dp"
         android:onClick="numeros"
@@ -52,7 +53,7 @@
         android:id="@+id/btn_colores"
         android:layout_width="100dp"
         android:layout_height="95dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="5dp"
         android:layout_alignEnd="@+id/btn_relaciones_espaciales"
         android:layout_alignLeft="@+id/btn_relaciones_espaciales"
         android:layout_alignRight="@+id/btn_relaciones_espaciales"
@@ -71,7 +72,7 @@
         android:id="@+id/btn_abecedario"
 
         android:layout_height="95dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="5dp"
         android:layout_alignEnd="@+id/btn_figuras_geometricas"
         android:layout_alignLeft="@+id/btn_figuras_geometricas"
         android:layout_alignRight="@+id/btn_figuras_geometricas"
@@ -86,7 +87,8 @@
         app:buttonMode="regular"
         app:roundedCorners="true"
         app:showOutline="false"
-        android:layout_width="100dp" />
+        android:layout_width="100dp"
+        tools:ignore="HardcodedText" />
 
     <com.beardedhen.androidbootstrap.BootstrapButton
         android:id="@+id/btn_relaciones_espaciales"

@@ -1,32 +1,30 @@
 package ale.aprende.aprende;
 
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
-import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Bundle;
 import android.os.Handler;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -110,6 +108,7 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
         List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         verificarRespuesta(datos, opcion1);
         opcion1.setEnabled(false);
+        ((SQLiteDatabase) datos.get(2)).close();
     }
 
     private void ejecutar() {
@@ -128,6 +127,7 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
         List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         verificarRespuesta(datos, opcion2);
         opcion2.setEnabled(false);
+        ((SQLiteDatabase) datos.get(2)).close();
     }
 
     //Metodo onclick del botón
@@ -135,6 +135,7 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
         List datos = c.obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         verificarRespuesta(datos, opcion3);
         opcion3.setEnabled(false);
+        ((SQLiteDatabase) datos.get(2)).close();
     }
 
     public void verificarRespuesta(List datos, ImageButton opcion) {
@@ -149,6 +150,7 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
 
     //Este metodo es cuando el niño selecciona incorrecta la  opción
     public void incorrecto(String cantidad_preguntas, String cantidad_errores) {
+        handler.removeCallbacksAndMessages(null);
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
         if (estadoEstadistica.equals("0")) {
@@ -156,9 +158,11 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
         }
         r.actualizarProgreso(Integer.parseInt(cantidad_preguntas), Integer.parseInt(cantidad_errores) + 1, db, id_subcategoria, id_usuario);
         String tipo_genero = (genero.equals("M")) ? "general/intentar_m.mp3" : "general/intentar_f.mp3";
+       audio.reset();
         r.audioMostrar(tipo_genero, audio, amanager, this);
         tocarPantalla.removeCallbacksAndMessages(null);
         ejecutar();
+        db.close();
     }
 
     public void verificarErrores(Cursor cursor, SQLiteDatabase db, int cantidad_preguntas, int cantidad_errores) {
@@ -423,6 +427,7 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
             cantidad = Integer.parseInt(cursor.getString(cursor.getColumnIndex("resultado")));
         }
         cursor.close();
+        db.close();
         for (int i = 0; i < temas.length; i++) {
             if (nombreSubcategoria.equals(temas[i])) {
                 temas[i] = "";
@@ -794,11 +799,9 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
         speech.setRecognitionListener(this);
         recognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "es-ES");
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 3000);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 10000);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 10000);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 30000);
         recognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH);
-        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        recognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
         speech.startListening(recognizerIntent);
         return speech;
     }
@@ -944,16 +947,17 @@ public class Figuras_geometricas extends AppCompatActivity implements Recognitio
 
     //animari botones
     private void animar(ImageButton btn) {
-        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(btn, "alpha", 1f, .3f);
+        Animation fadeIn = new AlphaAnimation(0, 1);
+        fadeIn.setDuration(2000);
+        //fadeIn.setRepeatCount(ValueAnimator.INFINITE);
+        Animation fadeOut = new AlphaAnimation(1, 0);
+        fadeOut.setStartOffset(2000);
         fadeOut.setDuration(1000);
         fadeOut.setRepeatCount(ValueAnimator.INFINITE);
-        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(btn, "alpha", .3f, 1f);
-        fadeIn.setDuration(1000);
-        fadeIn.setRepeatCount(ValueAnimator.INFINITE);
-        final AnimatorSet mAnimationSet = new AnimatorSet();
-
-        mAnimationSet.play(fadeIn).after(fadeOut);
-        mAnimationSet.start();
+        AnimationSet animation = new AnimationSet(true);
+        animation.addAnimation(fadeIn);
+        animation.addAnimation(fadeOut);
+        btn.startAnimation(animation);
     }
 
     @Override

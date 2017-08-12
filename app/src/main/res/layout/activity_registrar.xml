@@ -13,25 +13,6 @@
     tools:context="ale.aprende.aprende.registrar.Registrar">
 
 
-    <com.beardedhen.androidbootstrap.BootstrapButton
-        android:id="@+id/btnRegistrar"
-        android:layout_width="200dp"
-        android:layout_height="50dp"
-        android:drawableLeft="@drawable/ic_account_circle_black"
-        android:text="Registrar"
-        app:bootstrapBrand="danger"
-        app:bootstrapSize="lg"
-        app:buttonMode="regular"
-        app:roundedCorners="true"
-        app:showOutline="false"
-        android:onClick="registrar"
-        android:fontFamily="sans-serif"
-        android:textAllCaps="false"
-        android:textSize="18sp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-         />
-
     <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/imgPerfil"
         android:layout_width="156dp"
@@ -48,7 +29,7 @@
         android:layout_height="50dp"
         android:drawableLeft="@android:drawable/stat_sys_upload_done"
         android:text="Cargar foto "
-        app:bootstrapBrand="danger"
+        android:backgroundTint="@color/colorBoton"
         app:bootstrapSize="lg"
         app:buttonMode="regular"
         app:roundedCorners="true"
@@ -126,5 +107,23 @@
         android:layout_alignLeft="@+id/btnCargar"
         android:layout_alignStart="@+id/btnCargar"
         android:layout_alignTop="@+id/imgMasculino" />
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/btnRegistrar"
+        android:layout_width="200dp"
+        android:layout_height="50dp"
+        android:drawableLeft="@drawable/ic_account_circle_black"
+        android:text="Registrar"
+        android:backgroundTint="@color/colorBoton"
+        app:bootstrapSize="lg"
+        app:buttonMode="regular"
+        app:roundedCorners="true"
+        app:showOutline="false"
+        android:onClick="registrar"
+        android:fontFamily="sans-serif"
+        android:textAllCaps="false"
+        android:textSize="18sp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

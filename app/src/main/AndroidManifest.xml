@@ -7,7 +7,6 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-
     <uses-feature android:name="android.hardware.camera.autofocus" />
     <uses-feature android:name="android.hardware.camera.front" />
     <uses-feature android:name="android.hardware.camera" />
@@ -29,7 +28,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".principal.MainActivity" />
+        <activity android:name=".principal.MainActivity"
+            android:label="@string/app_name"/>
         <activity
             android:name=".Ingresar.Ingresar"
             android:parentActivityName=".principal.MainActivity"
@@ -40,26 +40,29 @@
         </activity>
         <activity
             android:name=".registrar.Registrar"
-            android:parentActivityName=".principal.MainActivity">
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".principal.MainActivity" />
+            android:parentActivityName=".principal.MainActivity"
+            android:label="Registrar">
         </activity>
-        <activity android:name=".registrar.Cambiar_foto" />
+        <activity android:name=".registrar.Cambiar_foto"
+            android:label="Actualizar"/>
         <activity
             android:name=".MenuJuego"
-            android:label="@string/title_activity_menu_juego"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".Relaciones_espaciales"></activity>
+            android:label="Menu"
+             />
+        <activity android:name=".Relaciones_espaciales"
+            android:label="Relaciones espaciales"></activity>
         <activity
             android:name=".Colores"
-            android:configChanges="orientation|screenSize" />
-        <activity android:name=".Numeros" />
+            android:configChanges="orientation|screenSize"
+            android:label="Colores"/>
+        <activity android:name=".Numeros"
+            android:label="Numeros"/>
         <activity
             android:name=".Figuras_geometricas"
-            android:label="@string/title_activity_figuras_geometricas"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".Abecedario" />
+            android:label="Figuras geométricas"
+            />
+        <activity android:name=".Abecedario"
+            android:label="Abecedario"/>
     </application>
 
 </manifest>

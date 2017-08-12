@@ -1,6 +1,5 @@
 package ale.aprende.aprende;
 
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.ContentValues;
@@ -16,19 +15,19 @@ import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Bundle;
 import android.os.Handler;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
-
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -123,6 +122,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
         List datos = obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         verificarRespuesta(datos, opcion1);
         opcion1.setEnabled(false);
+        ((SQLiteDatabase) datos.get(2)).close();
     }
 
     //Evento click de la primera opcion
@@ -130,6 +130,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
         List datos = obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         verificarRespuesta(datos, opcion2);
         opcion2.setEnabled(false);
+        ((SQLiteDatabase) datos.get(2)).close();
     }
 
     //Evento click de la primera opcion
@@ -137,6 +138,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
         List datos = obtenerDatos(id_subcategoria, id_usuario, getApplicationContext());
         verificarRespuesta(datos, opcion3);
         opcion3.setEnabled(false);
+        ((SQLiteDatabase) datos.get(2)).close();
     }
 
     //Este verifica si la respuesta esta incorrecta o correcta
@@ -171,6 +173,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
         r.audioMostrar(tipo_genero, audio, amanager, this);
         tocarPantalla.removeCallbacksAndMessages(null);
         ejecutar();
+        db.close();
     }
 
     // segun el porcentaje que traiga se verifa para continuar con la cantidad de preguntas a realizar
@@ -263,7 +266,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
                                 }
                             };
                             handler.postDelayed(met, 5000);
-                        }else{
+                        } else {
                             procederNumeros();
                         }
                         return;
@@ -276,6 +279,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
             }
         }
     }
+
     //Este metodo se encarga de reproducir cuando hay un error o aprueba un tema
     public void audioMostrar(String direccion, MediaPlayer audio, AudioManager amanager, Context contexto) {
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
@@ -290,6 +294,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
             e.printStackTrace();
         }
     }
+
     //Este metodo se encarga de abrir las colores y de actualizar los datos
     private void procederNumeros() {
         amanager.setStreamMute(AudioManager.STREAM_MUSIC, false);
@@ -300,6 +305,7 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
         startActivity(numeroActividad);
         finish();
     }
+
     private void insertarNumeros(SQLiteDatabase db) {
         ContentValues values = new ContentValues();
         values.put("id_persona", id_usuario);
@@ -341,7 +347,6 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
         String[] audio = new String[11];
         String[] id_p = new String[11];
         int contador = 0;
-        MediaPlayer pregunta = new MediaPlayer();
         if (cursor1.getCount() > 0) {
             if (cursor.moveToFirst()) {
                 for (int j = 0; j < cursor.getCount(); j++) {
@@ -977,9 +982,9 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
         super.onResume();
         if (finalPregunta == true) {
             ejecutarReproduccionAudio();
-        }   else if (pausa == 3) {
+        } else if (pausa == 3) {
             pregunta.start();
-        }else if(pausa == 1){
+        } else if (pausa == 1) {
             audio.reset();
             animar(opcion1);
             animar(opcion2);
@@ -1068,16 +1073,17 @@ public class Colores extends AppCompatActivity implements RecognitionListener, V
 
     //animari botones
     private void animar(Button btn) {
-        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(btn, "alpha", 1f, .3f);
+        Animation fadeIn = new AlphaAnimation(0, 1);
+        fadeIn.setDuration(2000);
+        //fadeIn.setRepeatCount(ValueAnimator.INFINITE);
+        Animation fadeOut = new AlphaAnimation(1, 0);
+        fadeOut.setStartOffset(2000);
         fadeOut.setDuration(1000);
         fadeOut.setRepeatCount(ValueAnimator.INFINITE);
-        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(btn, "alpha", .3f, 1f);
-        fadeIn.setDuration(1000);
-        fadeIn.setRepeatCount(ValueAnimator.INFINITE);
-        final AnimatorSet mAnimationSet = new AnimatorSet();
-
-        mAnimationSet.play(fadeIn).after(fadeOut);
-        mAnimationSet.start();
+        AnimationSet animation = new AnimationSet(true);
+        animation.addAnimation(fadeIn);
+        animation.addAnimation(fadeOut);
+        btn.startAnimation(animation);
     }
 
     @Override

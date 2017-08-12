@@ -9,17 +9,18 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +31,7 @@ import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
+import com.beardedhen.androidbootstrap.BootstrapButton;
 import com.microsoft.projectoxford.face.FaceServiceClient;
 import com.microsoft.projectoxford.face.contract.Face;
 
@@ -151,6 +153,10 @@ public class Cambiar_foto extends AppCompatActivity {
         obtenerImagen(db);
         progressDialog = new ProgressDialog(this);
         progressDialog.setTitle(getString(R.string.progress_dialog_title));
+        BootstrapButton actualizar = (BootstrapButton)findViewById(R.id.btncambiar);
+        BootstrapButton btnCargar = (BootstrapButton)findViewById(R.id.btnCargar);
+        actualizar.setBackgroundColor(Color.parseColor("#FFC107"));
+        btnCargar.setBackgroundColor(Color.parseColor("#FFC107"));
     }
 
     //Obtiene la imagen del dispositivo y ademas carga los datos del usuario

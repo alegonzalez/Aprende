@@ -1,7 +1,5 @@
 package ale.aprende.aprende;
 
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.ContentValues;
 import android.content.Context;
@@ -9,40 +7,35 @@ import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
-import android.os.Messenger;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.Toast;
 
-
-import com.beardedhen.androidbootstrap.BootstrapButton;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 import ale.aprende.aprende.bd.DBHandler;
 
@@ -1181,12 +1174,6 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
             opcion1.setVisibility(View.VISIBLE);
             opcion3.setVisibility(View.VISIBLE);
         }
-        ObjectAnimator opt1 = ObjectAnimator.ofFloat(opcion1, "alpha", .3f, 1f);
-        ObjectAnimator opt2 = ObjectAnimator.ofFloat(opcion2, "alpha", .3f, 1f);
-        ObjectAnimator opt3 = ObjectAnimator.ofFloat(opcion3, "alpha", .3f, 1f);
-        opt1.setDuration(1000);
-        opt2.setDuration(1000);
-        opt3.setDuration(1000);
     }
 
     @Override
@@ -1798,16 +1785,16 @@ public class Relaciones_espaciales extends AppCompatActivity implements Recognit
 
     //animari botones
     private void animar(ImageButton btn) {
-        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(btn, "alpha", 1f, .3f);
+        Animation fadeIn = new AlphaAnimation(0, 1);
+        fadeIn.setDuration(2000);
+        Animation fadeOut = new AlphaAnimation(1, 0);
+        fadeOut.setStartOffset(2000);
         fadeOut.setDuration(1000);
         fadeOut.setRepeatCount(ValueAnimator.INFINITE);
-        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(btn, "alpha", .3f, 1f);
-        fadeIn.setDuration(1000);
-        fadeIn.setRepeatCount(ValueAnimator.INFINITE);
-        final AnimatorSet mAnimationSet = new AnimatorSet();
-
-        mAnimationSet.play(fadeIn).after(fadeOut);
-        mAnimationSet.start();
+        AnimationSet animation = new AnimationSet(true);
+        animation.addAnimation(fadeIn);
+        animation.addAnimation(fadeOut);
+        btn.startAnimation(animation);
     }
 
     @Override

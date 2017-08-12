@@ -2,37 +2,22 @@ package ale.aprende.aprende.principal;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.multidex.MultiDex;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.Pair;
 import android.view.View;
-import android.view.animation.Animation;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.Toast;
 
-
 import com.beardedhen.androidbootstrap.BootstrapButton;
-import com.beardedhen.androidbootstrap.TypefaceProvider;
 
-
-import ale.aprende.aprende.Relaciones_espaciales;
-import ale.aprende.aprende.bd.Categoria;
 import ale.aprende.aprende.Ingresar.Ingresar;
-import ale.aprende.aprende.MenuJuego;
 import ale.aprende.aprende.R;
-import ale.aprende.aprende.bd.DBHandler;
-import ale.aprende.aprende.bd.Pregunta;
-import ale.aprende.aprende.bd.Respuesta;
 import ale.aprende.aprende.registrar.Registrar;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,12 +27,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        btnRegistrar = (BootstrapButton) findViewById(R.id.btn_registrar);
+        btnRegistrar = (BootstrapButton) findViewById(R.id.btn_registrarMenu);
         btnIngresar = (BootstrapButton) findViewById(R.id.btn_ingresar);
-        /*
+        btnRegistrar.setBackgroundColor(Color.parseColor("#FFC107"));
+        btnIngresar.setBackgroundColor(Color.parseColor("#FFC107"));
+/*
         DBHandler mdb = new DBHandler(getApplicationContext());
         SQLiteDatabase db = mdb.getWritableDatabase();
 
@@ -126,14 +112,14 @@ public class MainActivity extends AppCompatActivity {
 
     //click en el boton para ingresar a la aplicación
     public void ingresarUsuario(View view) {
-/*
-                    Intent intento = new Intent(MainActivity.this, Ingresar.class);
-                    startActivity(intento);
-*/
 
-        Intent intento = new Intent(MainActivity.this, MenuJuego.class);
+        Intent intento = new Intent(MainActivity.this, Ingresar.class);
         startActivity(intento);
 
+/*
+        Intent intento = new Intent(MainActivity.this, MenuJuego.class);
+        startActivity(intento);
+*/
     }
 
 
@@ -148,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-            // Toast.makeText(this, "Permiso concedido", Toast.LENGTH_SHORT).show();
         } else {
             explicarUsoPermiso();
             solicitarPermisoAlmacenamiento("Pedimos los permisos");
@@ -205,5 +190,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         mensaje.show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+        super.onBackPressed();
     }
 }

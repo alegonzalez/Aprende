@@ -14,7 +14,7 @@
 
 
     <com.beardedhen.androidbootstrap.BootstrapButton
-        android:id="@+id/btn_registrar"
+        android:id="@+id/btn_registrarMenu"
         android:layout_width="200dp"
         android:layout_height="100dp"
         android:layout_alignParentTop="true"
@@ -34,9 +34,9 @@
         android:id="@+id/btn_ingresar"
         android:layout_width="200dp"
         android:layout_height="100dp"
-        android:layout_alignEnd="@+id/btn_registrar"
+        android:layout_alignEnd="@+id/btn_registrarMenu"
         android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/btn_registrar"
+        android:layout_alignRight="@+id/btn_registrarMenu"
         android:layout_marginBottom="40dp"
         android:drawableLeft="@drawable/ingresar"
         android:onClick="ingresarUsuario"
